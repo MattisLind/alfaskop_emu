@@ -12,11 +12,15 @@ The system software diskette 4016 has been found at Dansk Datahistorisk Förenin
 and provide it to use.
 
 The basic idea is to use MAME to emulate the CP and the FD. All technical documentation and schematics are available and is scanned.
+
+![Alfaskop in MAME](https://i.imgur.com/yO6jXmll.png)
+
 Lacking is the IPL BOOT ROM of the real hardware unless DDHF happens to have a CP4101 and FD4120 in their possession.
 
 To communicate between the various entities of the cluster a TCP variant of the two wire bus will be created eumlating the 32 ports of the 
 CP. To interface to the real Alfaskop DU 4110 a two-wire bus to TCP bridge will be created. In the first implementation it will
 use an Ericsson TWIB PC board connected to a small uController and a Raspberry Pi Zero W.
 
+![Two wire connector](https://i.imgur.com/YzAfB2gl.png)
 
 
