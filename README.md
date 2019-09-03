@@ -40,3 +40,7 @@ The intention is to connect a STM32 uController to the board and interface it wi
 
 The Alfaskop series of terminals were programmed in a spcial language, SPL. From the beginning this meant StanSAAB programming Language and was a modified variant of PL/1 programming language. 
 
+## 3270 protocol
+
+The Alfaskop terminals were mostly used for emulating the IBM 3270 terminal series. Although other emulations were available. The software provided from DDHF is the 3270 BSC variant. The 3270 data stream is described in [this](http://bitsavers.trailing-edge.com/pdf/ibm/3270/GA23-0059-4_3270_Data_Stream_Programmers_Reference_Dec88.pdf) document.
+
