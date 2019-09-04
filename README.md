@@ -27,7 +27,7 @@ The special twinax connnector used for the Alfaskop series was devolped by Ossi 
 
 ## Interfacing with SS3
 
-![Two wire connector](https://i.imgur.com/grnMKvjl.jpg)
+![TWIB board](https://i.imgur.com/grnMKvj.jpg)
 
 In an attempt to interface to the SS3 bus the easiest was to actually reuse one of the Ericsson made TWIA PC-bus boards that happened to be available. The board is very simple and has just the Intel 8274 HDLC chip and some adress decoding as well as DMA and interrupt logic. Apart for that there is also a twin wire MODEM circuitry including the Ferranti ULA.
 
