@@ -31,7 +31,13 @@ The special twinax connnector used for the Alfaskop series was devolped by Ossi 
 
 In an attempt to interface to the SS3 bus the easiest was to actually reuse one of the Ericsson made TWIB PC-bus boards that happened to be available. The board is very simple and has just the Intel 8274 HDLC chip and some adress decoding as well as DMA and interrupt logic. Apart for that there is also a twin wire MODEM circuitry including the Ferranti ULA.
 
-First step of the reverse engineering was to layout the schematic identical to the board layout and trace out all connections using a ohm-meeter. Then a new schematic was done based on the actual functions of the board. Adress decoding, Two-wire modem, DIPSWitches bus driver, 8274 chip etc. 
+First step of the reverse engineering was to layout the schematic identical to the board layout and trace out all connections using a ohm-meeter.
+![Step 1](https://i.imgur.com/Ll6Goks.png)
+
+Then a new schematic was done based on the actual functions of the board. Adress decoding, Two-wire modem, DIPSWitches bus driver, 8274 chip etc.
+
+![Step 2](https://i.imgur.com/iw8ZT2i.png)
+
 
 The outcome gave that the adress bus is only partly decoded. Only address A0-A10 is used. Adress A4-A10 is compared with the switch settings. Adress A0 and A1 is connected to the 8274 chip via a couple of AND gates that allow for DMA operations. A2 high enable the DIPSW onto the bus and A3 high enable the 8274 on the bus. The signal AEN need to be high for the card to be selected. The signals IOR and IOW tell the board if there is a Read or Write operation taking place. RESET sigal will RESET the 8274 and the modem chip.  The 8274 need a clock signal which is less than 4 MHz which is derived form the PC BUS 4.77 MHz clock signal which is divided by two in a 74S74 chip.
 
