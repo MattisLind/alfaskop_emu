@@ -44,5 +44,5 @@ The Alfaskop series of terminals were programmed in a spcial language, SPL. From
 
 ## 3270 protocol
 
-The Alfaskop terminals were mostly used for emulating the IBM 3270 terminal series. Although other emulations were available. The software provided from DDHF is the 3270 BSC variant. The 3270 data stream is described in [this](http://bitsavers.trailing-edge.com/pdf/ibm/3270/GA23-0059-4_3270_Data_Stream_Programmers_Reference_Dec88.pdf) document.
+The Alfaskop terminals were mostly used for emulating the IBM 3270 terminal series. Although other emulations were available. The software provided from DDHF is the 3270 BSC variant. The 3270 data stream is described in [this](http://bitsavers.trailing-edge.com/pdf/ibm/3270/GA23-0059-4_3270_Data_Stream_Programmers_Reference_Dec88.pdf) document. The communicationprocessor could either be connected locally to the IBM main frame or remotely using a dial-up or leased line. The line normally used 9600 bps syncrounous BSC communication described in (http://bitsavers.trailing-edge.com/pdf/ibm/datacomm/GA27-3004-2_General_Information_Binary_Synchronous_Communications_Oct70.pdf)[this] document.
 
