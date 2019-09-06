@@ -13,7 +13,7 @@ and provide it to use.
 
 The basic idea is to use MAME to emulate the CP and the FD. All technical documentation and schematics are available and is scanned.
 
-![Alfaskop in MAME](https://i.imgur.com/yO6jXmll.png)
+![Alfaskop in MAME](https://i.imgur.com/nyBcITX.png)
 
 Lacking is the IPL BOOT ROM of the real hardware unless DDHF happens to have a CP4101 and FD4120 in their possession.
 
