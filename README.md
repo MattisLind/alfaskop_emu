@@ -11,6 +11,8 @@ and a floppy drive (FD) to be able to run. It also has no software built in but 
 The system software diskette 4016 has been found at Dansk Datahistorisk Förening. This disk has origninally been with SAS. People there will make an image dump of this disk
 and provide it to use.
 
+![Alfaskop in MAME](https://i.imgur.com/mFQM9yO.jpg)
+
 The basic idea is to use MAME to emulate the CP and the FD. All technical documentation and schematics are available and is scanned.
 
 ![Alfaskop in MAME](https://i.imgur.com/nyBcITX.png)
