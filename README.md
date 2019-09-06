@@ -1,7 +1,7 @@
 # alfaskop_emu
 This project aims to make a Alfaskop 4110 running towards the Hercules IBM emulator and run the MEMO SW.
 
-The Alfaskop terminal was a big success for the early Swedishg IT industry. In total 900 000 units were delivered world wide.
+The Alfaskop terminal was a big success for the early Swedish IT industry. In total 900 000 units were delivered world wide.
 More information about the Alfaskop Series 41, marketing material and technical documents can be found [here.](http://www.datormuseum.se/peripherals/terminals/alfaskop)
 
 There are today not one single Alfaskop Series 41 terminal that is able to run and show what is was like. The root cause
@@ -48,7 +48,10 @@ The intention is to connect a STM32 uController to the board and interface it wi
 
 ## Alfaskop sowtware
 
-The Alfaskop series of terminals were programmed in a spcial language, SPL. From the beginning this meant StanSAAB programming Language and was a modified variant of PL/1 programming language. 
+The Alfaskop Series 41 was primarily used as a terminal with emulating various terminal types, like IBM 3278, UNIVAC UTS 400, DEC VT100 etc. The Alfaskop series of terminals were programmed in a special language, SPL. From the beginning this meant StanSAAB programming Language and was a modified variant of PL/1 programming language.
+
+Later on other software was developed for the Alfaskop series 41, like Alfaword, which was a wordprocessing package. Another package was called Alfaform. There was also a port of the UCSD p-system to the System 41 series. Together with FD4120 floppy drive a complete personal computer was formed. The only software found this far is the 3278 terminal emulation software to be used in the clustered configuraration (4016).
+ 
 
 ## 3270 protocol
 
