@@ -1,4 +1,5 @@
 EESchema Schematic File Version 4
+LIBS:TWIB-reverseEngineer-cleanup-cache
 EELAYER 26 0
 EELAYER END
 $Descr A3 16535 11693
@@ -1565,7 +1566,7 @@ L 74xx:74LS74 IC11
 U 1 1 6393BD9B
 P 10500 9650
 F 0 "IC11" H 10350 9900 50  0000 C CNN
-F 1 "74LS74" H 10650 9900 50  0000 C CNN
+F 1 "74S74" H 10650 9900 50  0000 C CNN
 F 2 "" H 10500 9650 50  0001 C CNN
 F 3 "74xx/74hc_hct74.pdf" H 10500 9650 50  0001 C CNN
 	1    10500 9650
@@ -1644,12 +1645,12 @@ $EndComp
 Wire Wire Line
 	9850 9050 9850 9000
 Text GLabel 11200 9750 2    50   Input ~ 0
-19.170MHz
+9.585MHz
 Wire Wire Line
 	10800 1900 11750 1900
 Connection ~ 10800 1900
 Text GLabel 12050 3500 0    50   Input ~ 0
-19.170MHz
+9.585MHz
 Text GLabel 3550 1800 2    50   Input ~ 0
 ~RESET
 Text GLabel 12150 3300 0    50   Input ~ 0
@@ -2873,6 +2874,7 @@ Wire Wire Line
 	13050 2100 12950 2100
 Wire Wire Line
 	13050 2100 13050 2000
+Connection ~ 13050 2100
 Wire Bus Line
 	4450 3850 4450 6350
 Wire Bus Line
@@ -2889,5 +2891,4 @@ Wire Bus Line
 	2100 3800 2100 6350
 Wire Bus Line
 	8600 600  8600 3900
-Connection ~ 13050 2100
 $EndSCHEMATC
