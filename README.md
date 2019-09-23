@@ -46,7 +46,7 @@ The outcome gave that the adress bus is only partly decoded. Only address A0-A10
 The intention is to connect a STM32 uController to the board and interface it with the D0-D7 signals, A0 and A1 signals, IOR and IOW signals and the RESET signal. A10-A4 are all set to low and the corresponding DIP switches are set accordingly. A3 is set high and A2 is set low. A small clock oscillator circuit is used to create a signal which is lower than 8 MHz.
 
 
-## Alfaskop sowtware
+## Alfaskop software
 
 The Alfaskop Series 41 was primarily used as a terminal with emulating various terminal types, like IBM 3278, UNIVAC UTS 400, DEC VT100 etc. The Alfaskop series of terminals were programmed in a special language, SPL. From the beginning this meant StanSAAB programming Language and was a modified variant of PL/1 programming language.
 
