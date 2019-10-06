@@ -14,7 +14,7 @@ The resulting waveform. There are significant amount of leading transitions whic
 
 ![Scope output](https://i.imgur.com/hYTeKTEl.jpg?1)
 
-This mockup was tested against the real world Alfaskop 4110 and it did infact respond to the Poll as it should.
+This mockup was tested against the real world Alfaskop 4110 and it did infact respond to the Poll as it should. The not so exciting video clip below show what happens when the terminal receive a poll. After the LOAD text on the status line a P is added to signify that the poll has been received and that the terminal sent a IPL request in response.
 
 <a href="http://www.youtube.com/watch?feature=player_embedded&v=8MVXaOKJ0f0
 " target="_blank"><img src="http://img.youtube.com/vi/8MVXaOKJ0f0/0.jpg" 
