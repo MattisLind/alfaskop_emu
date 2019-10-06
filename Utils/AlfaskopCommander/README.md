@@ -13,3 +13,16 @@ Since the bus will listen to its own transmission it will see the loopback of th
 The resulting waveform. There are significant amount of leading transitions which are to make the receiver synchronize to the signal sent.
 
 ![Scope output](https://i.imgur.com/hYTeKTEl.jpg?1)
+
+This mockup was tested against the real world Alfaskop 4110 and it did infact respond to the Poll as it should.
+
+<a href="http://www.youtube.com/watch?feature=player_embedded&v=8MVXaOKJ0f0
+" target="_blank"><img src="http://img.youtube.com/vi/8MVXaOKJ0f0/0.jpg" 
+alt="IMAGE ALT TEXT HERE" width="480" height="360" border="10" /></a>
+
+And the resulting output in the terminal window:
+
+![Successful poll](https://i.imgur.com/oOjNPl7l.jpg)
+
+The poll command sent is 00 00 FE E9 (the two extra bytes are the CRC as received) and the poll response from the terminal is th FE FF 00 A0 FF + 2 CRC bytes.
+
