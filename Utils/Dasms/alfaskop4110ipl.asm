@@ -1,19 +1,7 @@
 F800: A6 CD    lda  (x+$CD)
-F802: 45       illegal
-F803: 33       pulb 
-F804: 34       des  
-F805: 30       tsx  
-F806: 35       txs  
-F807: 38       illegal
-F808: 37       pshb 
-F809: 30       tsx  
-F80A: 32       pula 
-F80B: 30       tsx  
-F80C: 35       txs  
-F80D: 34       des  
-F80E: 30       tsx  
-F80F: 31       ins  
-F810: 39       rts  
+
+F802: 45 33 34 30 35 38 37 30 32 30 35 34 30 31 39       "E34058702054019"
+
 F811: CE F8 4A ldx  #$F84A
 F814: FF 01 81 stx  $0181
 F817: FF 01 84 stx  $0184
@@ -163,16 +151,18 @@ F92A: CE 01 00 ldx  #$0100
 F92D: DF 00    stx  $00
 F92F: BD FA A7 jsr  $FAA7
 F932: 86 FF    lda  #$FF
-F934: B7 7F 80 sta  $7F80
-F937: CE 4C 4F ldx  #$4C4F
+F934: B7 7F 80 sta  $7F80  ; screen memory
+F937: CE 4C 4F ldx  #$4C4F "LO"
 F93A: FF 7F 81 stx  $7F81
-F93D: CE 41 44 ldx  #$4144
+F93D: CE 41 44 ldx  #$4144 "AD"
 F940: FF 7F 83 stx  $7F83
+
 F943: BD FA 4C jsr  $FA4C
 F946: F6 01 41 ldb  $0141
 F949: 01       nop  
 F94A: 01       nop  
 F94B: 26 F6    bne  $F943
+
 F94D: B6 01 43 lda  $0143
 F950: 2C F1    bge  $F943
 F952: F6 01 40 ldb  $0140
@@ -196,8 +186,8 @@ F97E: 7E FA 1F jmp  $FA1F
 F981: 84 BF    anda #$BF
 F983: 81 05    cmpa #$05
 F985: 26 2A    bne  $F9B1
-F987: 86 49    lda  #$49
-F989: B7 7F 86 sta  $7F86
+F987: 86 49    lda  #$49  "I"
+F989: B7 7F 86 sta  $7F86 ; screen memory
 F98C: B6 01 45 lda  $0145
 F98F: B7 01 A0 sta  $01A0
 F992: 7F 01 01 clr  $0101
@@ -267,8 +257,8 @@ FA25: FF 01 A5 stx  $01A5
 FA28: F6 01 4D ldb  $014D
 FA2B: F7 01 B0 stb  $01B0
 FA2E: 39       rts  
-FA2F: 86 50    lda  #$50
-FA31: B7 7F 86 sta  $7F86
+FA2F: 86 50    lda  #$50   "P"
+FA31: B7 7F 86 sta  $7F86  ; screen memory
 FA34: CE 00 05 ldx  #$0005
 FA37: DF 02    stx  $02
 FA39: B6 01 A1 lda  $01A1
@@ -325,8 +315,8 @@ FAB8: 27 0B    beq  $FAC5
 FABA: 09       dex  
 FABB: FF 01 9E stx  $019E
 FABE: 26 05    bne  $FAC5
-FAC0: 86 20    lda  #$20
-FAC2: B7 7F 86 sta  $7F86
+FAC0: 86 20    lda  #$20  " "
+FAC2: B7 7F 86 sta  $7F86 ; screen memory
 FAC5: 3B       rti  
 FAC6: F6 F7 20 ldb  $F720
 FAC9: 86 40    lda  #$40
@@ -365,7 +355,7 @@ FB07: 84 04    anda #$04  ; Check if bit 2 is cleared
 FB09: 26 18    bne  $FB23 ; or jump ahead
 
 FB0B: B6 F7 FC lda  $F7FC ; Read panel
-FB0E: 2A 13    bpl  $FB23 ; jump ahead if set
+FB0E: 2A 13    bpl  $FB23 ; jump ahead if bit7=0 (first time)
 FB10: B6 01 B1 lda  $01B1 ; Check flag at 0x1B1
 FB13: 2B 03    bmi  $FB18 ; Skip jump if set
 FB15: 7E 80 00 jmp  $8000 ; Jump to code in RAM 8000
@@ -407,15 +397,16 @@ FB4E: 8C 80 00 cmpx #$8000
 FB51: 26 EA    bne  $FB3D ramtest:
 
 FB53: C6 01    ldb  #$01
-FB55: 20 07    bra  $FB5E
+FB55: 20 07    bra  $FB5E ; - RAM test ok, jump further:
 
 FB57: BD FB BF jsr  $FBBF
 FB5A: B6 F7 C6 lda  $F7C6
 FB5D: 5F       clrb 
 
-FB5E: 7E FB EC jmp  $FBEC
-FB61: F7 01 B1 stb  $01B1
-FB64: BD FC 03 jsr  $FC03
+further:
+FB5E: 7E FB EC jmp  $FBEC ; - trampoline
+FB61: F7 01 B1 stb  $01B1 ; store result from test in 0x01B1
+FB64: BD FC 03 jsr  $FC03 ; 
 FB67: BD F8 11 jsr  $F811
 FB6A: BD F9 1F jsr  $F91F
 FB6D: FE 01 A5 ldx  $01A5
@@ -447,9 +438,9 @@ FBA5: 4F       clra
 FBA6: 39       rts  
 
 ramerror:
-FBA7: 86 52    lda  #$52
-FBA9: C6 45    ldb  #$45
-FBAB: CE 7F 80 ldx  #$7F80
+FBA7: 86 52    lda  #$52 "R"
+FBA9: C6 45    ldb  #$45 "E"
+FBAB: CE 7F 80 ldx  #$7F80 ; screen memory
 FBAE: A7 01    sta  (x+$01)
 FBB0: E7 02    stb  (x+$02)
 FBB2: 86 FF    lda  #$FF
@@ -480,37 +471,46 @@ FBE9: 00       illegal
 FBEA: 08       inx  
 FBEB: 00       illegal
 
+; clear memory between 0-7fff or ????-faf5 + 7800-7fff
 FBEC: 4F       clra 
-FBED: CE 00 00 ldx  #$0000
+FBED: CE 00 00 ldx  #$0000 ; start clear: from 0
 
+clear:
 FBF0: A7 00    sta  (x+$00)
 FBF2: 08       inx  
 FBF3: BC FA F5 cmpx $FAF5
 FBF6: 26 03    bne  $FBFB
 FBF8: CE 78 00 ldx  #$7800
 FBFB: 8C 80 00 cmpx #$8000
-FBFE: 26 F0    bne  $FBF0
+FBFE: 26 F0    bne  $FBF0 ; loop clear:
 
-FC00: 7E FB 61 jmp  $FB61
+FC00: 7E FB 61 jmp  $FB61 ; jump back
+
+; Check serial number validity
 FC03: CE F8 02 ldx  #$F802
 FC06: FF 01 A9 stx  $01A9
 FC09: CE 00 00 ldx  #$0000
 FC0C: FF 01 AB stx  $01AB
 FC0F: CE F8 00 ldx  #$F800
 FC12: FF 01 A7 stx  $01A7
+
 FC15: BD FC 23 jsr  $FC23
+
 FC18: B6 01 B7 lda  $01B7
 FC1B: 27 05    beq  $FC22
 FC1D: 86 50    lda  #$50
 FC1F: 7E FB A9 jmp  $FBA9
 FC22: 39       rts  
+
 FC23: 7F 01 B8 clr  $01B8
 FC26: 7F 01 B9 clr  $01B9
 FC29: FE 01 A9 ldx  $01A9
+
 FC2C: 86 F8    lda  #$F8
 FC2E: B7 01 BA sta  $01BA
 FC31: A6 00    lda  (x+$00)
 FC33: 08       inx  
+
 FC34: B7 01 BB sta  $01BB
 FC37: 74 01 B9 lsr  $01B9
 FC3A: 76 01 B8 ror  $01B8
@@ -519,23 +519,31 @@ FC3F: 59       rolb
 FC40: F8 01 BB eorb $01BB
 FC43: C4 01    andb #$01
 FC45: 27 0E    beq  $FC55
+
 FC47: F8 01 B8 eorb $01B8
 FC4A: F7 01 B8 stb  $01B8
 FC4D: F6 01 B9 ldb  $01B9
 FC50: C8 A0    eorb #$A0
 FC52: F7 01 B9 stb  $01B9
+
 FC55: 7C 01 BA inc  $01BA
 FC58: 27 03    beq  $FC5D
+
 FC5A: 44       lsra 
 FC5B: 20 D7    bra  $FC34
+
 FC5D: BC 01 AB cmpx $01AB
 FC60: 26 CA    bne  $FC2C
+
 FC62: FE 01 A7 ldx  $01A7
 FC65: EE 00    ldx  (x+$00)
 FC67: BC 01 B8 cmpx $01B8
 FC6A: 27 03    beq  $FC6F
+
 FC6C: 7C 01 B7 inc  $01B7
+
 FC6F: 39       rts  
+
 FC70: 16       tab  
 FC71: A6 00    lda  (x+$00)
 FC73: D7 1A    stb  $1A
