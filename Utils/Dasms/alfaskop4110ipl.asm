@@ -1,19 +1,25 @@
-F800: A6 CD    lda  (x+$CD)
-F802: 45       illegal
-F803: 33       pulb 
-F804: 34       des  
-F805: 30       tsx  
-F806: 35       txs  
-F807: 38       illegal
-F808: 37       pshb 
-F809: 30       tsx  
-F80A: 32       pula 
-F80B: 30       tsx  
-F80C: 35       txs  
-F80D: 34       des  
-F80E: 30       tsx  
-F80F: 31       ins  
-F810: 39       rts  
+F800:          org $f800
+F800:          fcb  $a6, $cd
+F802:          fcc "E34058702054019"
+
+;F800: A6 CD    lda  (x+$CD)
+;F802: 45       illegal
+;F803: 33       pulb 
+;F804: 34       des  
+;F805: 30       tsx  
+;F806: 35       txs  
+;F807: 38       illegal
+;F808: 37       pshb 
+;F809: 30       tsx  
+;F80A: 32       pula 
+;F80B: 30       tsx  
+;F80C: 35       txs  
+;F80D: 34       des  
+;F80E: 30       tsx  
+;F80F: 31       ins  
+;F810: 39       rts  
+
+; subroutine to setup soft interrupt vectors / jump table
 F811: CE F8 4A ldx  #$F84A
 F814: FF 01 81 stx  $0181
 F817: FF 01 84 stx  $0184
@@ -39,6 +45,7 @@ F842: B6 F9 1E lda  $F91E
 F845: B7 F7 D2 sta  $F7D2
 F848: 0E       cli  
 F849: 39       rts  
+; dummy interrupt routine
 F84A: 3B       rti
 
 inits:
@@ -149,25 +156,26 @@ F905: B7 F7 D3 sta  $F7D3 ; DDRB
 F908: 7E FB 04 jmp  $FB04 ; in case of faulty RAM, *jump* back!
 
 crtcinitvalues:
-F90B: 63 50 58 06 19 0A 19 19 00 0F 42 0A 78 00 78 00
+;F90B: 63 50 58 06 19 0A 19 19 00 0F 42 0A 78 00 78 00
+              FCB  $63,$50,$58,$06,$19,$0A,$19,$19,$00,$0F,$42,$0A,$78,$00,$78,$00 
 
 F91B: 7F 7F
 F91D: 00 ; DDRA value for DIA PIA
 F91E: 11 ; DDRB value for DIA PIA
 
-F91F: CE FA B2 ldx  #$FAB2
-F922: FF 01 84 stx  $0184
+F91F: CE FA B2 ldx  #$FAB2 ; address of interrupt routine
+F922: FF 01 84 stx  $0184  ; soft interupt vector $0183
 F925: 86 3F    lda  #$3F
-F927: B7 F7 C5 sta  $F7C5
+F927: B7 F7 C5 sta  $F7C5  
 F92A: CE 01 00 ldx  #$0100
 F92D: DF 00    stx  $00
 F92F: BD FA A7 jsr  $FAA7
 F932: 86 FF    lda  #$FF
-F934: B7 7F 80 sta  $7F80
-F937: CE 4C 4F ldx  #$4C4F
-F93A: FF 7F 81 stx  $7F81
-F93D: CE 41 44 ldx  #$4144
-F940: FF 7F 83 stx  $7F83
+F934: B7 7F 80 sta  $7F80  ; Adress in display memory 
+F937: CE 4C 4F ldx  #$4C4F ; Text LO
+F93A: FF 7F 81 stx  $7F81  ; 
+F93D: CE 41 44 ldx  #$4144 ; Text AD
+F940: FF 7F 83 stx  $7F83  ; to put on the status line on the display (LOAD)
 F943: BD FA 4C jsr  $FA4C
 F946: F6 01 41 ldb  $0141
 F949: 01       nop  
@@ -267,6 +275,8 @@ FA25: FF 01 A5 stx  $01A5
 FA28: F6 01 4D ldb  $014D
 FA2B: F7 01 B0 stb  $01B0
 FA2E: 39       rts  
+
+; subroutine
 FA2F: 86 50    lda  #$50
 FA31: B7 7F 86 sta  $7F86
 FA34: CE 00 05 ldx  #$0005
@@ -278,6 +288,7 @@ FA41: B7 01 01 sta  $0101
 FA44: B7 01 04 sta  $0104
 FA47: 86 A0    lda  #$A0
 FA49: 7E FA 7D jmp  $FA7D
+; subroutine 
 FA4C: CE 05 DC ldx  #$05DC
 FA4F: FF 01 9E stx  $019E
 FA52: DE 04    ldx  $04
@@ -287,8 +298,8 @@ FA59: FF F7 06 stx  $F706
 FA5C: 7F 00 08 clr  $0008
 FA5F: 86 02    lda  #$02
 FA61: B7 F7 14 sta  $F714
-FA64: CE FA DE ldx  #$FADE
-FA67: FF 01 96 stx  $0196
+FA64: CE FA DE ldx  #$FADE ; set new interrupt routine
+FA67: FF 01 96 stx  $0196  ; in soft vector for TIA / ADLC
 FA6A: 86 8A    lda  #$8A
 FA6C: B7 F7 20 sta  $F720
 FA6F: 96 08    lda  $08
@@ -297,6 +308,7 @@ FA73: 85 02    bita #$02
 FA75: 26 03    bne  $FA7A
 FA77: 7E FF 9F jmp  $FF9F
 FA7A: 7E FF 99 jmp  $FF99
+; continue from FA49
 FA7D: B7 01 03 sta  $0103
 FA80: 7F 00 09 clr  $0009
 FA83: DE 00    ldx  $00
@@ -314,11 +326,13 @@ FA9F: B7 F7 21 sta  $F721
 FAA2: 96 09    lda  $09
 FAA4: 27 FC    beq  $FAA2
 FAA6: 39       rts  
+; subroutine 
 FAA7: CE 01 40 ldx  #$0140
 FAAA: DF 04    stx  $04
 FAAC: CE 00 3F ldx  #$003F
 FAAF: DF 06    stx  $06
 FAB1: 39       rts  
+; interrupt handler routine PIA
 FAB2: B6 F7 C4 lda  $F7C4
 FAB5: FE 01 9E ldx  $019E
 FAB8: 27 0B    beq  $FAC5
@@ -328,6 +342,7 @@ FABE: 26 05    bne  $FAC5
 FAC0: 86 20    lda  #$20
 FAC2: B7 7F 86 sta  $7F86
 FAC5: 3B       rti  
+; interrupt routine #1 ADLC / TIA
 FAC6: F6 F7 20 ldb  $F720
 FAC9: 86 40    lda  #$40
 FACB: B7 F7 21 sta  $F721
@@ -339,6 +354,7 @@ FAD6: D7 09    stb  $09
 FAD8: 86 C0    lda  #$C0
 FADA: B7 F7 20 sta  $F720
 FADD: 3B       rti  
+; interrupt routine #2 ADLC/TIA
 FADE: B6 F7 21 lda  $F721
 FAE1: 85 7A    bita #$7A
 FAE3: 26 06    bne  $FAEB
@@ -350,6 +366,12 @@ FAED: 97 08    sta  $08
 FAEF: 86 C0    lda  #$C0
 FAF1: B7 F7 20 sta  $F720
 FAF4: 3B       rti  
+;
+
+
+               fcb  $60, $10
+               fdb  $01d8     ;value for the initial stack pointer
+               fdb  $7800
 FAF5: 60 10    neg  (x+$10)
 FAF7: 01       nop  
 FAF8: D8 78    eorb $78
@@ -416,8 +438,8 @@ FB5D: 5F       clrb
 FB5E: 7E FB EC jmp  $FBEC
 FB61: F7 01 B1 stb  $01B1
 FB64: BD FC 03 jsr  $FC03
-FB67: BD F8 11 jsr  $F811
-FB6A: BD F9 1F jsr  $F91F
+FB67: BD F8 11 jsr  $F811 ; init soft interrupt vectors
+FB6A: BD F9 1F jsr  $F91F ; type LOAD on screen and do stuff with TIA / ADLC
 FB6D: FE 01 A5 ldx  $01A5
 FB70: 6E 00    jmp  (x+$00)
 FB72: 39       rts  
@@ -457,7 +479,8 @@ FBB4: A7 00    sta  (x+$00)
 FBB6: B6 F9 1E lda  $F91E
 FBB9: B7 F7 D2 sta  $F7D2
 FBBC: 20 FE    bra  $FBBC
-FBBE: 39       rts  
+FBBE: 39       rts
+; 
 FBBF: 7C 01 B4 inc  $01B4
 FBC2: FE FA F5 ldx  $FAF5
 FBC5: FF 01 A9 stx  $01A9
@@ -475,11 +498,15 @@ FBE1: 08       inx
 FBE2: FF 01 A9 stx  $01A9
 FBE5: 20 E7    bra  $FBCE
 FBE7: 39       rts  
+
+      FDB      $0000
 FBE8: 00       illegal
 FBE9: 00       illegal
+      FDB      $0800
 FBEA: 08       inx  
 FBEB: 00       illegal
 
+; jumps here..
 FBEC: 4F       clra 
 FBED: CE 00 00 ldx  #$0000
 
@@ -490,8 +517,9 @@ FBF6: 26 03    bne  $FBFB
 FBF8: CE 78 00 ldx  #$7800
 FBFB: 8C 80 00 cmpx #$8000
 FBFE: 26 F0    bne  $FBF0
-
 FC00: 7E FB 61 jmp  $FB61
+
+; subroutine 
 FC03: CE F8 02 ldx  #$F802
 FC06: FF 01 A9 stx  $01A9
 FC09: CE 00 00 ldx  #$0000
@@ -504,6 +532,8 @@ FC1B: 27 05    beq  $FC22
 FC1D: 86 50    lda  #$50
 FC1F: 7E FB A9 jmp  $FBA9
 FC22: 39       rts  
+
+; subroutine 
 FC23: 7F 01 B8 clr  $01B8
 FC26: 7F 01 B9 clr  $01B9
 FC29: FE 01 A9 ldx  $01A9
@@ -536,6 +566,8 @@ FC67: BC 01 B8 cmpx $01B8
 FC6A: 27 03    beq  $FC6F
 FC6C: 7C 01 B7 inc  $01B7
 FC6F: 39       rts  
+
+
 FC70: 16       tab  
 FC71: A6 00    lda  (x+$00)
 FC73: D7 1A    stb  $1A
@@ -591,6 +623,8 @@ FCCE: 97 19    sta  $19
 FCD0: D7 1A    stb  $1A
 FCD2: DE 19    ldx  $19
 FCD4: 39       rts  
+
+; 
 FCD5: 36       psha 
 FCD6: 17       tba  
 FCD7: 33       pulb 
@@ -624,6 +658,8 @@ FD01: 7A 00 1F dec  $001F
 FD04: 2A EF    bpl  $FCF5
 FD06: D6 1A    ldb  $1A
 FD08: 39       rts  
+
+; 
 FD09: EE 00    ldx  (x+$00)
 FD0B: 97 1B    sta  $1B
 FD0D: D7 1C    stb  $1C
@@ -775,6 +811,8 @@ FE06: 26 F5    bne  $FDFD
 FE08: 7A 00 1F dec  $001F
 FE0B: 2A F0    bpl  $FDFD
 FE0D: 39       rts  
+
+; 
 FE0E: 97 1A    sta  $1A
 FE10: 4F       clra 
 FE11: D7 20    stb  $20
@@ -814,6 +852,7 @@ FE4E: 26 FA    bne  $FE4A
 FE50: 7A 00 1B dec  $001B
 FE53: 2A F5    bpl  $FE4A
 FE55: 39       rts  
+; subroutine 
 FE56: 4D       tsta 
 FE57: 2A 06    bpl  $FE5F
 FE59: A6 00    lda  (x+$00)
@@ -823,7 +862,8 @@ FE5E: 08       inx
 FE5F: DF 19    stx  $19
 FE61: D7 1C    stb  $1C
 FE63: 97 1B    sta  $1B
-FE65: 39       rts  
+FE65: 39       rts 
+; subroutine 
 FE66: D6 20    ldb  $20
 FE68: 96 1F    lda  $1F
 FE6A: 2A 1E    bpl  $FE8A
@@ -852,7 +892,9 @@ FE94: 4F       clra
 FE95: 5F       clrb 
 FE96: D7 20    stb  $20
 FE98: 97 1F    sta  $1F
-FE9A: 39       rts  
+FE9A: 39       rts
+
+; subroutine 
 FE9B: DE 1D    ldx  $1D
 FE9D: D6 1C    ldb  $1C
 FE9F: 7D 01 BC tst  $01BC
@@ -894,6 +936,7 @@ FED7: 7A 00 1B dec  $001B
 FEDA: 2A E5    bpl  $FEC1
 FEDC: DF 1D    stx  $1D
 FEDE: 39       rts  
+; 
 FEDF: 97 1A    sta  $1A
 FEE1: 4F       clra 
 FEE2: D7 20    stb  $20
@@ -911,7 +954,8 @@ FEFA: D6 1B    ldb  $1B
 FEFC: 2B 02    bmi  $FF00
 FEFE: 20 50    bra  $FF50
 FF00: 81 20    cmpa #$20
-FF02: 39       rts  
+FF02: 39       rts 
+; 
 FF03: 4F       clra 
 FF04: 20 0C    bra  $FF12
 FF06: 97 20    sta  $20
@@ -974,6 +1018,7 @@ FF6B: 7A 00 1F dec  $001F
 FF6E: 2A F3    bpl  $FF63
 FF70: 5F       clrb 
 FF71: 39       rts  
+; 
 FF72: 96 1F    lda  $1F
 FF74: D6 20    ldb  $20
 FF76: D0 1C    subb $1C
@@ -984,6 +1029,7 @@ FF7E: DF 1F    stx  $1F
 FF80: D7 1C    stb  $1C
 FF82: 97 1B    sta  $1B
 FF84: 39       rts  
+; 
 FF85: 7D 00 1F tst  $001F
 FF88: 2A 0E    bpl  $FF98
 FF8A: DE 1D    ldx  $1D
@@ -995,15 +1041,19 @@ FF92: DF 1D    stx  $1D
 FF94: D7 20    stb  $20
 FF96: 97 1F    sta  $1F
 FF98: 39       rts  
+; subroutine 
 FF99: 86 40    lda  #$40
 FF9B: 4A       deca 
 FF9C: 26 FD    bne  $FF9B
 FF9E: 39       rts  
+; subroutine 
 FF9F: BD FA A7 jsr  $FAA7
 FFA2: 7E FA 4C jmp  $FA4C
 FFA5: FE 01 B2 ldx  $01B2
 FFA8: 6E 00    jmp  (x+$00)
 FFAA: 3B       rti  
+
+
 FFAB: FF FF FF stx  $FFFF
 FFAE: FF FF FF stx  $FFFF
 FFB1: FF FF FF stx  $FFFF
@@ -1024,18 +1074,34 @@ FFDB: FF FF FF stx  $FFFF
 FFDE: FF FF FF stx  $FFFF
 FFE1: FF FF FF stx  $FFFF
 FFE4: FF FF FF stx  $FFFF
-FFE7: 01       nop  
-FFE8: 01       nop  
-FFE9: 80 01    suba #$01
-FFEB: 83       illegal
-FFEC: 01       nop  
-FFED: 86 01    lda  #$01
-FFEF: 89 01    adca #$01
-FFF1: 8C 01 8F cmpx #$018F
-FFF4: 01       nop  
-FFF5: 92 01    sbca $01
-FFF7: 95 F8    bita $F8
-FFF9: 4A       deca 
-FFFA: 01       nop  
-FFFB: 9B FB    adda $FB
-FFFD: 73 FA FB com  $FAFB
+;FFE7: 01       nop  
+;FFE8: 01       nop  
+;FFE9: 80 01    suba #$01
+;FFEB: 83       illegal
+;FFEC: 01       nop  
+;FFED: 86 01    lda  #$01
+;FFEF: 89 01    adca #$01
+;FFF1: 8C 01 8F cmpx #$018F
+;FFF4: 01       nop  
+;FFF5: 92 01    sbca $01
+;FFF7: 95 F8    bita $F8
+;FFF9: 4A       deca 
+;FFFA: 01       nop  
+;FFFB: 9B FB    adda $FB
+;FFFD: 73 FA FB com  $FAFB
+               ORG  $FFE7
+               FCB  $01
+; soft interrupt vectors
+               FDB  $0180
+               FDB  $0183
+               FDB  $0186
+               FDB  $0189
+               FDB  $018C
+               FDB  $018F
+               FDB  $0192
+               FDB  $0195
+; hard interrupt vectors               
+               FDB  $F84A
+               FDB  $019B
+               FDB  $FB73
+               FDB  $FAFB
