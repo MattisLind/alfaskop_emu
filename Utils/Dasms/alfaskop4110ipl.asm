@@ -19,9 +19,9 @@ F802:          fcc "E34058702054019"
 ;F80F: 31       ins  
 ;F810: 39       rts  
 
-; subroutine to setup soft interrupt vectors / jump table
-F811: CE F8 4A ldx  #$F84A
-F814: FF 01 81 stx  $0181
+; subroutine to setup soft interrupt vectors / jump table -  all of them jumps directly to the RTI
+F811: CE F8 4A ldx  #$F84A ; address of the RTI instruction
+F814: FF 01 81 stx  $0181  ; stiore it for all soft vectors
 F817: FF 01 84 stx  $0184
 F81A: FF 01 87 stx  $0187
 F81D: FF 01 8A stx  $018A
@@ -29,16 +29,16 @@ F820: FF 01 8D stx  $018D
 F823: FF 01 90 stx  $0190
 F826: FF 01 93 stx  $0193
 F829: FF 01 9C stx  $019C
-F82C: FF FF E8 stx  $FFE8
-F82F: 86 7E    lda  #$7E
-F831: C6 0A    ldb  #$0A
-F833: CE 01 80 ldx  #$0180
-F836: A7 00    sta  (x+$00)
-F838: 08       inx  
-F839: 08       inx  
-F83A: 08       inx  
-F83B: 5A       decb 
-F83C: 26 F8    bne  $F836
+F82C: FF FF E8 stx  $FFE8  ; this has to do with enabling / disabling interrupts
+F82F: 86 7E    lda  #$7E   ; jump instruction is $7E
+F831: C6 0A    ldb  #$0A   ; 10 times 
+F833: CE 01 80 ldx  #$0180 ; from $180 and forwards
+F836: A7 00    sta  (x+$00); store it 
+F838: 08       inx         ; skip one 
+F839: 08       inx         ; two
+F83A: 08       inx         ; three
+F83B: 5A       decb        ; decrement loop counter
+F83C: 26 F8    bne  $F836  ; branch back if not finished
 F83E: 4F       clra 
 F83F: B7 F7 C4 sta  $F7C4
 F842: B6 F9 1E lda  $F91E
@@ -161,7 +161,9 @@ crtcinitvalues:
 
 F91B: 7F 7F
 F91D: 00 ; DDRA value for DIA PIA
+               fcb  $00
 F91E: 11 ; DDRB value for DIA PIA
+               fcb  $11
 
 F91F: CE FA B2 ldx  #$FAB2 ; address of interrupt routine
 F922: FF 01 84 stx  $0184  ; soft interupt vector $0183
@@ -369,7 +371,7 @@ FAF4: 3B       rti
 ;
 
 
-               fcb  $60, $10
+               fdb  $6010
                fdb  $01d8     ;value for the initial stack pointer
                fdb  $7800
 FAF5: 60 10    neg  (x+$10)
@@ -380,6 +382,7 @@ FAFA: 00       illegal
 ; Exceution starts here
 reset:
 FAFB: F6 F7 C7 ldb  $F7C7 ; b <-- CB1
+; from NMI handler
 FAFE: BE FA F7 lds  $FAF7 ; Set stack
 FB01: BD F8 4B jsr  $F84B ; inits()
 FB04: B6 F7 C4 lda  $F7C4 ; Read MIC PIA port A
@@ -443,11 +446,13 @@ FB6A: BD F9 1F jsr  $F91F ; type LOAD on screen and do stuff with TIA / ADLC
 FB6D: FE 01 A5 ldx  $01A5
 FB70: 6E 00    jmp  (x+$00)
 FB72: 39       rts  
-FB73: F6 F7 C4 ldb  $F7C4
+
+; NMI interrupt handler
+FB73: F6 F7 C4 ldb  $F7C4 ; Reads a PIA port
 FB76: F7 01 B6 stb  $01B6
-FB79: BD FB 72 jsr  $FB72
+FB79: BD FB 72 jsr  $FB72 ; Strange do jsr to a rts.
 FB7C: 2C 03    bge  $FB81
-FB7E: 7E FA FE jmp  $FAFE
+FB7E: 7E FA FE jmp  $FAFE ; jumps to almost same as where RESET occur. 
 FB81: B6 01 A4 lda  $01A4
 FB84: 81 80    cmpa #$80
 FB86: 26 05    bne  $FB8D
@@ -459,7 +464,9 @@ FB93: 27 03    beq  $FB98
 FB95: 7E FF A5 jmp  $FFA5
 FB98: 0E       cli  
 FB99: 01       nop  
-FB9A: 3B       rti  
+FB9A: 3B       rti 
+
+; subroutine
 FB9B: 84 01    anda #$01
 FB9D: 26 06    bne  $FBA5
 FB9F: B6 F7 C4 lda  $F7C4
@@ -500,24 +507,23 @@ FBE5: 20 E7    bra  $FBCE
 FBE7: 39       rts  
 
       FDB      $0000
-FBE8: 00       illegal
-FBE9: 00       illegal
+; FBE8: 00       illegal
+; FBE9: 00       illegal
       FDB      $0800
-FBEA: 08       inx  
-FBEB: 00       illegal
+; FBEA: 08       inx  
+; FBEB: 00       illegal
 
-; jumps here..
-FBEC: 4F       clra 
-FBED: CE 00 00 ldx  #$0000
-
-FBF0: A7 00    sta  (x+$00)
-FBF2: 08       inx  
-FBF3: BC FA F5 cmpx $FAF5
-FBF6: 26 03    bne  $FBFB
-FBF8: CE 78 00 ldx  #$7800
-FBFB: 8C 80 00 cmpx #$8000
-FBFE: 26 F0    bne  $FBF0
-FC00: 7E FB 61 jmp  $FB61
+; jumps here.. from $fb5e
+FBEC: 4F       clra         ; 
+FBED: CE 00 00 ldx  #$0000  ; load adress of bottom of RAM
+FBF0: A7 00    sta  (x+$00) ; store 0 into memory 
+FBF2: 08       inx          ; increase pointer
+FBF3: BC FA F5 cmpx $FAF5   ; compare with top of memory $FAF5 contains $6010
+FBF6: 26 03    bne  $FBFB   ; if done go on with to screen memory clear
+FBF8: CE 78 00 ldx  #$7800  ; init pointer to base of screen memory
+FBFB: 8C 80 00 cmpx #$8000  ; compare with top of screen memory
+FBFE: 26 F0    bne  $FBF0   ; if less than keep on clearing
+FC00: 7E FB 61 jmp  $FB61   ; jump back and continmue. Why this jumping around??
 
 ; subroutine 
 FC03: CE F8 02 ldx  #$F802
@@ -567,7 +573,7 @@ FC6A: 27 03    beq  $FC6F
 FC6C: 7C 01 B7 inc  $01B7
 FC6F: 39       rts  
 
-
+; subroutine not called from anywhere? 
 FC70: 16       tab  
 FC71: A6 00    lda  (x+$00)
 FC73: D7 1A    stb  $1A
@@ -624,7 +630,7 @@ FCD0: D7 1A    stb  $1A
 FCD2: DE 19    ldx  $19
 FCD4: 39       rts  
 
-; 
+; subroutine not called from anywhere?
 FCD5: 36       psha 
 FCD6: 17       tba  
 FCD7: 33       pulb 
@@ -659,7 +665,7 @@ FD04: 2A EF    bpl  $FCF5
 FD06: D6 1A    ldb  $1A
 FD08: 39       rts  
 
-; 
+; subroutine not called from anywhere?
 FD09: EE 00    ldx  (x+$00)
 FD0B: 97 1B    sta  $1B
 FD0D: D7 1C    stb  $1C
@@ -744,6 +750,8 @@ FD9D: 7A 00 19 dec  $0019
 FDA0: 73 00 19 com  $0019
 FDA3: DE 19    ldx  $19
 FDA5: 39       rts  
+
+; subroutine not called from anywhere?
 FDA6: 16       tab  
 FDA7: 4F       clra 
 FDA8: 36       psha 
@@ -761,6 +769,8 @@ FDBA: 36       psha
 FDBB: 96 23    lda  $23
 FDBD: 06       tap  
 FDBE: 32       pula 
+
+; subroutine not called from anywhere?
 FDBF: 39       rts  
 FDC0: 37       pshb 
 FDC1: 36       psha 
@@ -768,7 +778,9 @@ FDC2: 30       tsx
 FDC3: EE 00    ldx  (x+$00)
 FDC5: 31       ins  
 FDC6: 31       ins  
-FDC7: 39       rts  
+FDC7: 39       rts 
+
+; subroutine not called from anywhere?
 FDC8: 07       tpa  
 FDC9: 0F       sei  
 FDCA: DF 21    stx  $21
@@ -777,7 +789,9 @@ FDCE: 37       pshb
 FDCF: D6 22    ldb  $22
 FDD1: 06       tap  
 FDD2: 32       pula 
-FDD3: 39       rts  
+FDD3: 39       rts 
+
+; subroutine not called from anywhere?
 FDD4: DF 19    stx  $19
 FDD6: D7 1C    stb  $1C
 FDD8: 97 1B    sta  $1B
@@ -800,6 +814,8 @@ FDF4: 31       ins
 FDF5: 31       ins  
 FDF6: 31       ins  
 FDF7: 39       rts  
+
+; subroutine not called from anywhere?
 FDF8: 7D 00 20 tst  $0020
 FDFB: 27 0B    beq  $FE08
 FDFD: E7 01    stb  (x+$01)
@@ -812,7 +828,7 @@ FE08: 7A 00 1F dec  $001F
 FE0B: 2A F0    bpl  $FDFD
 FE0D: 39       rts  
 
-; 
+; subroutine not called from anywhere?
 FE0E: 97 1A    sta  $1A
 FE10: 4F       clra 
 FE11: D7 20    stb  $20
@@ -852,6 +868,7 @@ FE4E: 26 FA    bne  $FE4A
 FE50: 7A 00 1B dec  $001B
 FE53: 2A F5    bpl  $FE4A
 FE55: 39       rts  
+
 ; subroutine 
 FE56: 4D       tsta 
 FE57: 2A 06    bpl  $FE5F
@@ -863,6 +880,7 @@ FE5F: DF 19    stx  $19
 FE61: D7 1C    stb  $1C
 FE63: 97 1B    sta  $1B
 FE65: 39       rts 
+
 ; subroutine 
 FE66: D6 20    ldb  $20
 FE68: 96 1F    lda  $1F
@@ -936,7 +954,8 @@ FED7: 7A 00 1B dec  $001B
 FEDA: 2A E5    bpl  $FEC1
 FEDC: DF 1D    stx  $1D
 FEDE: 39       rts  
-; 
+
+; subroutine not called from anywhere?
 FEDF: 97 1A    sta  $1A
 FEE1: 4F       clra 
 FEE2: D7 20    stb  $20
@@ -955,7 +974,8 @@ FEFC: 2B 02    bmi  $FF00
 FEFE: 20 50    bra  $FF50
 FF00: 81 20    cmpa #$20
 FF02: 39       rts 
-; 
+
+; subroutine not called from anywhere?
 FF03: 4F       clra 
 FF04: 20 0C    bra  $FF12
 FF06: 97 20    sta  $20
@@ -1018,7 +1038,8 @@ FF6B: 7A 00 1F dec  $001F
 FF6E: 2A F3    bpl  $FF63
 FF70: 5F       clrb 
 FF71: 39       rts  
-; 
+
+; subroutine
 FF72: 96 1F    lda  $1F
 FF74: D6 20    ldb  $20
 FF76: D0 1C    subb $1C
@@ -1029,7 +1050,8 @@ FF7E: DF 1F    stx  $1F
 FF80: D7 1C    stb  $1C
 FF82: 97 1B    sta  $1B
 FF84: 39       rts  
-; 
+
+; subroutine
 FF85: 7D 00 1F tst  $001F
 FF88: 2A 0E    bpl  $FF98
 FF8A: DE 1D    ldx  $1D
@@ -1041,14 +1063,18 @@ FF92: DF 1D    stx  $1D
 FF94: D7 20    stb  $20
 FF96: 97 1F    sta  $1F
 FF98: 39       rts  
+
 ; subroutine 
 FF99: 86 40    lda  #$40
 FF9B: 4A       deca 
 FF9C: 26 FD    bne  $FF9B
 FF9E: 39       rts  
+
 ; subroutine 
 FF9F: BD FA A7 jsr  $FAA7
 FFA2: 7E FA 4C jmp  $FA4C
+
+; jumps here from FB95
 FFA5: FE 01 B2 ldx  $01B2
 FFA8: 6E 00    jmp  (x+$00)
 FFAA: 3B       rti  
@@ -1092,16 +1118,16 @@ FFE4: FF FF FF stx  $FFFF
                ORG  $FFE7
                FCB  $01
 ; soft interrupt vectors
-               FDB  $0180
-               FDB  $0183
-               FDB  $0186
-               FDB  $0189
-               FDB  $018C
-               FDB  $018F
-               FDB  $0192
-               FDB  $0195
+               FDB  $0180 ; If MIC-PIA CRA (at address F7C5) bits 5 and 4 = 11 the progtram will produced an interrupt at this level when writing CRA bit 3 to a zero.
+               FDB  $0183 ; is initiated by the VSYNC signal if enabled (by MIC-PIA CRA bit 0 = 1) 
+               FDB  $0186 ; interruipt line functions as lines I7-I5 and I3. It is typically used by a printer interface ACA.
+               FDB  $0189 ; is the interrupt used by the KB interface ACIA and the selector pen function.
+               FDB  $018C ; is an interrrupt that may originate from non-steady source.
+               FDB  $018F ; spare
+               FDB  $0192 ; spare
+               FDB  $0195 ; is the highest maskable inetrrupt. Originates from the ADLC on TIA.
 ; hard interrupt vectors               
-               FDB  $F84A
-               FDB  $019B
-               FDB  $FB73
-               FDB  $FAFB
+               FDB  $F84A   ; If no soft interrupt occured it goes here. But this will do a RTI..
+               FDB  $019B   ; SWI
+               FDB  $FB73   ; NMI
+               FDB  $FAFB   ; RESET 
