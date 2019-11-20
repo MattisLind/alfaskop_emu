@@ -439,6 +439,7 @@ FB5A: B6 F7 C6 lda  $F7C6
 FB5D: 5F       clrb 
 
 FB5E: 7E FB EC jmp  $FBEC
+; jumps back here...
 FB61: F7 01 B1 stb  $01B1
 FB64: BD FC 03 jsr  $FC03
 FB67: BD F8 11 jsr  $F811 ; init soft interrupt vectors
@@ -476,18 +477,20 @@ FBA5: 4F       clra
 FBA6: 39       rts  
 
 ramerror:
-FBA7: 86 52    lda  #$52
-FBA9: C6 45    ldb  #$45
-FBAB: CE 7F 80 ldx  #$7F80
-FBAE: A7 01    sta  (x+$01)
-FBB0: E7 02    stb  (x+$02)
+FBA7: 86 52    lda  #$52     ; Put a 'R' from Ramerror in A
+; jumps here from CRC error of PROM
+FBA9: C6 45    ldb  #$45     ; Put a 'E' for Error in B
+FBAB: CE 7F 80 ldx  #$7F80   ; Address of status Line
+FBAE: A7 01    sta  (x+$01)  ; Write B which is either P or R on screen.
+FBB0: E7 02    stb  (x+$02)  ; write A which is E on screen.
 FBB2: 86 FF    lda  #$FF
 FBB4: A7 00    sta  (x+$00)
 FBB6: B6 F9 1E lda  $F91E
 FBB9: B7 F7 D2 sta  $F7D2
-FBBC: 20 FE    bra  $FBBC
+FBBC: 20 FE    bra  $FBBC    ; die here. I wonder if the above code triggers a reset?
 FBBE: 39       rts
-; 
+; Maybe this routine is a dump routine that saves data that otherwise will be overwritten. It looks like it moves low data 
+; outside of the area that is normally cleared.
 FBBF: 7C 01 B4 inc  $01B4
 FBC2: FE FA F5 ldx  $FAF5
 FBC5: FF 01 A9 stx  $01A9
@@ -496,7 +499,7 @@ FBCB: FF 01 A7 stx  $01A7
 FBCE: FE 01 A7 ldx  $01A7
 FBD1: BC FB EA cmpx $FBEA
 FBD4: 27 11    beq  $FBE7
-FBD6: A6 00    lda  (x+$00)
+FBD6: A6 00    lda  (x+$00) ; painful to move data with just one index register :-)
 FBD8: 08       inx  
 FBD9: FF 01 A7 stx  $01A7
 FBDC: FE 01 A9 ldx  $01A9
@@ -513,7 +516,7 @@ FBE7: 39       rts
 ; FBEA: 08       inx  
 ; FBEB: 00       illegal
 
-; jumps here.. from $fb5e
+; jumps here.. from $fb5e routine seems to clear memory and screen memory
 FBEC: 4F       clra         ; 
 FBED: CE 00 00 ldx  #$0000  ; load adress of bottom of RAM
 FBF0: A7 00    sta  (x+$00) ; store 0 into memory 
@@ -526,20 +529,20 @@ FBFE: 26 F0    bne  $FBF0   ; if less than keep on clearing
 FC00: 7E FB 61 jmp  $FB61   ; jump back and continmue. Why this jumping around??
 
 ; subroutine 
-FC03: CE F8 02 ldx  #$F802
+FC03: CE F8 02 ldx  #$F802  ; The address of the ID string of the software 
 FC06: FF 01 A9 stx  $01A9
 FC09: CE 00 00 ldx  #$0000
 FC0C: FF 01 AB stx  $01AB
-FC0F: CE F8 00 ldx  #$F800
-FC12: FF 01 A7 stx  $01A7
-FC15: BD FC 23 jsr  $FC23
+FC0F: CE F8 00 ldx  #$F800  ; Base of IPL PROM
+FC12: FF 01 A7 stx  $01A7   ; Store it
+FC15: BD FC 23 jsr  $FC23   ; jump to CRC routine
 FC18: B6 01 B7 lda  $01B7
-FC1B: 27 05    beq  $FC22
-FC1D: 86 50    lda  #$50
-FC1F: 7E FB A9 jmp  $FBA9
+FC1B: 27 05    beq  $FC22   ; If ok jump to the rts.
+FC1D: 86 50    lda  #$50    ; Put a "P" in A.
+FC1F: 7E FB A9 jmp  $FBA9   ; Error routine 
 FC22: 39       rts  
 
-; subroutine 
+; CRC subroutine - at least the tech spec says it does a CRC on the IPL ROM and this sure looks like it.
 FC23: 7F 01 B8 clr  $01B8
 FC26: 7F 01 B9 clr  $01B9
 FC29: FE 01 A9 ldx  $01A9
@@ -573,7 +576,7 @@ FC6A: 27 03    beq  $FC6F
 FC6C: 7C 01 B7 inc  $01B7
 FC6F: 39       rts  
 
-; subroutine not called from anywhere? 
+; subroutine not called from anywhere? SPL subroutine?
 FC70: 16       tab  
 FC71: A6 00    lda  (x+$00)
 FC73: D7 1A    stb  $1A
@@ -630,7 +633,7 @@ FCD0: D7 1A    stb  $1A
 FCD2: DE 19    ldx  $19
 FCD4: 39       rts  
 
-; subroutine not called from anywhere?
+; subroutine not called from anywhere? SPL subroutine?
 FCD5: 36       psha 
 FCD6: 17       tba  
 FCD7: 33       pulb 
@@ -665,7 +668,7 @@ FD04: 2A EF    bpl  $FCF5
 FD06: D6 1A    ldb  $1A
 FD08: 39       rts  
 
-; subroutine not called from anywhere?
+; subroutine not called from anywhere? SPL subroutine?
 FD09: EE 00    ldx  (x+$00)
 FD0B: 97 1B    sta  $1B
 FD0D: D7 1C    stb  $1C
@@ -751,7 +754,7 @@ FDA0: 73 00 19 com  $0019
 FDA3: DE 19    ldx  $19
 FDA5: 39       rts  
 
-; subroutine not called from anywhere?
+; subroutine not called from anywhere? SPL subroutine?
 FDA6: 16       tab  
 FDA7: 4F       clra 
 FDA8: 36       psha 
@@ -770,7 +773,7 @@ FDBB: 96 23    lda  $23
 FDBD: 06       tap  
 FDBE: 32       pula 
 
-; subroutine not called from anywhere?
+; subroutine not called from anywhere? SPL subroutine?
 FDBF: 39       rts  
 FDC0: 37       pshb 
 FDC1: 36       psha 
@@ -780,7 +783,7 @@ FDC5: 31       ins
 FDC6: 31       ins  
 FDC7: 39       rts 
 
-; subroutine not called from anywhere?
+; subroutine not called from anywhere? SPL subroutine?
 FDC8: 07       tpa  
 FDC9: 0F       sei  
 FDCA: DF 21    stx  $21
@@ -791,7 +794,7 @@ FDD1: 06       tap
 FDD2: 32       pula 
 FDD3: 39       rts 
 
-; subroutine not called from anywhere?
+; subroutine not called from anywhere? SPL subroutine?
 FDD4: DF 19    stx  $19
 FDD6: D7 1C    stb  $1C
 FDD8: 97 1B    sta  $1B
@@ -815,7 +818,7 @@ FDF5: 31       ins
 FDF6: 31       ins  
 FDF7: 39       rts  
 
-; subroutine not called from anywhere?
+; subroutine not called from anywhere? SPL subroutine?
 FDF8: 7D 00 20 tst  $0020
 FDFB: 27 0B    beq  $FE08
 FDFD: E7 01    stb  (x+$01)
@@ -828,7 +831,7 @@ FE08: 7A 00 1F dec  $001F
 FE0B: 2A F0    bpl  $FDFD
 FE0D: 39       rts  
 
-; subroutine not called from anywhere?
+; subroutine not called from anywhere? SPL subroutine?
 FE0E: 97 1A    sta  $1A
 FE10: 4F       clra 
 FE11: D7 20    stb  $20
@@ -869,7 +872,7 @@ FE50: 7A 00 1B dec  $001B
 FE53: 2A F5    bpl  $FE4A
 FE55: 39       rts  
 
-; subroutine 
+; subroutine - called from potential SPL subroutine.
 FE56: 4D       tsta 
 FE57: 2A 06    bpl  $FE5F
 FE59: A6 00    lda  (x+$00)
@@ -881,7 +884,7 @@ FE61: D7 1C    stb  $1C
 FE63: 97 1B    sta  $1B
 FE65: 39       rts 
 
-; subroutine 
+; subroutine - called from potential SPL subroutine.
 FE66: D6 20    ldb  $20
 FE68: 96 1F    lda  $1F
 FE6A: 2A 1E    bpl  $FE8A
@@ -912,7 +915,7 @@ FE96: D7 20    stb  $20
 FE98: 97 1F    sta  $1F
 FE9A: 39       rts
 
-; subroutine 
+; subroutine - called from potential SPL subroutine.
 FE9B: DE 1D    ldx  $1D
 FE9D: D6 1C    ldb  $1C
 FE9F: 7D 01 BC tst  $01BC
@@ -955,7 +958,7 @@ FEDA: 2A E5    bpl  $FEC1
 FEDC: DF 1D    stx  $1D
 FEDE: 39       rts  
 
-; subroutine not called from anywhere?
+; subroutine not called from anywhere? SPL subroutine?
 FEDF: 97 1A    sta  $1A
 FEE1: 4F       clra 
 FEE2: D7 20    stb  $20
@@ -975,7 +978,7 @@ FEFE: 20 50    bra  $FF50
 FF00: 81 20    cmpa #$20
 FF02: 39       rts 
 
-; subroutine not called from anywhere?
+; subroutine not called from anywhere? SPL subroutine?
 FF03: 4F       clra 
 FF04: 20 0C    bra  $FF12
 FF06: 97 20    sta  $20
@@ -1039,7 +1042,7 @@ FF6E: 2A F3    bpl  $FF63
 FF70: 5F       clrb 
 FF71: 39       rts  
 
-; subroutine
+; subroutine - called from potential SPL subroutine.
 FF72: 96 1F    lda  $1F
 FF74: D6 20    ldb  $20
 FF76: D0 1C    subb $1C
@@ -1051,7 +1054,7 @@ FF80: D7 1C    stb  $1C
 FF82: 97 1B    sta  $1B
 FF84: 39       rts  
 
-; subroutine
+; subroutine - called from potential SPL subroutine.
 FF85: 7D 00 1F tst  $001F
 FF88: 2A 0E    bpl  $FF98
 FF8A: DE 1D    ldx  $1D
