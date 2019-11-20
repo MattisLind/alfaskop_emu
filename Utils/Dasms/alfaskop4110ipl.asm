@@ -1119,7 +1119,7 @@ FFE4: FF FF FF stx  $FFFF
 ;FFFB: 9B FB    adda $FB
 ;FFFD: 73 FA FB com  $FAFB
                ORG  $FFE7
-               FCB  $01
+PROMID:        FCB  $01   ; 01 = DTC or DTC-A as part of a cluster
 ; soft interrupt vectors
                FDB  $0180 ; If MIC-PIA CRA (at address F7C5) bits 5 and 4 = 11 the progtram will produced an interrupt at this level when writing CRA bit 3 to a zero.
                FDB  $0183 ; is initiated by the VSYNC signal if enabled (by MIC-PIA CRA bit 0 = 1) 
