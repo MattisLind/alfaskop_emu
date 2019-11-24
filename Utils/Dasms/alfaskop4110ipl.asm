@@ -605,6 +605,7 @@ FC9A: 97 1C    sta  $1C
 FC9C: 5F       clrb 
 FC9D: 20 1B    bra  $FCBA
 FC9F: EE 00    ldx  (x+$00)
+; alternative entrypoint Called from OS
 FCA1: 97 19    sta  $19
 FCA3: D7 1A    stb  $1A
 FCA5: DF 1B    stx  $1B
@@ -677,6 +678,7 @@ FD11: 96 1D    lda  $1D
 FD13: D6 1E    ldb  $1E
 FD15: CE 00 1B ldx  #$001B
 FD18: EE 00    ldx  (x+$00)
+; alternative entrypoint Called from OS
 FD1A: 97 20    sta  $20
 FD1C: 26 02    bne  $FD20
 FD1E: 20 1B    bra  $FD3B
@@ -831,11 +833,13 @@ FE08: 7A 00 1F dec  $001F
 FE0B: 2A F0    bpl  $FDFD
 FE0D: 39       rts  
 
-; subroutine not called from anywhere? SPL subroutine?
+; subroutine not called from anywhere? SPL subroutine? Called from OS
 FE0E: 97 1A    sta  $1A
 FE10: 4F       clra 
+; alternative entrypoint Called from OS
 FE11: D7 20    stb  $20
 FE13: 97 1F    sta  $1F
+; alternative entrypoint Called from OS
 FE15: D7 1C    stb  $1C
 FE17: 97 1B    sta  $1B
 FE19: DF 1D    stx  $1D
@@ -846,13 +850,17 @@ FE21: DF 1D    stx  $1D
 FE23: 20 15    bra  $FE3A
 FE25: 4F       clra 
 FE26: 20 0C    bra  $FE34
+; alternative entrypoint Called from OS
 FE28: 97 20    sta  $20
 FE2A: 4F       clra 
 FE2B: 97 1F    sta  $1F
 FE2D: 20 05    bra  $FE34
+; alternative entrypoint Called from OS
 FE2F: 4F       clra 
+; alternative entrypoint Called from OS
 FE30: D7 20    stb  $20
 FE32: 97 1F    sta  $1F
+; alternative entrypoint Called from OS
 FE34: 8D 20    bsr  $FE56
 FE36: 8D 2E    bsr  $FE66
 FE38: 8D 61    bsr  $FE9B
@@ -861,6 +869,7 @@ FE3C: DF 1B    stx  $1B
 FE3E: DE 1D    ldx  $1D
 FE40: 86 20    lda  #$20
 FE42: 97 1A    sta  $1A
+; alternative entrypoint Called from OS
 FE44: 96 1A    lda  $1A
 FE46: D6 1C    ldb  $1C
 FE48: 27 06    beq  $FE50
@@ -872,7 +881,7 @@ FE50: 7A 00 1B dec  $001B
 FE53: 2A F5    bpl  $FE4A
 FE55: 39       rts  
 
-; subroutine - called from potential SPL subroutine.
+; subroutine - called from potential SPL subroutine. Called from OS
 FE56: 4D       tsta 
 FE57: 2A 06    bpl  $FE5F
 FE59: A6 00    lda  (x+$00)
@@ -915,7 +924,7 @@ FE96: D7 20    stb  $20
 FE98: 97 1F    sta  $1F
 FE9A: 39       rts
 
-; subroutine - called from potential SPL subroutine.
+; subroutine - called from potential SPL subroutine. Called from OS
 FE9B: DE 1D    ldx  $1D
 FE9D: D6 1C    ldb  $1C
 FE9F: 7D 01 BC tst  $01BC
