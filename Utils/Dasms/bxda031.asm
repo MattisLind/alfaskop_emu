@@ -4547,7 +4547,7 @@
 2BEA: EE 00    ldx  (x+$00)
 2BEC: 6E 00    jmp  (x+$00)
 
-; 
+; SWI routine $10
 2BEE: BD 2F D0 jsr  $2FD0
 2BF1: DE 53    ldx  $53
 2BF3: 26 05    bne  $2BFA
@@ -4605,7 +4605,7 @@
 2C6D: DF 9D    stx  $9D
 2C6F: 7E 2D 45 jmp  $2D45
 
-;
+; SWI routine $0E
 2C72: BD 2F BD jsr  $2FBD
 2C75: CE 00 AD ldx  #$00AD
 2C78: DF 1D    stx  $1D
@@ -4683,7 +4683,9 @@
 2D23: CE 00 AD ldx  #$00AD
 2D26: C6 15    ldb  #$15
 2D28: BD FE 2F jsr  $FE2F
-2D2B: 7E 32 A7 jmp  $32A7
+2D2B: 7E 32 A7 jmp  $32A7 ; jumps back to end of SWI routine
+
+; SWI routine $1A
 2D2E: BD 30 14 jsr  $3014
 2D31: 96 9D    lda  $9D
 2D33: 27 05    beq  $2D3A
@@ -4706,7 +4708,9 @@
 2D58: B6 30 BE lda  $30BE
 2D5B: 81 80    cmpa #$80
 2D5D: 25 03    bcs  $2D62
-2D5F: 7E 32 A7 jmp  $32A7
+2D5F: 7E 32 A7 jmp  $32A7  ; jumps back to end of SWI routine
+
+
 2D62: 86 80    lda  #$80
 2D64: B7 30 BE sta  $30BE
 2D67: 39       rts  
@@ -4762,6 +4766,8 @@
 2DD6: 86 03    lda  #$03
 2DD8: 97 2B    sta  $2B
 2DDA: 20 BE    bra  $2D9A
+
+; SWI routine $12
 2DDC: BD 2F FD jsr  $2FFD
 2DDF: 86 12    lda  #$12
 2DE1: 97 6E    sta  $6E
@@ -4810,6 +4816,8 @@
 2E4D: A6 0A    lda  (x+$0A)
 2E4F: B7 01 0E sta  $010E
 2E52: 7E 2D 45 jmp  $2D45
+
+; SWI routine $18
 2E55: BD 2F FD jsr  $2FFD
 2E58: 96 70    lda  $70
 2E5A: 8A 10    ora  #$10
@@ -4884,6 +4892,8 @@
 2EF8: E7 01    stb  (x+$01)
 2EFA: A7 00    sta  (x+$00)
 2EFC: 7E 2D A1 jmp  $2DA1
+
+; SWI routine $24
 2EFF: BD 2F CC jsr  $2FCC
 2F02: DE 53    ldx  $53
 2F04: DF A3    stx  $A3
@@ -4894,6 +4904,8 @@
 2F0D: 84 BF    anda #$BF
 2F0F: 97 70    sta  $70
 2F11: 20 27    bra  $2F3A
+
+; SWI routine $20
 2F13: BD 2F CC jsr  $2FCC
 2F16: DE 53    ldx  $53
 2F18: EE 00    ldx  (x+$00)
@@ -4903,6 +4915,8 @@
 2F20: 97 70    sta  $70
 2F22: 7F 00 A3 clr  $00A3
 2F25: 20 13    bra  $2F3A
+
+; SWI routine $1E
 2F27: BD 2F CC jsr  $2FCC
 2F2A: DE 55    ldx  $55
 2F2C: DF A3    stx  $A3
@@ -4958,6 +4972,8 @@
 2F97: CE 30 B2 ldx  #$30B2
 2F9A: EE 08    ldx  (x+$08)
 2F9C: 6E 00    jmp  (x+$00)
+
+; SWI routine $26
 2F9E: 8D 2C    bsr  $2FCC
 2FA0: DE 53    ldx  $53
 2FA2: DF A3    stx  $A3
@@ -5050,7 +5066,9 @@
 3049: A7 04    sta  (x+$04)
 304B: 31       ins  
 304C: 31       ins  
-304D: 7E 32 A7 jmp  $32A7
+304D: 7E 32 A7 jmp  $32A7 ; jumps back to end of SWI routine
+
+
 3050: DE 6C    ldx  $6C
 3052: 6F 04    clr  (x+$04)
 3054: 20 43    bra  $3099
@@ -5127,7 +5145,8 @@
 30DE: 54       lsrb 
 30DF: 4F       clra 
 30E0: 43       coma 
-               fdb  $30EE
+
+; SWI routine $00
 30E1: 30       tsx  
 30E2: EE 03    ldx  (x+$03)
 30E4: 9F 0E    sts  $0E
@@ -5136,7 +5155,6 @@
 30EA: 36       psha 
 30EB: A6 04    lda  (x+$04)
 30ED: 36       psha 
-; some kind of generic entry point for all SWI routines ?
 30EE: 4F       clra 
 30EF: 36       psha 
 30F0: 36       psha 
@@ -5194,7 +5212,7 @@
 314E: 0E       cli  
 314F: 7E 32 A7 jmp  $32A7 ; jumps back to SWI entry routine
 
-               fdb  $30EE
+; SWI routine $02
 3152: 30       tsx  
 3153: EE 03    ldx  (x+$03)
 3155: E6 04    ldb  (x+$04)
@@ -5202,7 +5220,7 @@
 3159: E7 04    stb  (x+$04)
 315B: 20 05    bra  $3162
 
-               fdb  $30EE
+; SWI routine $04
 315D: 30       tsx  
 315E: EE 03    ldx  (x+$03)
 3160: E6 04    ldb  (x+$04)
@@ -5219,7 +5237,7 @@
 3174: E6 05    ldb  (x+$05)
 3176: 20 A7    bra  $311F
 
-               fdb  $30EE
+; SWI routine $06
 3178: 30       tsx  
 3179: EE 03    ldx  (x+$03)
 317B: E6 00    ldb  (x+$00)
@@ -5271,7 +5289,9 @@
 31D0: E7 04    stb  (x+$04)
 31D2: EE 08    ldx  (x+$08)
 31D4: DF 0C    stx  $0C
-31D6: 7E 32 A7 jmp  $32A7
+31D6: 7E 32 A7 jmp  $32A7  ; jumps to to end of SWI routine
+
+
 31D9: 5F       clrb 
 31DA: 08       inx  
 31DB: DF 14    stx  $14
@@ -5291,9 +5311,9 @@
 31F6: E6 04    ldb  (x+$04)
 31F8: C4 FD    andb #$FD
 31FA: E7 04    stb  (x+$04)
-31FC: 7E 32 A7 jmp  $32A7
+31FC: 7E 32 A7 jmp  $32A7  ; jumps back to end of SWI routine
 
-; 
+; SWI routine $08
 31FF: 8D 03    bsr  $3204
 3201: 7E 31 55 jmp  $3155
 3204: DE 0A    ldx  $0A
@@ -5302,11 +5322,11 @@
 320A: DE 0A    ldx  $0A
 320C: 39       rts  
 
-;
+; SWI routine $0A
 320D: 8D F5    bsr  $3204
 320F: 7E 31 60 jmp  $3160
 
-;
+; SWI routine $0C
 3212: 30       tsx  
 3213: EE 03    ldx  (x+$03)
 3215: E6 04    ldb  (x+$04)
@@ -5374,7 +5394,8 @@
 3289: 20 E1    bra  $326C
 328B: 9E 6A    lds  $6A
 328D: 0E       cli  
-328E: 20 17    bra  $32A7
+328E: 20 17    bra  $32A7  ; jumps back to end of SWI routine
+
 ; Entrypoint of SWI routine
 3290: BD 32 ED jsr  $32ED
 3293: 0E       cli  
@@ -5384,9 +5405,10 @@
 329B: 96 66    lda  $66    ; Somewhere the value of $67$68 need to be initiated. Maybe at $47F3? Sets $085A.
 329D: 89 00    adca #$00
 329F: 97 68    sta  $68
-32A1: DE 68    ldx  $68
-32A3: EE 00    ldx  (x+$00) ; some kind of double indirection. 
-32A5: 6E 00    jmp  (x+$00) ; here.. 
+32A1: DE 68    ldx  $68    ; X should now contain $085A + the value in A used for specifying which routine to use.
+32A3: EE 00    ldx  (x+$00) ; Load the jump table value into X 
+32A5: 6E 00    jmp  (x+$00) ; And jump there. I was a bit fooled and though it was two level indiretcion. But in fact it does jump to the address of X not to the address pointed to by X.
+; All routines jump back here
 32A7: 7A 00 65 dec  $0065
 32AA: 26 3E    bne  $32EA
 32AC: DE 0A    ldx  $0A
@@ -5424,6 +5446,7 @@
 32E6: 0F       sei  
 32E7: BD 32 F5 jsr  $32F5
 32EA: 3B       rti  
+; End of SWI routine
 32EB: 05       illegal
 32EC: 42       illegal
 32ED: 36       psha 
@@ -6021,6 +6044,8 @@ start:
 37FA: A6 01    lda  (x+$01)
 37FC: 81 55    cmpa #$55
 37FE: 26 67    bne  $3867
+
+; SWI routine $1C
 3800: B6 40 79 lda  $4079
 3803: F6 40 7A ldb  $407A
 3806: CB 02    addb #$02
@@ -6035,7 +6060,7 @@ start:
 3818: 43       coma 
 3819: F7 05 55 stb  $0555
 381C: B7 05 54 sta  $0554
-381F: B6 40 79 lda  $4079
+381F: B6 40 79 lda  $4079  ; $381B is an entry point! SWI $24
 3822: F6 40 7A ldb  $407A
 3825: F0 05 55 subb $0555
 3828: B2 05 54 sbca $0554
