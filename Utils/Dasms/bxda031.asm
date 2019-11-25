@@ -429,24 +429,23 @@
                fdb  $2BEE  ; $10
                fdb  $2DDC  ; $12
                fdb  $37E3  ; $14
-               fdb  $37E3  ; $16
-               fdb  $3796  ; $18
-               fdb  $2E55  ; $1A
-               fdb  $2D2E  ; $1C
-               fdb  $3800  ; $1E
-               fdb  $2F27  ; $20
-               fdb  $2F13  ; $22
-               fdb  $2EFF  ; $24
-               fdb  $381B  ; $26
-               fdb  $2F9E  ; $28
-               fdb  $382E  ; $3A
-               fdb  $38AE  ; $3C
-               fdb  $37B4  ; $3E
-               fdb  $379F  ; $40
-               fdb  $37DA  ; $42
-               fdb  $37D1  ; $44
-               fdb  $3788  ; $46
-               fdb  $3777  ; $48
+               fdb  $3796  ; $16
+               fdb  $2E55  ; $18
+               fdb  $2D2E  ; $1A
+               fdb  $3800  ; $1C
+               fdb  $2F27  ; $1E
+               fdb  $2F13  ; $20
+               fdb  $2EFF  ; $22
+               fdb  $381B  ; $24
+               fdb  $2F9E  ; $26
+               fdb  $382E  ; $28
+               fdb  $38AE  ; $2A
+               fdb  $37B4  ; $2C
+               fdb  $379F  ; $2E
+               fdb  $37DA  ; $30
+               fdb  $37D1  ; $32
+               fdb  $3788  ; $34
+               fdb  $3777  ; $36
                fdb  $0000
                fdb  $30B2
 085A: 30       tsx  
