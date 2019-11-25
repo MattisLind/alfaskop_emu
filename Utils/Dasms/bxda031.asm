@@ -418,34 +418,34 @@
 0857: 7E 08 57 jmp  $0857
 
 ; indirection table for SWI
-               fdb  $30E1  ; $00
-               fdb  $3152  ; $02
+               fdb  $30E1  ; $00 - Used
+               fdb  $3152  ; $02 
                fdb  $315D  ; $04
-               fdb  $3178  ; $06
+               fdb  $3178  ; $06 - Used
                fdb  $31FF  ; $08
                fdb  $320D  ; $0A
                fdb  $3212  ; $0C
-               fdb  $2C72  ; $0E
-               fdb  $2BEE  ; $10
-               fdb  $2DDC  ; $12
+               fdb  $2C72  ; $0E - Used
+               fdb  $2BEE  ; $10 - Used
+               fdb  $2DDC  ; $12 - Used
                fdb  $37E3  ; $14
                fdb  $3796  ; $16
-               fdb  $2E55  ; $18
-               fdb  $2D2E  ; $1A
-               fdb  $3800  ; $1C
+               fdb  $2E55  ; $18 - Used
+               fdb  $2D2E  ; $1A - Used
+               fdb  $3800  ; $1C  probably not a SWI routine . Doesn't jump back to $2F3A.
                fdb  $2F27  ; $1E
-               fdb  $2F13  ; $20
+               fdb  $2F13  ; $20 - Used
                fdb  $2EFF  ; $22
-               fdb  $381B  ; $24
-               fdb  $2F9E  ; $26
-               fdb  $382E  ; $28
-               fdb  $38AE  ; $2A
-               fdb  $37B4  ; $2C
-               fdb  $379F  ; $2E
-               fdb  $37DA  ; $30
-               fdb  $37D1  ; $32
-               fdb  $3788  ; $34
-               fdb  $3777  ; $36
+               fdb  $381B  ; $24  probably no SWI routine here. Doesn't jump back to $2F3A.
+               fdb  $2F9E  ; $26 - Used
+               fdb  $382E  ; $28  probably no SWI routine here. Doesn't jump back to $2F3A.
+               fdb  $38AE  ; $2A  probably no SWI routine here. Doesn't jump back to $2F3A.
+               fdb  $37B4  ; $2C  probably no SWI routine here. Doesn't jump back to $2F3A.
+               fdb  $379F  ; $2E  probably no SWI routine here. Doesn't jump back to $2F3A.
+               fdb  $37DA  ; $30  probably no SWI routine here. Doesn't jump back to $2F3A.
+               fdb  $37D1  ; $32  probably no SWI routine here. Doesn't jump back to $2F3A.
+               fdb  $3788  ; $34  probably no SWI routine here. Doesn't jump back to $2F3A.
+               fdb  $3777  ; $36  probably no SWI routine here. Doesn't jump back to $2F3A.
                fdb  $0000
                fdb  $30B2
 085A: 30       tsx  
@@ -705,6 +705,8 @@
 096F: 00       illegal
 0970: 00       illegal
 0971: 00       illegal
+
+; jumps here from many places.
 0972: 86 05    lda  #$05
 0974: B7 06 03 sta  $0603
 0977: CE 0A 90 ldx  #$0A90
@@ -810,6 +812,8 @@
 0A72: B7 04 9A sta  $049A
 0A75: FE 04 99 ldx  $0499
 0A78: 39       rts  
+
+
 0A79: 53       comb 
 0A7A: 59       rolb 
 0A7B: 53       comb 
@@ -843,11 +847,15 @@
 0A9B: 00       illegal
 0A9C: 00       illegal
 0A9D: 00       illegal
-0A9E: 03       illegal
-0A9F: B6 FF 04 lda  $FF04
-0AA2: 9B FF    adda $FF
-0AA4: 04       illegal
-0AA5: 1D       illegal
+
+               org  $0A9E
+               fdb  $03B6
+;0A9E: 03       illegal
+;0A9F: B6     
+
+; subroutine from jumptable $082D
+0AA0: FF 04 9B stx  $049B
+0AA3: FF 04 1D stx  $041D
 0AA6: B6 02 A8 lda  $02A8
 0AA9: F6 02 A9 ldb  $02A9
 0AAC: CB 01    addb #$01
@@ -868,6 +876,8 @@
 0ACF: FE 04 9B ldx  $049B
 0AD2: A7 08    sta  (x+$08)
 0AD4: 39       rts  
+
+
 0AD5: 7F 02 C9 clr  $02C9
 0AD8: 7F 03 86 clr  $0386
 0ADB: 86 01    lda  #$01
@@ -946,9 +956,12 @@
 0B7B: 86 04    lda  #$04
 0B7D: 3F       swi  
 0B7E: 39       rts  
+
 0B7F: B6 04 9D lda  $049D
 0B82: B7 F7 C6 sta  $F7C6
 0B85: 39       rts  
+
+
 0B86: B6 F7 C6 lda  $F7C6
 0B89: B7 04 9D sta  $049D
 0B8C: B6 F7 C6 lda  $F7C6
@@ -966,15 +979,21 @@
 0BAA: F7 03 B5 stb  $03B5
 0BAD: B7 03 B4 sta  $03B4
 0BB0: 39       rts  
+
+
 0BB1: B6 04 1F lda  $041F
 0BB4: F6 04 20 ldb  $0420
 0BB7: 80 30    suba #$30
 0BB9: F7 03 B5 stb  $03B5
 0BBC: B7 03 B4 sta  $03B4
 0BBF: 39       rts  
+
+
 0BC0: 7F 03 B5 clr  $03B5
 0BC3: 7F 03 B4 clr  $03B4
 0BC6: 39       rts  
+
+
 0BC7: B6 02 A8 lda  $02A8
 0BCA: F6 02 A9 ldb  $02A9
 0BCD: CB 01    addb #$01
@@ -1282,6 +1301,8 @@
 0EA6: CE 06 14 ldx  #$0614
 0EA9: FF 03 AE stx  $03AE
 0EAC: 39       rts  
+
+
 0EAD: B6 04 9F lda  $049F
 0EB0: 81 01    cmpa #$01
 0EB2: 26 07    bne  $0EBB
@@ -1290,6 +1311,8 @@
 0EBA: 39       rts  
 0EBB: 7A 04 9F dec  $049F
 0EBE: 39       rts  
+
+
 0EBF: B6 04 A0 lda  $04A0
 0EC2: 81 01    cmpa #$01
 0EC4: 27 06    beq  $0ECC
@@ -1324,6 +1347,8 @@
 0F0C: 26 DF    bne  $0EED
 0F0E: 20 BA    bra  $0ECA
 0F10: 39       rts  
+
+
 0F11: B6 04 9F lda  $049F
 0F14: B1 04 A1 cmpa $04A1
 0F17: 25 06    bcs  $0F1F
@@ -1331,7 +1356,9 @@
 0F1B: B7 04 9F sta  $049F
 0F1E: 39       rts  
 0F1F: 7C 04 9F inc  $049F
-0F22: 39       rts  
+0F22: 39       rts 
+
+
 0F23: 00       illegal
 0F24: 00       illegal
 0F25: 00       illegal
@@ -1355,6 +1382,8 @@
 0F37: 00       illegal
 0F38: 00       illegal
 0F39: 00       illegal
+
+; subroutine from jumptable $0800
 0F3A: BD 32 ED jsr  $32ED
 0F3D: 7F 02 4B clr  $024B
 0F40: B6 02 3B lda  $023B
@@ -1435,6 +1464,8 @@
 0FED: B7 02 4B sta  $024B
 0FF0: 7E 32 F5 jmp  $32F5
 0FF3: 7E 32 F5 jmp  $32F5
+
+; subroutine from jumptabel $0800
 0FF6: FF 04 B0 stx  $04B0
 0FF9: FF 11 56 stx  $1156
 0FFC: 08       inx  
@@ -1506,6 +1537,8 @@
 108E: B6 04 B2 lda  $04B2
 1091: B7 06 03 sta  $0603
 1094: 39       rts  
+
+
 1095: FE 02 05 ldx  $0205
 1098: FF 04 B3 stx  $04B3
 109B: CE 01 DD ldx  #$01DD
@@ -1594,6 +1627,8 @@
 1146: FE 04 B3 ldx  $04B3
 1149: FF 02 05 stx  $0205
 114C: 39       rts  
+
+
 114D: 01       nop  
 114E: 01       nop  
 114F: DD       illegal
@@ -2127,7 +2162,9 @@
 15F5: B7 F7 21 sta  $F721
 15F8: 86 01    lda  #$01
 15FA: B7 F7 14 sta  $F714
-15FD: 39       rts  
+15FD: 39       rts 
+
+
 15FE: 01       nop  
 15FF: 00       illegal
 1600: DE 40    ldx  $40
@@ -2744,6 +2781,8 @@
 1B47: 00       illegal
 1B48: 07       tpa  
 1B49: 5C       incb 
+
+; subroutine from jumpatble $083
 1B4A: BD 32 ED jsr  $32ED
 1B4D: FF 04 D2 stx  $04D2
 1B50: FE 07 F2 ldx  $07F2
@@ -2802,6 +2841,8 @@
 1BC1: 39       rts  
 1BC2: DE 4E    ldx  $4E
 1BC4: 7E 32 F5 jmp  $32F5
+
+; subroutine from jumptable $0809
 1BC7: BD 32 ED jsr  $32ED
 1BCA: FF 04 D7 stx  $04D7
 1BCD: EE 00    ldx  (x+$00)
@@ -3518,6 +3559,8 @@
 226A: B6 04 19 lda  $0419
 226D: B7 F7 C1 sta  $F7C1
 2270: 39       rts  
+
+; subroutine from jumptable $080C
 2271: BD 32 ED jsr  $32ED
 2274: B7 04 F2 sta  $04F2
 2277: B6 FF E7 lda  $FFE7
@@ -3540,15 +3583,21 @@
 22A4: 8A 82    ora  #$82
 22A6: B7 04 10 sta  $0410
 22A9: 7E 32 F5 jmp  $32F5
+
+; subroutine from jumptable $080F
 22AC: BD 32 ED jsr  $32ED
 22AF: B6 04 10 lda  $0410
 22B2: 84 82    anda #$82
 22B4: B7 04 10 sta  $0410
 22B7: 7E 32 F5 jmp  $32F5
+
+; subroutine from jumptable $0812
 22BA: BD 32 ED jsr  $32ED
 22BD: 86 06    lda  #$06
 22BF: B7 04 02 sta  $0402
 22C2: 7E 32 F5 jmp  $32F5
+
+; subroutine from jumptable $0815
 22C5: BD 32 ED jsr  $32ED
 22C8: B7 04 F4 sta  $04F4
 22CB: B6 02 2D lda  $022D
@@ -3559,15 +3608,21 @@
 22DA: BA 04 F5 ora  $04F5
 22DD: B7 03 FE sta  $03FE
 22E0: 7E 32 F5 jmp  $32F5
+
+; subroutine from jumptable $0818
 22E3: BD 32 ED jsr  $32ED
 22E6: B6 04 02 lda  $0402
 22E9: 8A 08    ora  #$08
 22EB: B7 04 02 sta  $0402
 22EE: 7E 32 F5 jmp  $32F5
+
+; subroutine from jumptable $081B
 22F1: BD 32 ED jsr  $32ED
 22F4: B6 04 02 lda  $0402
 22F7: 8A 20    ora  #$20
 22F9: B7 04 02 sta  $0402
+
+; subroutine from jumptable $081E
 22FC: 7E 32 F5 jmp  $32F5
 22FF: BD 32 ED jsr  $32ED
 2302: B7 04 F6 sta  $04F6
@@ -3585,6 +3640,8 @@
 2322: 23 03    bls  $2327
 2324: B7 03 FF sta  $03FF
 2327: 7E 32 F5 jmp  $32F5
+
+; subroutine from jumptable $0821
 232A: BD 32 ED jsr  $32ED
 232D: B7 04 F7 sta  $04F7
 2330: 26 05    bne  $2337
@@ -3619,6 +3676,8 @@
 237A: A6 01    lda  (x+$01)
 237C: B7 F7 D9 sta  $F7D9
 237F: 7E 32 F5 jmp  $32F5
+
+; subroutine from jumptable $0824
 2382: FF 04 FB stx  $04FB
 2385: BD 24 0E jsr  $240E
 2388: 7F 02 B0 clr  $02B0
@@ -3681,6 +3740,8 @@
 2415: B6 03 CA lda  $03CA
 2418: 26 FB    bne  $2415
 241A: 39       rts  
+
+; subroutine from jumptable $0824
 241B: B6 02 B0 lda  $02B0
 241E: 26 0A    bne  $242A
 2420: B6 02 AD lda  $02AD
@@ -3692,6 +3753,8 @@
 242F: B7 02 AD sta  $02AD
 2432: B7 F7 D2 sta  $F7D2
 2435: 39       rts  
+
+; subroutine from jumtable $0851
 2436: BD 32 ED jsr  $32ED
 2439: B7 05 01 sta  $0501
 243C: B6 FF E3 lda  $FFE3
@@ -3714,7 +3777,7 @@
 2461: F7 F7 C4 stb  $F7C4
 2464: 7E 32 F5 jmp  $32F5
 
-; subroutine
+; subroutine from jumptable $0827
 2467: FF 05 07 stx  $0507
 246A: EE 00    ldx  (x+$00)
 246C: A6 00    lda  (x+$00)
@@ -3827,7 +3890,9 @@
 2550: B6 F7 C4 lda  $F7C4
 2553: B6 F7 C9 lda  $F7C9
 2556: B6 F7 CA lda  $F7CA
-2559: 3B       rti  
+2559: 3B       rti 
+
+; subroutine from jumptable $0830
 255A: BD 32 ED jsr  $32ED
 255D: FF 05 0B stx  $050B
 2560: A6 04    lda  (x+$04)
@@ -5449,13 +5514,21 @@
 32E7: BD 32 F5 jsr  $32F5
 32EA: 3B       rti  
 ; End of SWI routine
-32EB: 05       illegal
-32EC: 42       illegal
+
+               org  $32EB
+               fdb  $0542
+
+; 32EB: 05       illegal
+; 32EC: 42       illegal
+
+; subroutine 
 32ED: 36       psha 
 32EE: 86 80    lda  #$80
 32F0: B7 04 1A sta  $041A
 32F3: 32       pula 
 32F4: 39       rts  
+
+; subroutine jumptable $083F
 32F5: 36       psha 
 32F6: 07       tpa  
 32F7: 0F       sei  
@@ -5472,8 +5545,17 @@
 3312: 06       tap  
 3313: 32       pula 
 3314: 39       rts  
-3315: D4 06    andb $06
-3317: 8F 07 0F sts  #$070F
+
+               org  $3315
+               fcb  $D4
+               fdb  $068F
+
+;3315: D4 06    andb $06
+;3317: 8F 
+               org  $3318
+; subroutine
+3318: 07       inx
+3319: 0F       sei
 331A: 9F 63    sts  $63
 331C: 35       txs  
 331D: DE 61    ldx  $61
@@ -5491,6 +5573,8 @@
 3336: F7 F7 C5 stb  $F7C5
 3339: 06       tap  
 333A: 39       rts  
+
+
 333B: 86 02    lda  #$02
 333D: 97 25    sta  $25
 333F: 86 03    lda  #$03
@@ -5545,6 +5629,8 @@
 33B1: 86 01    lda  #$01
 33B3: 97 2B    sta  $2B
 33B5: 39       rts  
+
+; subroutine jumtable $0842
 33B6: FF 05 45 stx  $0545
 33B9: EE 00    ldx  (x+$00)
 33BB: DF D2    stx  $D2
@@ -5626,13 +5712,20 @@
 345D: B7 05 47 sta  $0547
 3460: B6 05 47 lda  $0547
 3463: 39       rts  
+
+; subroutine from jumptable $0845
 3464: 97 1A    sta  $1A
 3466: 4F       clra 
+; subroutine from jumtable $084E
 3467: D7 1C    stb  $1C
 3469: 97 1B    sta  $1B
 346B: 0D       sec  
 346C: 20 05    bra  $3473
+
+; subroutine from jumtable $084B
 346E: 4F       clra 
+
+; subroutine from jumtable $0848
 346F: BD FE 56 jsr  $FE56
 3472: 0C       clc  
 3473: 07       tpa  
@@ -5700,6 +5793,8 @@
 34DE: E7 01    stb  (x+$01)
 34E0: A7 00    sta  (x+$00)
 34E2: 39       rts  
+
+
 34E3: 00       illegal
 34E4: 00       illegal
 34E5: 00       illegal
@@ -5752,8 +5847,8 @@ start:
 3533: B6 F7 D2 lda  $F7D2
 3536: 84 EF    anda #$EF
 3538: B7 F7 D2 sta  $F7D2
-353B: B6 FF E7 lda  $FFE7
-353E: 81 07    cmpa #$07
+353B: B6 FF E7 lda  $FFE7  ; Checking the PROMID!
+353E: 81 07    cmpa #$07   ; If it is 7 then disable plenty of jump entries. But we are a 01. 07= PCU 4171
 3540: 27 43    beq  $3585
 3542: B6 F7 C6 lda  $F7C6
 3545: 8A 10    ora  #$10
@@ -5783,8 +5878,8 @@ start:
 357F: 5F       clrb 
 3580: BD FE 30 jsr  $FE30
 3583: 20 32    bra  $35B7
-3585: 86 39    lda  #$39
-3587: B7 08 0C sta  $080C
+3585: 86 39    lda  #$39  ; This is the RTS instruction
+3587: B7 08 0C sta  $080C ; essentially disabling many of the jumptable entries!
 358A: B7 08 0F sta  $080F
 358D: B7 08 12 sta  $0812
 3590: B7 08 15 sta  $0815
@@ -5803,8 +5898,8 @@ start:
 35B7: B6 F7 C6 lda  $F7C6
 35BA: 84 EF    anda #$EF
 35BC: B7 F7 C6 sta  $F7C6
-35BF: B6 FF E7 lda  $FFE7
-35C2: 81 07    cmpa #$07
+35BF: B6 FF E7 lda  $FFE7  ; Checking PROMID once more. 
+35C2: 81 07    cmpa #$07   ; 07 is the PCU 4171
 35C4: 27 0D    beq  $35D3
 35C6: CE 7F 81 ldx  #$7F81
 35C9: DF 1D    stx  $1D
@@ -5824,7 +5919,7 @@ start:
 35EE: CE 05 56 ldx  #$0556
 35F1: 3F       swi  
 35F2: BD 41 46 jsr  $4146
-35F5: B6 FF E7 lda  $FFE7
+35F5: B6 FF E7 lda  $FFE7  ; Check PROMID..
 35F8: 81 07    cmpa #$07
 35FA: 27 0D    beq  $3609
 35FC: 86 80    lda  #$80
@@ -5863,7 +5958,7 @@ start:
 3655: B7 02 A4 sta  $02A4
 3658: 86 0A    lda  #$0A
 365A: B7 02 A5 sta  $02A5
-365D: B6 FF E7 lda  $FFE7
+365D: B6 FF E7 lda  $FFE7  ; PROMID...
 3660: 81 07    cmpa #$07
 3662: 27 3B    beq  $369F
 3664: BD 40 AF jsr  $40AF
@@ -5984,6 +6079,8 @@ start:
 376F: F0 05 55 subb $0555
 3772: B2 05 54 sbca $0554
 3775: 26 0B    bne  $3782
+
+; swi A = $36 - probably not a SWI routine...
 3777: 5D       tstb 
 3778: 26 08    bne  $3782
 377A: CE BF FC ldx  #$BFFC
@@ -5992,7 +6089,7 @@ start:
 3782: 86 30    lda  #$30
 3784: C6 00    ldb  #$00
 3786: 50       negb 
-3787: 25 01    bcs  $378A
+3787: 25 01    bcs  $378A; $3788 is also an entry. But then it will start on the $01 instruction which is a NOP. Fully OK. But strange.
 3789: 4A       deca 
 378A: 43       coma 
 378B: F7 05 55 stb  $0555
@@ -6047,7 +6144,7 @@ start:
 37FC: 81 55    cmpa #$55
 37FE: 26 67    bne  $3867
 
-; SWI routine $1C
+; SWI routine $1C .. Strange... Since it never jumps back..
 3800: B6 40 79 lda  $4079
 3803: F6 40 7A ldb  $407A
 3806: CB 02    addb #$02
@@ -6062,7 +6159,7 @@ start:
 3818: 43       coma 
 3819: F7 05 55 stb  $0555
 381C: B7 05 54 sta  $0554
-381F: B6 40 79 lda  $4079  ; $381B is an entry point! SWI $24
+381F: B6 40 79 lda  $4079  ; $381B is an entry point! SWI $24 Strange!?
 3822: F6 40 7A ldb  $407A
 3825: F0 05 55 subb $0555
 3828: B2 05 54 sbca $0554
@@ -6205,7 +6302,7 @@ start:
 398B: 3F       swi  
 398C: 5D       tstb 
 398D: 26 52    bne  $39E1
-398F: B6 FF E7 lda  $FFE7
+398F: B6 FF E7 lda  $FFE7  ; PROMID
 3992: 81 07    cmpa #$07
 3994: 27 08    beq  $399E
 3996: B6 02 39 lda  $0239
