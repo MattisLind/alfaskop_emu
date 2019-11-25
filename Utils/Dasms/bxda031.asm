@@ -416,6 +416,39 @@
 0851: 7E 24 36 jmp  $2436
 0854: 7E 08 54 jmp  $0854
 0857: 7E 08 57 jmp  $0857
+
+; indirection table for SWI
+               fdb  $30E1  ; $00
+               fdb  $3152  ; $02
+               fdb  $315D  ; $04
+               fdb  $3178  ; $06
+               fdb  $31FF  ; $08
+               fdb  $320D  ; $0A
+               fdb  $3212  ; $0C
+               fdb  $2C72  ; $0E
+               fdb  $2BEE  ; $10
+               fdb  $2DDC  ; $12
+               fdb  $37E3  ; $14
+               fdb  $37E3  ; $16
+               fdb  $3796  ; $18
+               fdb  $2E55  ; $1A
+               fdb  $2D2E  ; $1C
+               fdb  $3800  ; $1E
+               fdb  $2F27  ; $20
+               fdb  $2F13  ; $22
+               fdb  $2EFF  ; $24
+               fdb  $381B  ; $26
+               fdb  $2F9E  ; $28
+               fdb  $382E  ; $3A
+               fdb  $38AE  ; $3C
+               fdb  $37B4  ; $3E
+               fdb  $379F  ; $40
+               fdb  $37DA  ; $42
+               fdb  $37D1  ; $44
+               fdb  $3788  ; $46
+               fdb  $3777  ; $48
+               fdb  $0000
+               fdb  $30B2
 085A: 30       tsx  
 085B: E1 31    cmpb (x+$31)
 085D: 52       illegal
@@ -4514,6 +4547,8 @@
 2BE7: FE 05 19 ldx  $0519
 2BEA: EE 00    ldx  (x+$00)
 2BEC: 6E 00    jmp  (x+$00)
+
+; 
 2BEE: BD 2F D0 jsr  $2FD0
 2BF1: DE 53    ldx  $53
 2BF3: 26 05    bne  $2BFA
@@ -4570,6 +4605,8 @@
 2C6B: DE 5D    ldx  $5D
 2C6D: DF 9D    stx  $9D
 2C6F: 7E 2D 45 jmp  $2D45
+
+;
 2C72: BD 2F BD jsr  $2FBD
 2C75: CE 00 AD ldx  #$00AD
 2C78: DF 1D    stx  $1D
@@ -5091,6 +5128,7 @@
 30DE: 54       lsrb 
 30DF: 4F       clra 
 30E0: 43       coma 
+               fdb  $30EE
 30E1: 30       tsx  
 30E2: EE 03    ldx  (x+$03)
 30E4: 9F 0E    sts  $0E
@@ -5099,6 +5137,7 @@
 30EA: 36       psha 
 30EB: A6 04    lda  (x+$04)
 30ED: 36       psha 
+; some kind of generic entry point for all SWI routines ?
 30EE: 4F       clra 
 30EF: 36       psha 
 30F0: 36       psha 
@@ -5154,13 +5193,17 @@
 314A: 9F 0C    sts  $0C
 314C: 9E 0E    lds  $0E
 314E: 0E       cli  
-314F: 7E 32 A7 jmp  $32A7
+314F: 7E 32 A7 jmp  $32A7 ; jumps back to SWI entry routine
+
+               fdb  $30EE
 3152: 30       tsx  
 3153: EE 03    ldx  (x+$03)
 3155: E6 04    ldb  (x+$04)
 3157: CA 20    orb  #$20
 3159: E7 04    stb  (x+$04)
 315B: 20 05    bra  $3162
+
+               fdb  $30EE
 315D: 30       tsx  
 315E: EE 03    ldx  (x+$03)
 3160: E6 04    ldb  (x+$04)
@@ -5176,6 +5219,8 @@
 3172: DF 10    stx  $10
 3174: E6 05    ldb  (x+$05)
 3176: 20 A7    bra  $311F
+
+               fdb  $30EE
 3178: 30       tsx  
 3179: EE 03    ldx  (x+$03)
 317B: E6 00    ldb  (x+$00)
@@ -5248,6 +5293,8 @@
 31F8: C4 FD    andb #$FD
 31FA: E7 04    stb  (x+$04)
 31FC: 7E 32 A7 jmp  $32A7
+
+; 
 31FF: 8D 03    bsr  $3204
 3201: 7E 31 55 jmp  $3155
 3204: DE 0A    ldx  $0A
@@ -5255,8 +5302,12 @@
 3208: DF 0C    stx  $0C
 320A: DE 0A    ldx  $0A
 320C: 39       rts  
+
+;
 320D: 8D F5    bsr  $3204
 320F: 7E 31 60 jmp  $3160
+
+;
 3212: 30       tsx  
 3213: EE 03    ldx  (x+$03)
 3215: E6 04    ldb  (x+$04)
@@ -5325,17 +5376,18 @@
 328B: 9E 6A    lds  $6A
 328D: 0E       cli  
 328E: 20 17    bra  $32A7
+; Entrypoint of SWI routine
 3290: BD 32 ED jsr  $32ED
 3293: 0E       cli  
-3294: 7C 00 65 inc  $0065
-3297: 9B 67    adda $67
-3299: 97 69    sta  $69
-329B: 96 66    lda  $66
+3294: 7C 00 65 inc  $0065  
+3297: 9B 67    adda $67    ; A contain which routine to start. Seems to be an even number
+3299: 97 69    sta  $69    ; Do a 16 bit add off A with $67 $66 to $68 $69
+329B: 96 66    lda  $66    ; Somewhere the value of $67$68 need to be initiated. Maybe at $47F3? Sets $085A.
 329D: 89 00    adca #$00
 329F: 97 68    sta  $68
 32A1: DE 68    ldx  $68
-32A3: EE 00    ldx  (x+$00)
-32A5: 6E 00    jmp  (x+$00)
+32A3: EE 00    ldx  (x+$00) ; some kind of double indirection. 
+32A5: 6E 00    jmp  (x+$00) ; here.. 
 32A7: 7A 00 65 dec  $0065
 32AA: 26 3E    bne  $32EA
 32AC: DE 0A    ldx  $0A
@@ -5660,9 +5712,9 @@ start:
 3508: C6 0B    ldb  #$0B
 350A: BD FE 2F jsr  $FE2F
 350D: CE 32 3B ldx  #$323B
-3510: FF 01 81 stx  $0181
-3513: CE 32 90 ldx  #$3290
-3516: FF 01 9C stx  $019C
+3510: FF 01 81 stx  $0181  
+3513: CE 32 90 ldx  #$3290   ; Address of SWI routine
+3516: FF 01 9C stx  $019C    ; SWI interrupt jump vector 
 3519: 7F 06 0B clr  $060B
 351C: 7F 06 0A clr  $060A
 351F: 8E 06 DE lds  #$06DE
