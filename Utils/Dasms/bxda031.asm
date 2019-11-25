@@ -3713,6 +3713,8 @@
 245E: F7 02 E6 stb  $02E6
 2461: F7 F7 C4 stb  $F7C4
 2464: 7E 32 F5 jmp  $32F5
+
+; subroutine
 2467: FF 05 07 stx  $0507
 246A: EE 00    ldx  (x+$00)
 246C: A6 00    lda  (x+$00)
@@ -6239,6 +6241,8 @@ start:
 39DE: 86 06    lda  #$06
 39E0: 3F       swi  
 39E1: 39       rts  
+
+; subroutine
 39E2: FE 40 59 ldx  $4059
 39E5: 08       inx  
 39E6: FF 40 59 stx  $4059
@@ -6272,7 +6276,11 @@ start:
 3A2F: CE 05 56 ldx  #$0556
 3A32: 86 06    lda  #$06
 3A34: 3F       swi  
-3A35: 39       rts  
+3A35: 39       rts 
+
+               org  $3A36
+               fdb  $F90B
+               
 3A36: F9 0B 20 adcb $0B20
 3A39: 46       rora 
 3A3A: 41       illegal
@@ -7771,6 +7779,8 @@ start:
 40AC: 30       tsx  
 40AD: 33       pulb 
 40AE: 37       pshb 
+
+; subroutine called from $3664
 40AF: CE 03 D0 ldx  #$03D0
 40B2: FF 03 CE stx  $03CE
 40B5: FF 03 F0 stx  $03F0
@@ -7824,14 +7834,21 @@ start:
 4139: B7 F7 C0 sta  $F7C0
 413C: 86 88    lda  #$88
 413E: B7 F7 C1 sta  $F7C1
-4141: 39       rts  
-4142: 04       illegal
-4143: 06       tap  
-4144: 03       illegal
-4145: F6 CE 24 ldb  $CE24
-4148: E3       illegal
+4141: 39       rts
+
+
+               org  $4142
+               fdb  $0406
+               fdb  $03F6
+
+               org  $4146
+; the disassembly lost track here
+
+4146: CE 24 E3 ldx  #$24E3
 4149: FF 01 84 stx  $0184
 414C: 39       rts  
+
+; subroutine called from $4689
 414D: B6 02 C7 lda  $02C7
 4150: F6 02 C8 ldb  $02C8
 4153: C0 FC    subb #$FC
@@ -8085,7 +8102,8 @@ start:
 43B7: 20 D7    bra  $4390
 43B9: B6 81 15 lda  $8115
 43BC: 81 09    cmpa #$09
-43BE: 20 1C    bra  $43DC
+43BE: 20 1C    bra  $43DC ; jumps there...
+
 43C0: 05       illegal
 43C1: 81 F7    cmpa #$F7
 43C3: 05       illegal
@@ -8102,6 +8120,8 @@ start:
 43D4: FF 9A 09 stx  $9A09
 43D7: FE 9A 09 ldx  $9A09
 43DA: 26 B4    bne  $4390
+
+; jumps here
 43DC: B6 9A 07 lda  $9A07
 43DF: B7 81 15 sta  $8115
 43E2: B6 9A 07 lda  $9A07
@@ -8336,6 +8356,8 @@ start:
 4637: CE 26 C6 ldx  #$26C6
 463A: FF 06 0A stx  $060A
 463D: 39       rts  
+
+; subroutine
 463E: CE 01 DD ldx  #$01DD
 4641: 86 12    lda  #$12
 4643: 3F       swi  
@@ -8353,11 +8375,25 @@ start:
 465C: 8A 40    ora  #$40
 465E: B7 02 EA sta  $02EA
 4661: 39       rts  
-4662: 00       illegal
-4663: 9F 0E    sts  $0E
-4665: A2 7E    sbca (x+$7E)
-4667: 00       illegal
-4668: 00       illegal
+
+               org  $4662
+               fcb  $00
+               fcb  $9F
+               fcb  $0E
+               fdb  $A27E
+               fdb  $0000
+             
+
+;4662: 00       illegal
+;4663: 9F 0E    sts  $0E
+;4665: A2 7E    sbca (x+$7E)
+;4667: 00       illegal
+;4668: 00       illegal
+
+               org  $4669
+               fcc  "PRDEF   PUPROGRMSYSLIB  PRSTRAPS"
+               
+; subroutine               
 4669: 50       negb 
 466A: 52       illegal
 466B: 44       lsra 
@@ -8387,6 +8423,8 @@ start:
 4686: 41       illegal
 4687: 50       negb 
 4688: 53       comb 
+
+; routine called from $3914
 4689: BD 41 4D jsr  $414D
 468C: 86 17    lda  #$17
 468E: B7 03 B1 sta  $03B1
@@ -8515,6 +8553,7 @@ start:
 47D7: CE 05 84 ldx  #$0584
 47DA: 3F       swi  
 47DB: 39       rts  
+; Routine to setup jumptable
 47DC: CE 06 8F ldx  #$068F
 47DF: DF 0A    stx  $0A
 47E1: DF 0C    stx  $0C
@@ -8527,6 +8566,7 @@ start:
 47F3: CE 08 5A ldx  #$085A
 47F6: DF 66    stx  $66
 47F8: 39       rts  
+;
 47F9: 22 83    bhi  $477E
 47FB: 10       sba  
 47FC: 12       asx1 (s+1)
