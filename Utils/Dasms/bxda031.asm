@@ -15,6 +15,9 @@
 0611: 00       illegal
 0612: 00       illegal
 0613: 00       illegal
+               org  $614
+               fcb  $00, $ff
+               fcc "*EM*"
 0614: 00       illegal
 0615: FF 2A 45 stx  $2A45
 0618: 4D       tsta 
@@ -164,7 +167,13 @@
 06DA: 0E       cli  
 06DB: 23 88    bls  $0665
 06DD: 36       psha 
-06DE: 4D       tsta 
+06DE: 4D       tsta
+
+               org  $6df
+               fcb  $00, $ff
+               fcc  "*OS*"
+               fcb  $80
+               
 06DF: 00       illegal
 06E0: FF 2A 4F stx  $2A4F
 06E3: 53       comb 
@@ -206,38 +215,9 @@
 072A: 20 20    bra  $074C
 072C: 20 20    bra  $074E
 072E: 20 A0    bra  $06D0
-0730: 44       lsra 
-0731: 49       rola 
-0732: 53       comb 
-0733: 4B       illegal
-0734: 20 46    bra  $077C
-0736: 41       illegal
-0737: 49       rola 
-0738: 4C       inca 
-0739: 55       illegal
-073A: 52       illegal
-073B: 45       illegal
-073C: 2E 20    bgt  $075E
-073E: 45       illegal
-073F: 52       illegal
-0740: 52       illegal
-0741: 4F       clra 
-0742: 52       illegal
-0743: 20 4E    bra  $0793
-0745: 55       illegal
-0746: 4D       tsta 
-0747: 42       illegal
-0748: 45       illegal
-0749: 52       illegal
-074A: 20 3D    bra  $0789
-074C: 20 58    bra  $07A6
-074E: 58       aslb 
-074F: 2E 20    bgt  $0771
-0751: 57       asrb 
-0752: 20 41    bra  $0795
-0754: 20 49    bra  $079F
-0756: 20 54    bra  $07AC
-0758: 20 2E    bra  $0788
+
+               org  $730
+               fcc  "DISK FAILURE. ERROR NUMBER = XX. W A I T ."
 075A: 00       illegal
 075B: 00       illegal
 075C: 00       illegal
@@ -888,13 +868,13 @@
 0AE8: 81 01    cmpa #$01
 0AEA: 27 64    beq  $0B50
 0AEC: EE 00    ldx  (x+$00)
-0AEE: 8C 4F 53 cmpx #$4F53
+0AEE: 8C 4F 53 cmpx #$4F53 
 0AF1: 26 05    bne  $0AF8
 0AF3: 7F 04 22 clr  $0422
 0AF6: 20 05    bra  $0AFD
 0AF8: 86 01    lda  #$01
 0AFA: B7 04 22 sta  $0422
-0AFD: BD 0E 94 jsr  $0E94
+0AFD: BD 0E 94 jsr  $0E94  ; update the status line. Non-zero in $0422 mean *EM* 0 mean *OS*
 0B00: FE 04 9B ldx  $049B
 0B03: A6 07    lda  (x+$07)
 0B05: FE 03 AE ldx  $03AE
@@ -1291,14 +1271,16 @@
 0E8D: 86 01    lda  #$01
 0E8F: BD 08 21 jsr  $0821
 0E92: 20 E1    bra  $0E75
+
+; subroutine. Sets a pointer to the text to update the status line with.
 0E94: B6 04 22 lda  $0422
 0E97: 26 0A    bne  $0EA3
 0E99: 7C 04 22 inc  $0422
-0E9C: CE 06 DF ldx  #$06DF
+0E9C: CE 06 DF ldx  #$06DF  ; *OS* status line
 0E9F: FF 03 AE stx  $03AE
 0EA2: 39       rts  
 0EA3: 7F 04 22 clr  $0422
-0EA6: CE 06 14 ldx  #$0614
+0EA6: CE 06 14 ldx  #$0614  ; *EM* status line
 0EA9: FF 03 AE stx  $03AE
 0EAC: 39       rts  
 
