@@ -1,12 +1,14 @@
 0600: 7E 35 00 jmp  $3500
-0603: 05       illegal
-0604: 00       illegal
-0605: 00       illegal
+               org  $0603
+               fcb  $05
+               fdb  $0000
+
 0606: 33       pulb 
 0607: 3B       rti  
 0608: 2A 37    bpl  $0641
-060A: 00       illegal
-060B: 00       illegal
+               org  $060A
+               fdb  $0000
+
 060C: 00       illegal
 060D: 00       illegal
 060E: 00       illegal
@@ -17,49 +19,14 @@
 0613: 00       illegal
                org  $614
                fcb  $00, $ff
-               fcc "*EM*"
-0614: 00       illegal
-0615: FF 2A 45 stx  $2A45
-0618: 4D       tsta 
-0619: 2A 20    bpl  $063B
-061B: 20 20    bra  $063D
-061D: 20 20    bra  $063F
-061F: 20 20    bra  $0641
-0621: 20 20    bra  $0643
-0623: 20 20    bra  $0645
-0625: 20 20    bra  $0647
-0627: 20 20    bra  $0649
-0629: 20 20    bra  $064B
-062B: 20 20    bra  $064D
-062D: 20 20    bra  $064F
-062F: 20 20    bra  $0651
-0631: 20 20    bra  $0653
-0633: 20 20    bra  $0655
-0635: 20 20    bra  $0657
-0637: 20 20    bra  $0659
-0639: 20 20    bra  $065B
-063B: 20 20    bra  $065D
-063D: 20 20    bra  $065F
-063F: 20 20    bra  $0661
-0641: 20 20    bra  $0663
-0643: 20 20    bra  $0665
-0645: 20 20    bra  $0667
-0647: 20 20    bra  $0669
-0649: 20 20    bra  $066B
-064B: 20 20    bra  $066D
-064D: 20 20    bra  $066F
-064F: 20 20    bra  $0671
-0651: 20 20    bra  $0673
-0653: 20 20    bra  $0675
-0655: 20 20    bra  $0677
-0657: 20 20    bra  $0679
-0659: 20 20    bra  $067B
-065B: 20 20    bra  $067D
-065D: 20 20    bra  $067F
-065F: 20 20    bra  $0681
-0661: 20 20    bra  $0683
-0663: 20 20    bra  $0685
-0665: FF 00 09 stx  $0009
+               fcc "*EM*                                                                           "
+               org  $0665
+               fcb  $ff
+
+               org  $0667
+               fdb  $0918
+               
+0666: 00 09 stx  $0009
 0668: 18       illegal
 0669: 00       illegal
 066A: 7E 06 6A jmp  $066A
@@ -96,6 +63,10 @@
 068C: 00       illegal
 068D: 06       tap  
 068E: 6A 00    dec  (x+$00)
+
+               org  $068F
+               fdb  $0000
+
 0690: 00       illegal
 0691: 00       illegal
 0692: 00       illegal
@@ -218,6 +189,9 @@
 
                org  $730
                fcc  "DISK FAILURE. ERROR NUMBER = XX. W A I T ."
+               
+               org  $75A
+               fdb  $0000
 075A: 00       illegal
 075B: 00       illegal
 075C: 00       illegal
@@ -428,45 +402,12 @@
                fdb  $3777  ; $36  probably no SWI routine here. Doesn't jump back to $2F3A.
                fdb  $0000
                fdb  $30B2
-085A: 30       tsx  
-085B: E1 31    cmpb (x+$31)
-085D: 52       illegal
-085E: 31       ins  
-085F: 5D       tstb 
-0860: 31       ins  
-0861: 78 31 FF asl  $31FF
-0864: 32       pula 
-0865: 0D       sec  
-0866: 32       pula 
-0867: 12       asx1 (s+1)
-0868: 2C 72    bge  $08DC
-086A: 2B EE    bmi  $085A
-086C: 2D DC    blt  $084A
-086E: 37       pshb 
-086F: E3       illegal
-0870: 37       pshb 
-0871: 96 2E    lda  $2E
-0873: 55       illegal
-0874: 2D 2E    blt  $08A4
-0876: 38       illegal
-0877: 00       illegal
-0878: 2F 27    ble  $08A1
-087A: 2F 13    ble  $088F
-087C: 2E FF    bgt  $087D
-087E: 38       illegal
-087F: 1B       aba  
-0880: 2F 9E    ble  $0820
-0882: 38       illegal
-0883: 2E 38    bgt  $08BD
-0885: AE 37    lds  (x+$37)
-0887: B4 37 9F anda $379F
-088A: 37       pshb 
-088B: DA 37    orb  $37
-088D: D1 37    cmpb $37
-088F: 88 37    eora #$37
-0891: 77 00 00 asr  $0000
-0894: 30       tsx  
-0895: B2 00 00 sbca $0000
+               
+               org  $0896
+               
+               fdb  $0000
+               fdb  $0000
+0896: 00 00    sbca $0000
 0898: 00       illegal
 0899: 00       illegal
 089A: 00       illegal
@@ -833,7 +774,7 @@
 ;0A9E: 03       illegal
 ;0A9F: B6     
 
-; subroutine from jumptable $082D
+; subroutine from jumptable $082D - seems to update the status line.
 0AA0: FF 04 9B stx  $049B
 0AA3: FF 04 1D stx  $041D
 0AA6: B6 02 A8 lda  $02A8
@@ -856,8 +797,6 @@
 0ACF: FE 04 9B ldx  $049B
 0AD2: A7 08    sta  (x+$08)
 0AD4: 39       rts  
-
-
 0AD5: 7F 02 C9 clr  $02C9
 0AD8: 7F 03 86 clr  $0386
 0ADB: 86 01    lda  #$01
@@ -914,12 +853,12 @@
 0B46: FE 04 9B ldx  $049B
 0B49: EE 02    ldx  (x+$02)
 0B4B: C6 4B    ldb  #$4B
-0B4D: BD FE 2F jsr  $FE2F
+0B4D: BD FE 2F jsr  $FE2F   ; seems to be some kind of mem copy routine
 0B50: FE 04 1F ldx  $041F
 0B53: DF 1D    stx  $1D
 0B55: FE 03 AE ldx  $03AE
 0B58: 08       inx  
-0B59: C6 50    ldb  #$50
+0B59: C6 50    ldb  #$50    ; copy 80 characters?
 0B5B: BD FE 2F jsr  $FE2F
 0B5E: 8D 1F    bsr  $0B7F
 0B60: FE 04 9B ldx  $049B
