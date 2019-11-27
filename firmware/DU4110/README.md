@@ -11,7 +11,7 @@ The first 1280 fuses are grouped in 48 lines of 40 fuses each. Each row is corre
 
 Finally there is one single byte for the output XOR gates of the 82S100.
 
-Naming convention for dumped files: <Board-name>_<Board ID>_<IC location>_<ID on chip>
+Naming convention for dumped files: \<Board-name\>_\<Board ID\>_\<IC location\>_\<ID on chip\>
   
   
 
