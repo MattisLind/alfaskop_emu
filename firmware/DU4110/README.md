@@ -1,4 +1,4 @@
-#Firmware and picture of the boards
+# Firmware and picture of the boards
 
 Here are all the dumped EPROMS, bipolar PROMS for character generator, Bipolar PROMs for decoding and other uses, 82S100 FPLA and 14H4 PAL.
 
