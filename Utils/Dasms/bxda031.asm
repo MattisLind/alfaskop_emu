@@ -3944,16 +3944,12 @@
 26B7: 86 04    lda  #$04
 26B9: 3F       swi  
 26BA: 39       rts  
-26BB: 00       illegal
-26BC: 00       illegal
-26BD: 04       illegal
-26BE: 03       illegal
-26BF: 03       illegal
-26C0: 00       illegal
-26C1: 00       illegal
-26C2: 26 BB    bne  $267F
-26C4: 00       illegal
-26C5: 00       illegal
+
+               org  $26BB
+               fcb  $00, $00, $04, $03, $03, $00, $00
+               fdb  $26BB
+               fcb  $00, $00
+               
 26C6: 96 24    lda  $24
 26C8: B7 04 29 sta  $0429
 26CB: 96 24    lda  $24
@@ -5088,12 +5084,11 @@
 30AC: DF AB    stx  $AB
 30AE: 7F 00 C2 clr  $00C2
 30B1: 39       rts  
-30B2: 35       txs  
-30B3: 08       inx  
-30B4: 37       pshb 
-30B5: EC       illegal
-30B6: 35       txs  
-30B7: 3B       rti  
+
+               org  $30B2
+               fdb  $3508
+               fdb  $37EC
+               fdb  $353b
 30B8: 38       illegal
 30B9: 27 37    beq  $30F2
 30BB: BD 37 63 jsr  $3763
@@ -5112,14 +5107,11 @@
 30D2: 2F 7F    ble  $3153
 30D4: 2F 90    ble  $3066
 30D6: 2F 97    ble  $306F
-30D8: 30       tsx  
-30D9: C8 53    eorb #$53
-30DB: 59       rolb 
-30DC: 53       comb 
-30DD: 56       rorb 
-30DE: 54       lsrb 
-30DF: 4F       clra 
-30E0: 43       coma 
+30D8: 30       tsx 
+               
+30D9: C8 
+               org  $30DA
+               fcc  "SYSVTOC"
 
 ; SWI routine $00
 30E1: 30       tsx  
