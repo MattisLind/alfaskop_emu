@@ -3946,9 +3946,16 @@
 26BA: 39       rts  
 
                org  $26BB
-               fcb  $00, $00, $04, $03, $03, $00, $00
+               fcb  $00
+               org  $26BC
+               fcb  $00, 
+               org  $26BD
+               fcb  $04, $03, $03
+               
+               org  $26C0
+               fdb  $0000
                fdb  $26BB
-               fcb  $00, $00
+               fdb  $0000
                
 26C6: 96 24    lda  $24
 26C8: B7 04 29 sta  $0429
@@ -5727,6 +5734,7 @@ start:
 3500: CE 05 49 ldx  #$0549
 3503: DF 1D    stx  $1D
 3505: CE 40 A4 ldx  #$40A4
+; Entry from jump table at $30B2
 3508: C6 0B    ldb  #$0B
 350A: BD FE 2F jsr  $FE2F
 350D: CE 32 3B ldx  #$323B
@@ -5746,6 +5754,7 @@ start:
 3533: B6 F7 D2 lda  $F7D2
 3536: 84 EF    anda #$EF
 3538: B7 F7 D2 sta  $F7D2
+; Entry from jump table at $30B2
 353B: B6 FF E7 lda  $FFE7  ; Checking the PROMID!
 353E: 81 07    cmpa #$07   ; If it is 7 then disable plenty of jump entries. But we are a 01. 07= PCU 4171
 3540: 27 43    beq  $3585
@@ -6032,7 +6041,7 @@ start:
 37E1: B6 40 79 lda  $4079
 37E4: F6 40 7A ldb  $407A
 37E7: F0 05 55 subb $0555
-37EA: B2 05 54 sbca $0554
+37EA: B2 05 54 sbca $0554  ; There is a jump entry going to $37EC. 54 = LSR B
 37ED: 26 78    bne  $3867
 37EF: 5D       tstb 
 37F0: 26 75    bne  $3867
@@ -6060,7 +6069,7 @@ start:
 381C: B7 05 54 sta  $0554
 381F: B6 40 79 lda  $4079  ; $381B is an entry point! SWI $24 Strange!?
 3822: F6 40 7A ldb  $407A
-3825: F0 05 55 subb $0555
+3825: F0 05 55 subb $0555  ; $3827 is an entrypoint. But 55 is not a valid instruction.
 3828: B2 05 54 sbca $0554
 382B: 2E 10    bgt  $383D
 382D: 2D 03    blt  $3832
@@ -8307,46 +8316,9 @@ start:
                fdb  $0000
              
 
-;4662: 00       illegal
-;4663: 9F 0E    sts  $0E
-;4665: A2 7E    sbca (x+$7E)
-;4667: 00       illegal
-;4668: 00       illegal
-
                org  $4669
                fcc  "PRDEF   PUPROGRMSYSLIB  PRSTRAPS"
                
-; subroutine               
-4669: 50       negb 
-466A: 52       illegal
-466B: 44       lsra 
-466C: 45       illegal
-466D: 46       rora 
-466E: 20 20    bra  $4690
-4670: 20 50    bra  $46C2
-4672: 55       illegal
-4673: 50       negb 
-4674: 52       illegal
-4675: 4F       clra 
-4676: 47       asra 
-4677: 52       illegal
-4678: 4D       tsta 
-4679: 53       comb 
-467A: 59       rolb 
-467B: 53       comb 
-467C: 4C       inca 
-467D: 49       rola 
-467E: 42       illegal
-467F: 20 20    bra  $46A1
-4681: 50       negb 
-4682: 52       illegal
-4683: 53       comb 
-4684: 54       lsrb 
-4685: 52       illegal
-4686: 41       illegal
-4687: 50       negb 
-4688: 53       comb 
-
 ; routine called from $3914
 4689: BD 41 4D jsr  $414D
 468C: 86 17    lda  #$17
