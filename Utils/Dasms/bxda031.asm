@@ -734,22 +734,9 @@
 0A75: FE 04 99 ldx  $0499
 0A78: 39       rts  
 
+               org  $0A79
+               fcc  "SYSLIB  LOGONPRG"
 
-0A79: 53       comb 
-0A7A: 59       rolb 
-0A7B: 53       comb 
-0A7C: 4C       inca 
-0A7D: 49       rola 
-0A7E: 42       illegal
-0A7F: 20 20    bra  $0AA1
-0A81: 4C       inca 
-0A82: 4F       clra 
-0A83: 47       asra 
-0A84: 4F       clra 
-0A85: 4E       illegal
-0A86: 50       negb 
-0A87: 52       illegal
-0A88: 47       asra 
 0A89: 00       illegal
 0A8A: 00       illegal
 0A8B: 00       illegal
