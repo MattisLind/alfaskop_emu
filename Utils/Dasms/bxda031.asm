@@ -5089,9 +5089,10 @@
                fdb  $3508
                fdb  $37EC
                fdb  $353b
-30B8: 38       illegal
-30B9: 27 37    beq  $30F2
-30BB: BD 37 63 jsr  $3763
+               fdb  $3827
+               fdb  $37BD
+               fdb  $3763
+
 30BE: FF 00 00 stx  $0000
 30C1: 00       illegal
 30C2: 02       illegal
