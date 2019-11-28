@@ -5093,24 +5093,22 @@
                fdb  $37BD
                fdb  $3763
 
-30BE: FF 00 00 stx  $0000
-30C1: 00       illegal
-30C2: 02       illegal
-30C3: 00       illegal
-30C4: 00       illegal
-30C5: 00       illegal
-30C6: 30       tsx  
-30C7: BF 2D A1 sts  $2DA1
-30CA: 2D CF    blt  $309B
-30CC: 2E 0A    bgt  $30D8
-30CE: 2E 90    bgt  $3060
-30D0: 2E 97    bgt  $3069
-30D2: 2F 7F    ble  $3153
-30D4: 2F 90    ble  $3066
-30D6: 2F 97    ble  $306F
-30D8: 30       tsx 
-               
-30D9: C8 
+               org  $30BE
+               fcb  $ff
+               fcb  $00, $00, $00, $02, $00, $00, $00
+
+               org  $30C6
+               fdb  $30BF
+               fdb  $2DA1
+               fdb  $2DCF
+               fdb  $2E0A
+               fdb  $2E90
+               fdb  $2E97
+               fdb  $2F7F
+               fdb  $2F90
+               fdb  $2F97
+               fdb  $30C8
+
                org  $30DA
                fcc  "SYSVTOC"
 
