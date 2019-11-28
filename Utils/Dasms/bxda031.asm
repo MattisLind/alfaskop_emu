@@ -6277,30 +6277,10 @@ start:
                org  $3A36
                fdb  $F90B
                
-3A36: F9 0B 20 adcb $0B20
-3A39: 46       rora 
-3A3A: 41       illegal
-3A3B: 49       rola 
-3A3C: 4C       inca 
-3A3D: 55       illegal
-3A3E: 52       illegal
-3A3F: 45       illegal
-3A40: 20 20    bra  $3A62
-3A42: 53       comb 
-3A43: 54       lsrb 
-3A44: 41       illegal
-3A45: 54       lsrb 
-3A46: 55       illegal
-3A47: 53       comb 
-3A48: 20 3D    bra  $3A87
-3A4A: 20 58    bra  $3AA4
-3A4C: 58       aslb 
-3A4D: 20 20    bra  $3A6F
-3A4F: 54       lsrb 
-3A50: 59       rolb 
-3A51: 50       negb 
-3A52: 45       illegal
-3A53: 20 3D    bra  $3A92
+3A36: F9 0B
+               org  $3A38
+               fcc  " FAILURE  STATUS = XX  TYPE ="
+
 3A55: 00       illegal
 3A56: 00       illegal
 3A57: 00       illegal
@@ -7704,77 +7684,24 @@ start:
 4057: 60 10    neg  (x+$10)
 4059: 00       illegal
 405A: 00       illegal
-405B: 52       illegal
-405C: 45       illegal
-405D: 53       comb 
-405E: 45       illegal
-405F: 54       lsrb 
-4060: 2D 44    blt  $40A6
-4062: 55       illegal
-4063: 4D       tsta 
-4064: 50       negb 
-4065: 20 49    bra  $40B0
-4067: 4E       illegal
-4068: 20 50    bra  $40BA
-406A: 52       illegal
-406B: 4F       clra 
-406C: 47       asra 
-406D: 52       illegal
-406E: 45       illegal
-406F: 53       comb 
-4070: 53       comb 
-4071: 49       rola 
-4072: 50       negb 
-4073: 4C       inca 
-4074: 44       lsra 
-4075: 55       illegal
-4076: 4D       tsta 
-4077: 50       negb 
-4078: 20 00    bra  $407A
+
+               org  $405B
+               fcc  "RESET-DUMP IN PROGRESSIPLDUMP "
+
+4079: 00    bra  $407A
 407A: 00       illegal
-407B: 4D       tsta 
-407C: 52       illegal
-407D: 57       asrb 
-407E: 20 45    bra  $40C5
-4080: 52       illegal
-4081: 52       illegal
-4082: 4F       clra 
-4083: 52       illegal
-4084: 2A 4F    bpl  $40D5
-4086: 53       comb 
-4087: 2A 20    bpl  $40A9
-4089: 20 20    bra  $40AB
-408B: 20 46    bra  $40D3
-408D: 44       lsra 
-408E: 53       comb 
-408F: 20 00    bra  $4091
+               org  $407B
+               fcc  "MRW ERROR"
+               fcc  "*OS*
+               fcc  "    FDS "
+
+4090: 00    bra  $4091
 4091: 00       illegal
 4092: 00       illegal
 4093: 00       illegal
-4094: 53       comb 
-4095: 59       rolb 
-4096: 53       comb 
-4097: 49       rola 
-4098: 50       negb 
-4099: 4C       inca 
-409A: 20 20    bra  $40BC
-409C: 4E       illegal
-409D: 49       rola 
-409E: 50       negb 
-409F: 20 4C    bra  $40ED
-40A1: 4F       clra 
-40A2: 41       illegal
-40A3: 44       lsra 
-40A4: 45       illegal
-40A5: 39       rts  
-40A6: 38       illegal
-40A7: 30       tsx  
-40A8: 35       txs  
-40A9: 38       illegal
-40AA: 20 37    bra  $40E3
-40AC: 30       tsx  
-40AD: 33       pulb 
-40AE: 37       pshb 
+               org  $4094
+               fcc "SYSIPL  NIP LOADE98058 7037"
+
 
 ; subroutine called from $3664
 40AF: CE 03 D0 ldx  #$03D0
