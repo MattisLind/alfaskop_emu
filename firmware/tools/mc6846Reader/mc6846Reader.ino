@@ -1,4 +1,5 @@
 /*
+ MC6846 Reader program. Based on a STM32 Blue pill connected to the MC6846. The databus is level converted usinga 74LVC245.
  
 */
 
@@ -178,17 +179,12 @@ void loop() {
           break;        
         case 'H':
           Serial.println();
-          Serial.println("ALFASKOP COMMANDER HELP");
+          Serial.println("MC6846 READER HELP");
           Serial.println("=======================");
           Serial.println("H - HELP");
           Serial.println("P - Reset");
-          Serial.println("R - Read and increment address");
-          Serial.println("T HH - Set Todev");
-          Serial.println("F HH - Set Frdev");
-          Serial.println("D HH - Set Dsa");
-          Serial.println("M HH - Set Msgtyp");
-          Serial.println("HH is a two digit hex value");
-          Serial.println("X - print current poll buffer");
+          Serial.println("R - Read byte and increment address"););
+          Serial.println("X - Read entire memory");
           Serial.println();
           Serial.print("MC6846 READER> " );
           break;
