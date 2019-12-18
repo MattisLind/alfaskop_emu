@@ -1,4 +1,4 @@
-### CPR4101 Hardware and firmware
+# CPR4101 Hardware and firmware
 
 The CPR4101 is a 60 x 40 x 40 cm box. It has an internal chassis made out of sheet metal which is housed in a brown/beige plastic housing.
 In the chasssis there is a CPB board which has the main microprocessor, then there is a TAB board which has slots for SS3 communication ports on TUA boards.
@@ -6,11 +6,11 @@ In addition to this there is a extension MRW-A board which has 32 kbyte of memor
 
 ## CPB board
 
-Component side
+### Component side
 
 ![CPB board component side](https://github.com/MattisLind/alfaskop_emu/raw/master/hardware/CPR4101/CPB_E34060_0010_ComponentSide.jpg)
 
-Solder side
+### Solder side
 
 ![CPB board solder side](https://github.com/MattisLind/alfaskop_emu/raw/master/hardware/CPR4101/CPB_E34060_0010_SolderSide.jpg)
 
@@ -28,33 +28,37 @@ main functionality of the CPR4101. There are one EPROM, two bipolar PROM and two
 
 ## MRW-A board
 
-Component side
+The MRW-A board has 32 kbyte expansion memory. There are one 16 16 kbit DRAM memory chips and some logic on this board. There is one PROM.
+
+### Component side
 
 ![MRW-A board component side](https://github.com/MattisLind/alfaskop_emu/raw/master/hardware/CPR4101/MRW-A_E34191_0010_ComponentSide.jpg)
 
-Solder side
+### Solder side
 
 ![MRW-A board solder side](https://github.com/MattisLind/alfaskop_emu/raw/master/hardware/CPR4101/MRW-A_E34191_0010_SolderSide.jpg)
 
 
 ## SCA board
 
-Component side
+The SCA board implements the interface to the host. Either this can be using the 6854 ADLC chip or the 6852 SSDA chip. The latter is for implementing the IBM BSC protocols. One port is V.24 the other is X.21.
+
+### Component side
 
 ![SCA board component side](https://github.com/MattisLind/alfaskop_emu/raw/master/hardware/CPR4101/SCA_E34194_0000_ComponentSide.jpg)
 
-Solder side
+### Solder side
 
 ![SCA board solder side](https://github.com/MattisLind/alfaskop_emu/raw/master/hardware/CPR4101/SCA_E34194_0000_SolderSide.jpg)
 
 
 ## TAB board
 
-Component side
+### Component side
 
 ![TAB board component side](https://github.com/MattisLind/alfaskop_emu/raw/master/hardware/CPR4101/TAB_E34073_0000_ComponentSide.jpg)
 
-Solder side
+### Solder side
 
 ![TAB board solder side](https://github.com/MattisLind/alfaskop_emu/raw/master/hardware/CPR4101/TAB_E34073_0000_SolderSide.jpg)
 
