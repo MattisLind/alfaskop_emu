@@ -56,7 +56,7 @@ The SCA board implements the interface to the host. Either this can be using the
 
 ## TAB board
 
-The TAB board has four independent SS3 MODEMs that extracts the emedded clock signal and the data. They synchrnizes the clock to the remot sender. It connects to the CPB boards and up to foru TUA boards
+The TAB board has four independent SS3 MODEMs that extracts the emedded clock signal and the data. They synchrnizes the clock to the remot sender. It connects to the CPB boards and up to foru TUA boards. The PROM on the TAB board are identical to the one found on the TIA board and no dump is taken on the PROM chip on this board.
 
 ### Component side
 
