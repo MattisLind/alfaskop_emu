@@ -6,6 +6,10 @@ In addition to this there is a extension MRW-A board which has 32 kbyte of memor
 
 [Information leaflet (in Swedish)](http://storage.datormuseum.se/u/96935524/Datormusuem/Alfaskop/Alfaskop-kommunikationsenhet-4101.pdf)
 
+## Hardware
+
+![Hardware list](https://github.com/MattisLind/alfaskop_emu/raw/master/hardware/CPR4101/CPR4101_HardwareList.jpg)
+
 ## CPB board
 
 ### Component side
