@@ -23,7 +23,7 @@ In addition to this there is a extension MRW-A board which has 32 kbyte of memor
 The CPB board has the main 6800 microprocessor, 32 kbyte of memory, 4 6854 ADLC chips, the 6844 DMA controller chip and provide the
 main functionality of the CPR4101. There are one EPROM, two bipolar PROM and two 82S100 type PLA on the board
 
-| IC location |  Component      |     |  File |
+| IC location |  Component      |Type |  File |
 |-------------|-----------------|-----|-------|
 |     IC24    |Fairchild 93459DC|PLA  |[E3405970032100](https://github.com/MattisLind/alfaskop_emu/raw/master/hardware/CPR4101/CPB_E34060_0010_IC24_E3405970032100_Fairchild_93459DC.bin)|
 |     IC36    |Fairchild 93459DC|PLA  |[E3405970013600](https://github.com/MattisLind/alfaskop_emu/raw/master/hardware/CPR4101/CPB_E34060_0010_IC36_E3405970013600_Fairchild_93459DC.bin)|
@@ -35,6 +35,10 @@ main functionality of the CPR4101. There are one EPROM, two bipolar PROM and two
 ## MRW-A board
 
 The MRW-A board has 32 kbyte expansion memory. There are one 16 16 kbit DRAM memory chips and some logic on this board. There is one PROM.
+
+| IC location |  Component      | Type|  File |
+|-------------|-----------------|-----|-------|
+|     IC2    |NS DM74S387N |PROM  |[E3405970320200](https://github.com/MattisLind/alfaskop_emu/raw/master/hardware/CPR4101/MRW-A_E34191_0010_IC2_E3405970320200_NS_DM74S387N.bin)|
 
 ### Component side
 
@@ -48,6 +52,10 @@ The MRW-A board has 32 kbyte expansion memory. There are one 16 16 kbit DRAM mem
 ## SCA board
 
 The SCA board implements the interface to the host. Either this can be using the 6854 ADLC chip or the 6852 SSDA chip. The latter is for implementing the IBM BSC protocols. One port is V.24 the other is X.21.
+
+| IC location |  Component      | Type|  File |
+|-------------|-----------------|-----|-------|
+|     IC1    |NS DM74S387N |PROM  |[E3405970230100](https://github.com/MattisLind/alfaskop_emu/raw/master/hardware/CPR4101/SCA_E34194_0000_IC1_E3405970230100_Harris_MI-7602-5.bin)|
 
 ### Component side
 
