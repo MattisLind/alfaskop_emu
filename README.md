@@ -22,7 +22,9 @@ To communicate between the various entities of the cluster a TCP variant of the 
 
 ## Interfacing with SS3
 
-![Two wire connector](https://i.imgur.com/YzAfB2gl.png)
+![Two wire connector female](https://i.imgur.com/YzAfB2gl.png)
+![Two wire connector male](https://github.com/MattisLind/alfaskop_emu/raw/master/pics/TwinaxConnectorMale_small.png)
+
 
 The special twinax connnector used for the Alfaskop series was devolped by Ossi Carlsson AB, an ELDON AB company. The bus called SS3 which employed a 9.585 MHz (half the pixel clock of the terminal) clock to recover the approximately 300 kbit/s signal modulated by FFSK. The signalling over the link employed HDLC. Initially the FFSK modem was implemented using discrete TTL circuits and a bipolar PROM. Later on a Ferranti ULA (custom IC) was designed which did the entire modulation and demodulation process. 
 
