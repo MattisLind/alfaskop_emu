@@ -1,6 +1,6 @@
 # CPR4101 Hardware and firmware
 
-![CPR4101](https://github.com/MattisLind/alfaskop_emu/raw/master/pics/CPR4101.png)
+![CPR4101](https://github.com/MattisLind/alfaskop_emu/raw/master/pics/CPR4101_small.png)
 
 The CPR4101 is a 44 x 37 x 31 cm box. It has an internal chassis made out of sheet metal which is housed in a brown/beige plastic housing.
 In the chasssis there is a CPB board which has the main microprocessor, then there is a TAB board which has slots for SS3 communication ports on TUA boards.
