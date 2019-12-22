@@ -1,5 +1,9 @@
 # FD4120
 
+![FD4120](https://github.com/MattisLind/alfaskop_emu/raw/master/pics/FD4120_small.png)
+
+The FD4120 is the storage unit for the cluster. It can contain one or two 8 inch MPI/CDC single sided disk drives. Apart from the drie and a power supply unit, there is a 6800 based controller board with 32 k RAM and 4 k ROM. Then there is an ionterface board which has two (!) FD1771 floppy controllers, and the 6854 chip for interfacing the SS3 bus.
+
 ## Hardware
 
 ### FDP board
