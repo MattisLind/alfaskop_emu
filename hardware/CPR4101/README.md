@@ -114,7 +114,12 @@ The UPB board is the power supply of the CPR4101. The RIFA MP capacitors has bee
 
 Of course a lot of dust has gathered throughout the years operation so a thorough cleaning was the first thing to do. While tearing the unit appart there were appearant that one of the TUA board had suffered from an exploding and burning tantalum capacitor. In this case not just the capacitor was bad but portion of the edge of the card was severly damaged as well as several adajacent components. It was decided that the system was to be run using one TUA card.
 
+![Burnt tanbtalum capacitor](https://github.com/MattisLind/alfaskop_emu/raw/master/pics/BurntTantalumCapacitor.jpg)
+
+
 Then when testing the power supply under load, 10A on the 5V, 0.8 A on the +12 and -12V, it was recognized that it sounded unhealty and the voltages never reached the spec.
+
+![Bad capacitors](https://github.com/MattisLind/alfaskop_emu/raw/master/pics/BadCapacitor.jpg)
 
 A couple of capacitors where the suspects and one of them measured bad and was replaced.
 
