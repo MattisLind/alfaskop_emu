@@ -31,3 +31,19 @@ The TWIB board has a unpopulated header with 26 pins which presuambly should be 
 |     9       |  RxDb               | in    |        3         |                   | 3 |
 |     10       |  /RTSb               | out    |                 |        9           | 4 |
 |     20       |  /DTRb               | out    |                 |        6           | 20 |
+
+
+### Cable between TWIB board and CPR4101 SCA board 
+
+| 26 pin header | DSUB25 in CPR4101|
+|---------------|------------------|
+|  17           |     24           |
+|  W2 pin 7     |     20           |
+|  5            |      4           |
+|  4            |      5           |
+|  2            |      3           |
+|  3            |      2           |
+|               |     15 to pin 24 |
+|               |     17 to pin 24 |
+
+The clock inputs may be using the internal clock but as this is set in software, the best is to jumper them in the connector to get a proper send and receive clock.
