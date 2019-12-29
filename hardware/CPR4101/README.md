@@ -71,6 +71,25 @@ The SCA board implements the interface to the host. Either this can be using the
 
 ![SCA board solder side](https://github.com/MattisLind/alfaskop_emu/raw/master/hardware/CPR4101/SCA_E34194_0000_SolderSide.jpg)
 
+### SCA Cable
+
+![SCA cable tag](https://github.com/MattisLind/alfaskop_emu/raw/master/pics/SCA_cable.jpg)
+
+The SCA cable connects from the SCA board to the DSUB on the sheet metal front inside the CPR unit.
+
+![SCA cable](https://github.com/MattisLind/alfaskop_emu/raw/master/pics/SCA-cable2.jpg)
+
+The SCA board connector has quite peculiar numbering used in the schematic
+
+![SCA connector numbering](https://github.com/MattisLind/alfaskop_emu/raw/master/pics/SCA_connector.jpg)
+
+| DB25 pin |    V.24 function    |SCA connector P11 pin |  SCA board function |
+|-------------|-----------------|-----|-------|
+|     2    |101 |2  | RD|
+
+The connectors mates with the red dot marking pin 1.
+
+![SCA connector numbering](https://github.com/MattisLind/alfaskop_emu/raw/master/pics/SCA-connector2.jpg)
 
 ### TAB board
 
