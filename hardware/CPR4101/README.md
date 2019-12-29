@@ -83,28 +83,28 @@ The SCA board connector has quite peculiar numbering used in the schematic
 
 ![SCA connector numbering](https://github.com/MattisLind/alfaskop_emu/raw/master/pics/SCA_connector.jpg)
 
-| DB25 pin    |  V.24 function  |SCA connector P11 pin |  SCA board function |
-|-------------|-----------------|----------------------|---------------------|
-|     2       |  TD  103        |            2         |        TD           |
-|     3       |  TD  103        |            4         |        RD           |
-|     4       |  TD  103        |            5         |        RTS          |
-|     5       |  TD  103        |            6         |        RFS          |
-|     6       |  TD  103        |            1         |        ?            |
-|     7       |  TD  103        |            26        |        GND          |
-|     9       |  TD  103        |            30        |        GND          |
-|     10      |  TD  103        |            27        |        ?            |
-|     11      |  TD  103        |            31        |        RSET OUT     |
-|     14      |  TD  103        |            22        |        GND          |
-|     15      |  TD  103        |            9         |        TSET 114     |
-|     16      |  TD  103        |            23        |        GND          |
-|     17      |  TD  103        |            10        |        RSET 115     |
-|     18      |  TD  103        |            24        |        TD           |
-|     19      |  TD  103        |            26        |        TD           |
-|     20      |  TD  103        |            7         |        TD           |
-|     21      |  TD  103        |            21        |        TD           |
-|     22      |  TD  103        |            8         |        TD           |
-|     23      |  TD  103        |            29        |        TD           |
-|     24      |  TD  103        |            11        |        TD           |
+| DB25 pin    |  V.24 function         | Source |SCA connector P11 pin |  SCA board function |
+|-------------|------------------------|--------|------------------|---------------------|
+|     2       |  TD  103               | DTE    |        2         |        TD           |
+|     3       |  RD  104               | DCE    |        4         |        RD           |
+|     4       |  RTS  105              | DTE    |        5         |        RTS          |
+|     5       |  CTS  106              | DCE    |        6         |        RFS          |
+|     6       |  DSR  107              | DCE    |         1         |        ?            |
+|     7       |  SGND  102             |        |         26        |        GND          |
+|     9       |                        |        |         30        |        GND          |
+|     10      |                        |        |         27        |        ?            |
+|     11      |                        |        |           31        |        RSET OUT     |
+|     14      |  STXD 118              | DTE    |           22        |        GND          |
+|     15      |  TXC  114              | DCE    |           9         |        TSET 114     |
+|     16      |  SRXD  119             | DTE    |           23        |        GND          |
+|     17      |  RXC  115              | DCE    |           10        |        RSET 115     |
+|     18      |  LL  141               | DTE    |           24        |        GND          |
+|     19      |  SRTS  120             | DTE    |           26        |        GND          |
+|     20      |  DTR  108.2            | DTE    |           7         |        DTR          |
+|     21      |  RL/SQD  140/110       | DCE    |            21        |        ?            |
+|     22      |  RI  125               | DCE    |           8         |        ?            |
+|     23      |  DSRST/ DSRSC 111/112  | DTE    |            29        |        GND          |
+|     24      |  EXTC  113             | DTE    |            11        |        TSET out     |
 
 
 The connectors mates with the red dot marking pin 1.
