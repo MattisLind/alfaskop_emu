@@ -15,3 +15,19 @@ Then a new schematic was done based on the actual functions of the board. Adress
 The outcome gave that the adress bus is only partly decoded. Only address A0-A10 is used. Adress A4-A10 is compared with the switch settings. Adress A0 and A1 is connected to the 8274 chip via a couple of AND gates that allow for DMA operations. A2 high enable the DIPSW onto the bus and A3 high enable the 8274 on the bus. The signal AEN need to be high for the card to be selected. The signals IOR and IOW tell the board if there is a Read or Write operation taking place. RESET sigal will reset the 8274 and the modem chip.  The 8274 need a clock signal which is less than 4 MHz which is derived form the PC BUS 4.77 MHz clock signal which is divided by two in a 74S74 chip.
 
 The intention is to connect a STM32 uController to the board and interface it with the D0-D7 signals, A0 and A1 signals, IOR and IOW signals and the RESET signal. A10-A4 are all set to low and the corresponding DIP switches are set accordingly. A3 is set high and A2 is set low. A small clock oscillator circuit is used to create a signal which is lower than 8 MHz.
+
+
+### Spare secondary channel
+
+The TWIB board has a unpopulated header with 26 pins which presuambly should be connected to a DB25 connector. There are space for a 1488 driver  (IC13) and a 1489 receiver (IC16). Connections with the 8274 is not included in the schematic above.
+
+| 8274 pin    |  8274 function         | 8274 direction | IC16 pin|  IC13 pin | 26 pin header pin |
+|-------------|------------------------|--------|------------------|---------------------|--------|
+|     4       |  /RxCB               | in    |        11         |                   |  17 |
+|     5       |  /CDb               | in    |        6         |                   |  W2:pin 7 |
+|     6       |  /CTSb               | in    |        8         |                   |  5 |
+|     7       |  /TxCb               | in    |        11         |                   | 17 |
+|     8       |  TxDb               | out    |                 |        2           |  2|
+|     9       |  RxDb               | in    |        3         |                   | 3 |
+|     10       |  /RTSb               | out    |                 |        9           | 4 |
+|     20       |  /DTRb               | out    |                 |        6           | 20 |
