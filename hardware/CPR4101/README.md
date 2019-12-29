@@ -83,9 +83,29 @@ The SCA board connector has quite peculiar numbering used in the schematic
 
 ![SCA connector numbering](https://github.com/MattisLind/alfaskop_emu/raw/master/pics/SCA_connector.jpg)
 
-| DB25 pin |    V.24 function    |SCA connector P11 pin |  SCA board function |
-|-------------|-----------------|-----|-------|
-|     2    |101 |2  | RD|
+| DB25 pin    |  V.24 function  |SCA connector P11 pin |  SCA board function |
+|-------------|-----------------|----------------------|---------------------|
+|     2       |  TD  103        |            2         |        TD           |
+|     3       |  TD  103        |            4         |        RD           |
+|     4       |  TD  103        |            5         |        RTS          |
+|     5       |  TD  103        |            6         |        RFS          |
+|     6       |  TD  103        |            1         |        ?            |
+|     7       |  TD  103        |            26        |        GND          |
+|     9       |  TD  103        |            30        |        GND          |
+|     10      |  TD  103        |            27        |        ?            |
+|     11      |  TD  103        |            31        |        RSET OUT     |
+|     14      |  TD  103        |            22        |        GND          |
+|     15      |  TD  103        |            9         |        TSET 114     |
+|     16      |  TD  103        |            23        |        GND          |
+|     17      |  TD  103        |            10        |        RSET 115     |
+|     18      |  TD  103        |            24        |        TD           |
+|     19      |  TD  103        |            26        |        TD           |
+|     20      |  TD  103        |            7         |        TD           |
+|     21      |  TD  103        |            21        |        TD           |
+|     22      |  TD  103        |            8         |        TD           |
+|     23      |  TD  103        |            29        |        TD           |
+|     24      |  TD  103        |            11        |        TD           |
+
 
 The connectors mates with the red dot marking pin 1.
 
