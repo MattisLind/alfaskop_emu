@@ -1,6 +1,6 @@
 # alfaskop_emu
 
-![Alfaskop 4110](https://github.com/MattisLind/alfaskop_emu/raw/master/pics/Alfaskop_small.png)
+![Alfaskop 4110](https://github.com/MattisLind/alfaskop_emu/raw/master/pics/Alfaskop_console_mode.png)
 
 
 This project aims to make a Alfaskop 4110 running towards the Hercules IBM emulator and run the MEMO SW.
