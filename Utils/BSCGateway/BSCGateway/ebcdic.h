@@ -47,3 +47,4 @@
 #define DC4 0x3a
 #define NAK 0x3d
 #define SUB 0x3f
+#define PAD 0xff
