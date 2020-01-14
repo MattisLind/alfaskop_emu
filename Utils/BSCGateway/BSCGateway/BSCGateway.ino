@@ -33,7 +33,10 @@ char txBuf[] = {SYN, SYN, 0x40, 0x40, 0x40, 0x40, ENQ, PAD};
 int txLen = sizeof txBuf;
 char cmd;
 int hexValue;
-
+uint32 dataWord;
+int syncPoint;
+uint8_t msgBuffer [300];
+int msgBufferCnt = 0;
 
 void printTwoDigitHex (int data) {
   if (data < 16) {
@@ -46,7 +49,9 @@ void printTwoDigitHex (int data) {
 void loop() {
   spi_dev * spi_d = SPI2;
   uint16 read;
+  uint8_t data;
   uint8_t msg;
+  int rxState=0;
   char tmp;
   int i;
   // put your main code here, to run repeatedly:
@@ -161,5 +166,83 @@ void loop() {
   }
   if (spi_is_rx_nonempty(spi_d)) {
     read = spi_rx_reg(spi_d); // "... and read the last received data."  
+    dataWord = dataWord << 8;  
+    dataWord = dataWord | (0xff & read);
+    if (state==0) { // Hunting for SYNC
+      // Try to find sync
+      for (i=0; i<8; i++) {
+        if (((dataWord >> i) & 0xffff) == 0x3232) {
+          syncPoint = i;
+          break;
+        }
+      }
+      if (i!= 8) {
+        rxState = 1; // We have found sync
+      }
+    }
+    else {
+      data = 0xff & (dataWord >> syncPoint);
+      msgBuffer[msgBufferCnt++] = data;
+      if (rxState == 1) { // Processing first char efter SYN
+        switch (data) {
+          case EOT: 
+          case NAK:
+            rxState = 2;
+            break;
+          case DLE:  // Two byte sequences
+            rxState = 3;
+            break;
+          case SOH:
+            rxState = 4;
+            break;
+          case STX:
+            rxState = 5;
+            break;
+        }   
+      } else if (rxState == 2) {
+        // Data shall be PAD.
+        if (data == PAD) {
+          // Do a callback 
+          if (msgBuffer[0] == EOT) {
+          } else if (msgBuffer[0] == NAK) {
+          } else {
+            // Error callback
+          }
+        } else {
+          // Error do something - call error callback
+        }
+        rxState = 0; // Go back to hunt for sync.
+      } else if (rxState == 3) {
+        switch (data) {
+          case 0x70: // ACK 0
+          case 0x61: // ACK 1
+          case 0x6b: // WACK
+          case 0x7c: // RVI
+            rxState = 6;
+            break;
+          default:
+            break;
+        }
+      } else if (rxState == 4) {
+      } else if (rxState == 5) {
+      } else if (rxState == 6) {
+        // Two byte sequence
+        if (data == PAD) {
+          switch (msgBuffer[1]) {
+            case 0x70: // ACK 0
+              break;
+            case 0x61: // ACK 1
+              break;
+            case 0x6b: // WACK
+              break;
+            case 0x7c: // RVI
+              break;
+          }
+        } else {
+          // Error
+        }
+        rxState = 0; // Go back to hunt
+      }
+    }
   }
 }
