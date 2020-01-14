@@ -1,4 +1,5 @@
 #include <SPI.h>
+#include "ebcdic.h"
 
 SPIClass SPI_2(2); //Create an instance of the SPI Class called SPI_2 that uses the 2nd SPI Port
 
@@ -28,7 +29,7 @@ int count;
 int cmdState=0;
 int txDone=1;
 int txCnt=8;
-char txBuf[] = {0x32, 0x32, 0x40, 0x40, 0x40, 0x40, 0x2D, 0xFF};
+char txBuf[] = {SYN, SYN, 0x40, 0x40, 0x40, 0x40, ENQ, PAD};
 int txLen = sizeof txBuf;
 char cmd;
 int hexValue;
@@ -91,7 +92,6 @@ void loop() {
             Serial.println("=======================");
             Serial.println("H - HELP");
             Serial.println("P - Send BSC Poll");
-            Serial.println("R - Do a Reset of the 8274 chip");
             Serial.println("C HH - Set CU");
             Serial.println("D HH - Set DV");
             Serial.println("HH is a two digit hex value");
