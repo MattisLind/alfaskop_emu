@@ -37,6 +37,9 @@ uint32 dataWord;
 int syncPoint;
 uint8_t msgBuffer [300];
 int msgBufferCnt = 0;
+int byteCounter;
+int rxState=0;
+
 
 void printTwoDigitHex (int data) {
   if (data < 16) {
@@ -45,13 +48,20 @@ void printTwoDigitHex (int data) {
   Serial.print(data, HEX);
 }
 
+void printMsgBuffer () {
+  for (int i=0; i<msgBufferCnt;i++) {
+    printTwoDigitHex (msgBuffer[i]);
+    Serial.print(" ");
+  }  
+  Serial.println();
+}
+
 
 void loop() {
   spi_dev * spi_d = SPI2;
   uint16 read;
   uint8_t data;
   uint8_t msg;
-  int rxState=0;
   char tmp;
   int i;
   // put your main code here, to run repeatedly:
@@ -168,21 +178,30 @@ void loop() {
     read = spi_rx_reg(spi_d); // "... and read the last received data."  
     dataWord = dataWord << 8;  
     dataWord = dataWord | (0xff & read);
-    if (state==0) { // Hunting for SYNC
+    if (rxState==0) { // Hunting for SYNC
       // Try to find sync
       for (i=0; i<8; i++) {
         if (((dataWord >> i) & 0xffff) == 0x3232) {
           syncPoint = i;
+                  Serial.print("Found syncpoint");
+          Serial.print(syncPoint, DEC);
+          Serial.println();
           break;
         }
       }
       if (i!= 8) {
         rxState = 1; // We have found sync
+        Serial.print("Found syncpoint");
+          Serial.print(syncPoint, DEC);
+          Serial.println();
+        msgBufferCnt = 0;
       }
     }
     else {
-      data = 0xff & (dataWord >> syncPoint);
+      data = 0xff & (dataWord >> syncPoint);      
       msgBuffer[msgBufferCnt++] = data;
+      Serial.print("Buffer");
+      printMsgBuffer();
       if (rxState == 1) { // Processing first char efter SYN
         switch (data) {
           case EOT: 
@@ -193,23 +212,81 @@ void loop() {
             rxState = 3;
             break;
           case SOH:
+            byteCounter=2;
             rxState = 4;
             break;
           case STX:
             rxState = 5;
             break;
+          default:  // Enquiry POLL / SELECTION
+            rxState = 7;
+            byteCounter=4;
+            break;
         }   
       } else if (rxState == 2) {
         // Data shall be PAD.
         if (data == PAD) {
-          // Do a callback 
-          if (msgBuffer[0] == EOT) {
-          } else if (msgBuffer[0] == NAK) {
-          } else {
-            // Error callback
+          // We have all data  - Do a callback
+          switch (msgBuffer[0]) {
+            case EOT:
+              Serial.println("EOT received");
+              printMsgBuffer();
+              break;
+            case NAK:
+              Serial.println("NAK received");
+              printMsgBuffer();
+              break;
+            case DLE:
+              switch (msgBuffer[1]) {
+                case 0x70: // ACK 0
+                  Serial.println("ACK0 received");
+                  printMsgBuffer();
+                  break;
+                case 0x61: // ACK 1
+                  Serial.println("ACK1 received");
+                  printMsgBuffer();
+                  break;
+                case 0x6b: // WACK
+                  Serial.println("WACK received");
+                  printMsgBuffer();
+                  break;
+                case 0x7c: // RVI
+                  break;
+              }
+              break;
+            case SOH:
+              if (msgBuffer[1] == 0x6c) {
+                switch (msgBuffer[2]) {
+                  case 0xD9:
+                    Serial.println("Status Message received");
+                    printMsgBuffer();
+                    break;  // Status Message                
+                  case 0x61:
+                    Serial.println("Test request received");
+                    printMsgBuffer();
+                    break;  // Test request message
+                  default:
+                    Serial.println("Error SOH with wrong header code");
+                    printMsgBuffer();
+                    break;
+                }
+              } else {
+                Serial.println("Error SOH with wrong header code");
+                printMsgBuffer();
+              }
+              break;
+            case STX:
+                Serial.println("Read or write message received");
+                printMsgBuffer();
+              break;
+            default:  // Selection and POLL ENQ
+                Serial.println("Selection or POLL message ENQ received");
+                printMsgBuffer();
+              break;
           }
         } else {
-          // Error do something - call error callback
+          Serial.println("Last byte was not a PAD - go back to hunt mode!");
+          printMsgBuffer();       
         }
         rxState = 0; // Go back to hunt for sync.
       } else if (rxState == 3) {
@@ -218,29 +295,64 @@ void loop() {
           case 0x61: // ACK 1
           case 0x6b: // WACK
           case 0x7c: // RVI
-            rxState = 6;
+            rxState = 2;
             break;
           default:
+            rxState = 0;
+            Serial.println("State violation - going back to hunt mode when waiting for second byte control code");
+            printMsgBuffer();
             break;
         }
-      } else if (rxState == 4) {
-      } else if (rxState == 5) {
-      } else if (rxState == 6) {
-        // Two byte sequence
-        if (data == PAD) {
-          switch (msgBuffer[1]) {
-            case 0x70: // ACK 0
-              break;
-            case 0x61: // ACK 1
-              break;
-            case 0x6b: // WACK
-              break;
-            case 0x7c: // RVI
-              break;
-          }
-        } else {
-          // Error
+      } else if (rxState == 4) { // SOH is followed by two byte header
+        byteCounter--;
+        if (byteCounter = 0) {
+          rxState = 8; // Now watch for the STX
         }
+      } else if (rxState == 5) {
+        // Waiting for ETB or ETX to come
+        if ((data == ETB) || (data == ETX)) {
+          byteCounter=2;
+          rxState = 9;
+        } else {
+          Serial.println("State violation - going back to hunt mode when waiting for ETX or ETB");          
+          printMsgBuffer();          
+        }
+      } else if (rxState==7) {
+          byteCounter--;
+          if (byteCounter > 0) {
+            rxState = 10; // Get the ENQ
+          }
+          
+      } else if (rxState == 8) {
+          // Check for STX then
+        if (data == STX) {
+          rxState = 5;
+        } else { 
+          rxState = 0;
+          Serial.println("State violation - going back to hunt mode when waiting for STX");          
+          printMsgBuffer();
+        }
+      } else if (rxState ==9) {
+        // Two CRC digits to be received
+        byteCounter--;
+        if (byteCounter > 0) {
+            // Check CRC
+          rxState = 2; // wait for the PAD
+        }
+      } else if (rxState == 10) {
+        if (data == ENQ) {
+          rxState = 2; // There is a PAD to come
+        }
+        else {
+          rxState = 0;
+          Serial.println("State violation - going back to hunt mode when waiting for ENQ");
+          printMsgBuffer();
+        }
+      }
+      else {
+        // Error
+        Serial.println("Error unknown state!");
+        printMsgBuffer();
         rxState = 0; // Go back to hunt
       }
     }
