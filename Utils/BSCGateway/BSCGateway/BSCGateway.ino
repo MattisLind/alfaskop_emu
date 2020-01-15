@@ -11,7 +11,7 @@ void setup() {
   int maxduty;
   // put your setup code here, to run once:
   pwmtimer.pause();
-  period =3333; // PWM period in useconds, freq 300 Hz
+  period =333333; // PWM period in useconds, freq 300 Hz
   maxduty = pwmtimer.setPeriod(period);
   pinMode(pwmOutPin, PWM);
   pwmtimer.refresh();
@@ -184,8 +184,9 @@ void loop() {
   if (spi_is_rx_nonempty(spi_d)) {
     read = spi_rx_reg(spi_d); // "... and read the last received data."  
     dataWord = dataWord << 8;  
-    dataWord = dataWord | (0xff & read);
+    dataWord = (0xffffff00 & dataWord) | (0xff & read);
     printEightHexDigits(dataWord);
+    Serial.println();
     if (rxState==0) { // Hunting for SYNC
       // Try to find sync
       for (i=0; i<8; i++) {
