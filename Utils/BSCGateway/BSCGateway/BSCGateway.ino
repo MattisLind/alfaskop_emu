@@ -11,12 +11,12 @@ void setup() {
   int maxduty;
   // put your setup code here, to run once:
   pwmtimer.pause();
-  period = 104; // PWM period in useconds, freq 9600 Hz
+  period =3333; // PWM period in useconds, freq 300 Hz
   maxduty = pwmtimer.setPeriod(period);
   pinMode(pwmOutPin, PWM);
   pwmtimer.refresh();
   pwmtimer.resume();
-  pwmWrite(pwmOutPin,3600); //50% duty cycle
+  pwmWrite(pwmOutPin, maxduty/2); //50% duty cycle
   Serial1.begin (2400);
   Serial.begin (9600);
     // Setup SPI 2
@@ -46,6 +46,13 @@ void printTwoDigitHex (int data) {
     Serial.print('0');
   } 
   Serial.print(data, HEX);
+}
+
+void printEightHexDigits (uint32 data) {
+  printTwoDigitHex((data >> 24) & 0xff);  
+  printTwoDigitHex((data >> 16) & 0xff);  
+  printTwoDigitHex((data >> 8) & 0xff);  
+  printTwoDigitHex(data & 0xff);  
 }
 
 void printMsgBuffer () {
@@ -178,12 +185,13 @@ void loop() {
     read = spi_rx_reg(spi_d); // "... and read the last received data."  
     dataWord = dataWord << 8;  
     dataWord = dataWord | (0xff & read);
+    printEightHexDigits(dataWord);
     if (rxState==0) { // Hunting for SYNC
       // Try to find sync
       for (i=0; i<8; i++) {
         if (((dataWord >> i) & 0xffff) == 0x3232) {
           syncPoint = i;
-                  Serial.print("Found syncpoint");
+          Serial.print("Found syncpoint:");
           Serial.print(syncPoint, DEC);
           Serial.println();
           break;
@@ -191,9 +199,9 @@ void loop() {
       }
       if (i!= 8) {
         rxState = 1; // We have found sync
-        Serial.print("Found syncpoint");
-          Serial.print(syncPoint, DEC);
-          Serial.println();
+        Serial.print("Found syncpoint:");
+        Serial.print(syncPoint, DEC);
+        Serial.println();
         msgBufferCnt = 0;
       }
     }
