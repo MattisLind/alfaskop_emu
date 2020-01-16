@@ -12,7 +12,7 @@ void setup() {
   int maxduty;
   // put your setup code here, to run once:
   pwmtimer.pause();
-  period =333333; // PWM period in useconds, freq 300 Hz
+  period =104; // PWM period in useconds, freq 300 Hz
   maxduty = pwmtimer.setPeriod(period);
   pinMode(pwmOutPin, PWM);
   pwmtimer.refresh();
@@ -222,8 +222,8 @@ void loop() {
     read = spi_rx_reg(spi_d); // "... and read the last received data."  
     dataWord = dataWord << 8;  
     dataWord = (0xffffff00 & dataWord) | (0xff & read);
-    printEightHexDigits(dataWord);
-    Serial.println();
+    //printEightHexDigits(dataWord);
+    //Serial.println();
     if (rxState==0) { // Hunting for SYNC
       // Try to find sync
       for (i=0; i<8; i++) {
@@ -248,6 +248,13 @@ void loop() {
       msgBuffer[msgBufferCnt++] = data;
       Serial.print("Buffer");
       printMsgBuffer();
+      Serial.print("byteCounter:");
+      Serial.print(byteCounter, DEC);
+      Serial.print(" rxState=");
+      Serial.print(rxState, DEC);
+      Serial.print(" data=");
+      Serial.print(data,HEX);
+      Serial.println();
       if (rxState == 1) { // Processing first char efter SYN
         switch (data) {
           case EOT: 
@@ -264,9 +271,11 @@ void loop() {
           case STX:
             rxState = 5;
             break;
+          case PAD:
+            break;
           default:  // Enquiry POLL / SELECTION
             rxState = 7;
-            byteCounter=4;
+            byteCounter=3; // 4 with this byte
             break;
         }   
       } else if (rxState == 2) {
@@ -351,7 +360,7 @@ void loop() {
         }
       } else if (rxState == 4) { // SOH is followed by two byte header
         byteCounter--;
-        if (byteCounter = 0) {
+        if (byteCounter == 0) {
           rxState = 8; // Now watch for the STX
         }
       } else if (rxState == 5) {
@@ -365,7 +374,10 @@ void loop() {
         }
       } else if (rxState==7) {
           byteCounter--;
-          if (byteCounter > 0) {
+          Serial.print("In state 7 byteCounter=");
+          Serial.print(byteCounter, DEC);
+          Serial.println();
+          if (byteCounter == 0) {
             rxState = 10; // Get the ENQ
           }
           
@@ -381,7 +393,7 @@ void loop() {
       } else if (rxState ==9) {
         // Two CRC digits to be received
         byteCounter--;
-        if (byteCounter > 0) {
+        if (byteCounter = 0) {
             // Check CRC
           rxState = 2; // wait for the PAD
         }
