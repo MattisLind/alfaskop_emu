@@ -11,36 +11,36 @@ MessageFSM::MessageFSM(void (*txData)(unsigned char), void (*recivedMessage)(uns
 
 // Method to send the EOT message
 
-MessageFSM::sendEOT(){
+void MessageFSM::sendEOT(){
 }
-MessageFSM::sendENQ(){
+void MessageFSM::sendENQ(uint8_t CU, uint8_t DV){
 }
-MessageFSM::sendSOHMessage(){
+void MessageFSM::sendSOHMessage(uint16_t header, uint8_t * msg){
 }
-MessageFSM::sendSTXMessage(){
+void MessageFSM::sendSTXMessage(uint8_t * msg){
 }
-MessageFSM::sendACK0(){
+void MessageFSM::sendACK0(){
 }
-MessageFSM::sendACK1(){
+void MessageFSM::sendACK1(){
 }
-MessageFSM::sendWACK(){
+void MessageFSM::sendWACK(){
 }
-MessageFSM::sendRVI(){
+void MessageFSM::sendRVI(){
 }
-MessageFSM::sendNAK(){
+void MessageFSM::sendNAK(){
 }
 
-MessageFSM::rxData(unsigned char data) {
+void MessageFSM::rxData(uint8_t data) {
       msgBuffer[msgBufferCnt++] = data;
-      Serial.print("Buffer");
-      printMsgBuffer();
-      Serial.print("byteCounter:");
-      Serial.print(byteCounter, DEC);
-      Serial.print(" rxState=");
-      Serial.print(rxState, DEC);
-      Serial.print(" data=");
-      Serial.print(data,HEX);
-      Serial.println();
+      //Serial.print("Buffer");
+      //printMsgBuffer();
+      //Serial.msgBufferprint("byteCounter:");
+      //Serial.print(byteCounter, DEC);
+      //Serial.print(" rxState=");
+      //Serial.print(rxState, DEC);
+      //Serial.print(" data=");
+      //Serial.print(data,HEX);
+      //Serial.println();
       if (rxState == 1) { // Processing first char efter SYN
         switch (data) {
           case EOT: 
@@ -70,26 +70,26 @@ MessageFSM::rxData(unsigned char data) {
           // We have all data  - Do a callback
           switch (msgBuffer[0]) {
             case EOT:
-              Serial.println("EOT received");
-              printMsgBuffer();
+              //Serial.println("EOT received");
+              //printMsgBuffer();
               break;
             case NAK:
-              Serial.println("NAK received");
-              printMsgBuffer();
+              //Serial.println("NAK received");
+              //printMsgBuffer();
               break;
             case DLE:
               switch (msgBuffer[1]) {
                 case 0x70: // ACK 0
-                  Serial.println("ACK0 received");
-                  printMsgBuffer();
+                  //Serial.println("ACK0 received");
+                  //printMsgBuffer();
                   break;
                 case 0x61: // ACK 1
-                  Serial.println("ACK1 received");
-                  printMsgBuffer();
+                  //Serial.println("ACK1 received");
+                  //printMsgBuffer();
                   break;
                 case 0x6b: // WACK
-                  Serial.println("WACK received");
-                  printMsgBuffer();
+                  //Serial.println("WACK received");
+                  //printMsgBuffer();
                   break;
                 case 0x7c: // RVI
                   break;
@@ -99,35 +99,35 @@ MessageFSM::rxData(unsigned char data) {
               if (msgBuffer[1] == 0x6c) {
                 switch (msgBuffer[2]) {
                   case 0xD9:
-                    Serial.println("Status Message received");
-                    printMsgBuffer();
+                    //Serial.println("Status Message received");
+                    //printMsgBuffer();
                     break;  // Status Message                
                   case 0x61:
-                    Serial.println("Test request received");
-                    printMsgBuffer();
+                    //Serial.println("Test request received");
+                    //printMsgBuffer();
                     break;  // Test request message
                   default:
-                    Serial.println("Error SOH with wrong header code");
-                    printMsgBuffer();
+                    //Serial.println("Error SOH with wrong header code");
+                    //printMsgBuffer();
                     break;
                 }
               } else {
-                Serial.println("Error SOH with wrong header code");
-                printMsgBuffer();
+                //Serial.println("Error SOH with wrong header code");
+                //printMsgBuffer();
               }
               break;
             case STX:
-                Serial.println("Read or write message received");
-                printMsgBuffer();
+                //Serial.println("Read or write message received");
+                //printMsgBuffer();
               break;
             default:  // Selection and POLL ENQ
-                Serial.println("Selection or POLL message ENQ received");
-                printMsgBuffer();
+                //Serial.println("Selection or POLL message ENQ received");
+                //printMsgBuffer();
               break;
           }
         } else {
-          Serial.println("Last byte was not a PAD - go back to hunt mode!");
-          printMsgBuffer();       
+          //Serial.println("Last byte was not a PAD - go back to hunt mode!");
+          //printMsgBuffer();       
         }
         rxState = 0; // Go back to hunt for sync.
       } else if (rxState == 3) {
@@ -140,8 +140,8 @@ MessageFSM::rxData(unsigned char data) {
             break;
           default:
             rxState = 0;
-            Serial.println("State violation - going back to hunt mode when waiting for second byte control code");
-            printMsgBuffer();
+            //Serial.println("State violation - going back to hunt mode when waiting for second byte control code");
+            //printMsgBuffer();
             break;
         }
       } else if (rxState == 4) { // SOH is followed by two byte header
@@ -155,14 +155,14 @@ MessageFSM::rxData(unsigned char data) {
           byteCounter=2;
           rxState = 9;
         } else {
-          Serial.println("State violation - going back to hunt mode when waiting for ETX or ETB");          
-          printMsgBuffer();          
+          //Serial.println("State violation - going back to hunt mode when waiting for ETX or ETB");          
+          //printMsgBuffer();          
         }
       } else if (rxState==7) {
           byteCounter--;
-          Serial.print("In state 7 byteCounter=");
-          Serial.print(byteCounter, DEC);
-          Serial.println();
+          //Serial.print("In state 7 byteCounter=");
+          //Serial.print(byteCounter, DEC);
+          //Serial.println();
           if (byteCounter == 0) {
             rxState = 10; // Get the ENQ
           }
@@ -173,8 +173,8 @@ MessageFSM::rxData(unsigned char data) {
           rxState = 5;
         } else { 
           rxState = 0;
-          Serial.println("State violation - going back to hunt mode when waiting for STX");          
-          printMsgBuffer();
+          //Serial.println("State violation - going back to hunt mode when waiting for STX");          
+          //printMsgBuffer();
         }
       } else if (rxState ==9) {
         // Two CRC digits to be received
@@ -189,18 +189,15 @@ MessageFSM::rxData(unsigned char data) {
         }
         else {
           rxState = 0;
-          Serial.println("State violation - going back to hunt mode when waiting for ENQ");
-          printMsgBuffer();
+          //Serial.println("State violation - going back to hunt mode when waiting for ENQ");
+          //printMsgBuffer();
         }
       }
       else {
         // Error
-        Serial.println("Error unknown state!");
-        printMsgBuffer();
+        //Serial.println("Error unknown state!");
+        //printMsgBuffer();
         rxState = 0; // Go back to hunt
       }
     }
-  }
-
-
-} 
+ 

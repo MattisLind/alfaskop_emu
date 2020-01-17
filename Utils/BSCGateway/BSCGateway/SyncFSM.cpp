@@ -15,14 +15,14 @@ The Sync FSM has two states, Hunt state and Sync state. When in Hunt state it wi
 // Construtcor taks as argument a callback to call when sync is established and valid data is received
 
 SyncFSM::SyncFSM(void (*recivedSyncData)(unsigned char)) {
-  cb = receivedSyncData;
+  cb = recivedSyncData;
   dataWord = 0xffffffff;
   syncState = HUNT; 
 }
 
 // Is called by the data receiver 
 
-SyncFSM::receivedData(unsigned char read) {
+void SyncFSM::receivedData(unsigned char read) {
   int i;
   dataWord = dataWord << 8;  
   dataWord = (0xffffff00 & dataWord) | (0xff & read);
@@ -35,17 +35,16 @@ SyncFSM::receivedData(unsigned char read) {
       }
     }
     if (i!= 8) {
-      rxState = SYNC; // We have found sync
+      syncState = SYNC; // We have found sync
     }
   }
   else {
-    data = translationArray[0xff & (dataWord >> syncPoint)];
-    cb (data);
+    cb(translationArray[0xff & (dataWord >> syncPoint)]);
   } 
 } 
 
 // Routine to tell the Sync FSM to enter Hunt state
 
-SyncFSM::enterHuntState() {
+void SyncFSM::enterHuntState() {
   syncState = HUNT;
 }
