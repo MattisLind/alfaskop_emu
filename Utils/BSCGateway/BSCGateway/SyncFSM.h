@@ -9,12 +9,14 @@ The Sync FSM has two states, Hunt state and Sync state. When in Hunt state it wi
 
 #include "ebcdic.h"
 #include "lsbmsb.h"
+#define  HUNT 0
+#define  SYNC 1
 
 Class SyncFSM {
   private:
     void (* cb )(unsigned char);
-    bool syncState;
-    
+    int syncState;
+    uint32 dataWord;
   public:
     syncFSM(void (*)(unsigned char));
     receiveData(unsigned char);
