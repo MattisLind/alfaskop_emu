@@ -12,13 +12,13 @@ The Sync FSM has two states, Hunt state and Sync state. When in Hunt state it wi
 #define  HUNT 0
 #define  SYNC 1
 
-Class SyncFSM {
+class SyncFSM {
   private:
     void (* cb )(unsigned char);
     int syncState;
-    uint32 dataWord;
+    //uint32t dataWord;
   public:
-    syncFSM(void (*)(unsigned char));
-    receiveData(unsigned char);
-    enterHuntState();
-}
+    SyncFSM(void (*)(unsigned char));
+    void receiveData(unsigned char);
+    void enterHuntState();
+};

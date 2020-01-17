@@ -14,7 +14,7 @@ The Sync FSM has two states, Hunt state and Sync state. When in Hunt state it wi
 
 // Construtcor taks as argument a callback to call when sync is established and valid data is received
 
-SyncFSM::syncFSM(void (*recivedSyncData)(unsigned char)) {
+SyncFSM::SyncFSM(void (*recivedSyncData)(unsigned char)) {
   cb = receivedSyncData;
   dataWord = 0xffffffff;
   syncState = HUNT; 

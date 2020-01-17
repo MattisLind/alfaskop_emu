@@ -1,15 +1,33 @@
 
+#include "MessageFSM.h"
 
 // The constructor have a number of callbacks for the various received messages and for the txByte. txByte is called each time 
 // the Message FSM has a byte to send. Typically these bytes are put in the ringbuffer for transmission by the interrupt routine
 
 
-MessageFSM::MessageFSM( ) {
+MessageFSM::MessageFSM(void (*txData)(unsigned char), void (*recivedMessage)(unsigned char)) {
 
 }
 
 // Method to send the EOT message
-MessageFSM::sendEOT() {
+
+MessageFSM::sendEOT(){
+}
+MessageFSM::sendENQ(){
+}
+MessageFSM::sendSOHMessage(){
+}
+MessageFSM::sendSTXMessage(){
+}
+MessageFSM::sendACK0(){
+}
+MessageFSM::sendACK1(){
+}
+MessageFSM::sendWACK(){
+}
+MessageFSM::sendRVI(){
+}
+MessageFSM::sendNAK(){
 }
 
 MessageFSM::rxData(unsigned char data) {
@@ -186,4 +204,3 @@ MessageFSM::rxData(unsigned char data) {
 
 
 } 
-
