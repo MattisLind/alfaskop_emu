@@ -49,13 +49,13 @@ void MessageFSM::rxData(uint8_t data) {
       //Serial.println();
       if (rxState == 0) {
 	if (data == SYN) {
-	  rxState = 1;
+	  rxState = 12;
 	}
 	else {
 	}
       } else if (rxState == 12) {
 	if (data == SYN) {
-	  rxState = 12;
+	  rxState = 1;
 	} else {
 	}
       }
@@ -86,7 +86,7 @@ void MessageFSM::rxData(uint8_t data) {
         // Data shall be PAD.
         if (data == PAD) {
           // We have all data  - Do a callback
-          switch (msgBuffer[0]) {
+          switch (msgBuffer[2]) {
             case EOT:
 	      receivedMessageCb(EOT_MESSAGE, NULL);
 	      
