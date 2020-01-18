@@ -1,6 +1,17 @@
-
+#ifdef DEBUG
+typedef unsigned char uint8_t;
+typedef unsigned short uint16_t;
+typedef unsigned long uint32_t;
+typedef uint32_t uint32;
+#else
 #include "libmaple/libmaple_types.h"
+#endif
+#include <stdlib.h>
 #include "ebcdic.h"
+// Message types
+#define EOT_MESSAGE 0
+#define ENQ_MESSAGE 1
+
 
 class MessageFSM {
   private:
@@ -8,12 +19,10 @@ class MessageFSM {
     int msgBufferCnt;
     int rxState;
     int byteCounter;
-    const uint8_t eotBuffer [5] = {4, SYN, SYN, EOT, PAD};
-    const uint8_t enqBuffer [7] = {6, 0x0, 0x0, 0x0, 0x0, ENQ, PAD};
-    const uint8_t ack0Buffer [5] = {4, SYN, SYN, DLE, 0xb7};
-     
+    void (* txDataCb)(unsigned char);
+    void (* receivedMessageCb)(unsigned char, unsigned char *);
   public:
-    MessageFSM(void (*)(unsigned char), void (*)(unsigned char));
+    MessageFSM(void (*)(unsigned char), void (*)(unsigned char, unsigned char *));
     void rxData (uint8_t data);
     void sendEOT();
     void sendENQ(uint8_t CU, uint8_t DV);

@@ -5,13 +5,19 @@
 // the Message FSM has a byte to send. Typically these bytes are put in the ringbuffer for transmission by the interrupt routine
 
 
-MessageFSM::MessageFSM(void (*txData)(unsigned char), void (*recivedMessage)(unsigned char)) {
-
+MessageFSM::MessageFSM(void (*txData)(unsigned char), void (*recivedMessage)(unsigned char, unsigned char *)) {
+  txDataCb = txData;
+  receivedMessageCb = recivedMessage;
+  rxState = 0;
 }
 
 // Method to send the EOT message
 
 void MessageFSM::sendEOT(){
+  txDataCb(SYN);
+  txDataCb(SYN);
+  txDataCb(EOT);
+  txDataCb(PAD);
 }
 void MessageFSM::sendENQ(uint8_t CU, uint8_t DV){
 }
@@ -41,7 +47,19 @@ void MessageFSM::rxData(uint8_t data) {
       //Serial.print(" data=");
       //Serial.print(data,HEX);
       //Serial.println();
-      if (rxState == 1) { // Processing first char efter SYN
+      if (rxState == 0) {
+	if (data == SYN) {
+	  rxState = 1;
+	}
+	else {
+	}
+      } else if (rxState == 12) {
+	if (data == SYN) {
+	  rxState = 12;
+	} else {
+	}
+      }
+      else if (rxState == 1) { // Processing first char efter SYN
         switch (data) {
           case EOT: 
           case NAK:
@@ -70,6 +88,8 @@ void MessageFSM::rxData(uint8_t data) {
           // We have all data  - Do a callback
           switch (msgBuffer[0]) {
             case EOT:
+	      receivedMessageCb(EOT_MESSAGE, NULL);
+	      
               //Serial.println("EOT received");
               //printMsgBuffer();
               break;
