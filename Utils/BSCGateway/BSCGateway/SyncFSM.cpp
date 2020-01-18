@@ -36,6 +36,8 @@ void SyncFSM::receivedData(unsigned char read) {
     }
     if (i!= 8) {
       syncState = SYNC; // We have found sync
+      cb(SYN);
+      cb(SYN);
     }
   }
   else {

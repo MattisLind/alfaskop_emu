@@ -5,8 +5,12 @@ used by the message FSM.
  
 The Sync FSM has two states, Hunt state and Sync state. When in Hunt state it will search for the BSC SYNC characters, SYN SYN, 0x32 0x32.
 */
-
+#ifndef DEBUG
 #include "libmaple/libmaple_types.h"
+#else
+#include <stdio.h>
+typedef unsigned int uint32_t;
+#endif
 #include "ebcdic.h"
 #include "lsbmsb.h"
 #define  HUNT 0
