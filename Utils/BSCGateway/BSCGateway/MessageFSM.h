@@ -44,6 +44,10 @@ union msg {
     bool thereIsMoreComing;
     uint8_t * msg;
   } textData;
+  struct ErrorData {
+    int errorCode;
+    char * errorText;
+  } errorData;
 };
 
 typedef union msg MSG; 
@@ -65,8 +69,8 @@ class MessageFSM {
     void sendEOT();
     void sendENQ(uint8_t CU, uint8_t DV);
     void sendStatusMessage(uint8_t CU, uint8_t DV,  uint8_t status, uint8_t sense);
-    void sendTestRequestMessage(int messageLength, uint8_t * msg);
-    void sendTextMessage(uint8_t * msg);
+    void sendTestRequestMessage(int messageLength, uint8_t * msg, bool thereIsMoreComing);
+    void sendTextMessage(int messageLength, uint8_t * msg, bool thereIsMoreComing);
     void sendSOHMessage(uint16_t header, uint8_t * msg);
     void sendSTXMessage(uint8_t * msg);
     void sendACK0();

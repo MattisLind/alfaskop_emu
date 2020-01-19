@@ -49,7 +49,8 @@ void MessageFSM::sendStatusMessage(uint8_t CU, uint8_t DV,  uint8_t status, uint
   txDataCb(0x00);
   txDataCb(PAD);
 }
-void MessageFSM::sendTestRequestMessage(int messageLength, uint8_t * msg){
+
+void MessageFSM::sendTestRequestMessage(int messageLength, uint8_t * msg, bool thereIsMoreComing) {
   int i;
   txDataCb(SYN);
   txDataCb(SYN);
@@ -60,12 +61,32 @@ void MessageFSM::sendTestRequestMessage(int messageLength, uint8_t * msg){
   for (i=0; i<messageLength; i++) {
     txDataCb(msg[i]);
   }
-  txDataCb(ETX);
+  if (thereIsMoreComing) {
+    txDataCb(ETB);
+  } else {
+    txDataCb(ETX);
+  }
   txDataCb(0x00); // Fix CRC
   txDataCb(0x00);
   txDataCb(PAD);
 }
-void MessageFSM::sendTextMessage(uint8_t * msg){
+
+void MessageFSM::sendTextMessage(int messageLength, uint8_t * msg, bool thereIsMoreComing) {
+  int i;
+  txDataCb(SYN);
+  txDataCb(SYN);
+  txDataCb(STX);
+  for (i=0; i<messageLength; i++) {
+    txDataCb(msg[i]);
+  }
+  if (thereIsMoreComing) {
+    txDataCb(ETB);
+  } else {
+    txDataCb(ETX);
+  }
+  txDataCb(0x00); // Fix CRC
+  txDataCb(0x00);
+  txDataCb(PAD);
 }
 void MessageFSM::sendACK0(){
   txDataCb(SYN);
@@ -125,6 +146,7 @@ void MessageFSM::rxData(uint8_t data) {
       rxState = 4;
       break;
     case STX:
+      byteCounter=254;
       rxState = 5;
       break;
     default:  // Enquiry POLL / SELECTION
@@ -202,8 +224,12 @@ void MessageFSM::rxData(uint8_t data) {
 	}
 	break;
       case STX:
-	//Serial.println("Read or write message received");
-	//printMsgBuffer();
+	msg.textData.length = length; 
+	msg.textData.msg = msgBuffer+1;
+	msg.textData.thereIsMoreComing = thereIsMoreComing;
+	receivedMessageCb(TEXT_MESSAGE, (uint8_t *) &msg);
+	enterHuntStateCb();
+	msgBufferCnt=0;
 	break;
       default:  // Selection and POLL ENQ
 	receivedMessageCb(ENQ_MESSAGE, msgBuffer);
@@ -226,8 +252,10 @@ void MessageFSM::rxData(uint8_t data) {
       break;
     default:
       rxState = 0;
-      //Serial.println("State violation - going back to hunt mode when waiting for second byte control code");
-      //printMsgBuffer();
+      rxState = 0;
+      receivedMessageCb(ERROR_MESSAGE, (unsigned char *)  "State violation - going back to hunt mode when waiting for second byte control code");
+      enterHuntStateCb();
+      msgBufferCnt=0;
       break;
     }
   } else if (rxState == 4) { // SOH is followed by two byte header

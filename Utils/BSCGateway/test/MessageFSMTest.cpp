@@ -92,6 +92,13 @@ void receivedMessage (unsigned char msgType, unsigned char * msg) {
     assert ((strncmp ((char *) m->testData.msg,testRequestString ,m->testData.length) == 0));
     testCase = 9;
     break;
+  case 9:
+    assert (msgType == TEXT_MESSAGE);
+    assert (m->testData.thereIsMoreComing == false);
+    assert (m->testData.length == strlen(testRequestString));
+    assert ((strncmp ((char *) m->testData.msg,testRequestString ,m->testData.length) == 0));
+    testCase = 10;
+    break;
   }
 }
 
@@ -157,13 +164,20 @@ int main () {
   assert (testCase == 8);
   assert (huntState == 1);
   printf("Test passed -  sending and receiving Status Message\n");
-  // Testing sending and receiving Status Message
+  // Testing sending and receiving Test Message
   huntState = 0;
   testCase = 8;
-  messageFSM.sendTestRequestMessage(strlen (testRequestString), (unsigned char *) testRequestString);
+  messageFSM.sendTestRequestMessage(strlen (testRequestString), (unsigned char *) testRequestString, false);
   assert (testCase == 9);
   assert (huntState == 1);
   printf("Test passed -  sending and receiving Test Message\n");
+  // Testing sending and receiving Text Message
+  huntState = 0;
+  testCase = 9;
+  messageFSM.sendTextMessage(strlen (testRequestString), (unsigned char *) testRequestString, false);
+  assert (testCase == 10);
+  assert (huntState == 1);
+  printf("Test passed -  sending and receiving Text Message\n");
 
 }
 
