@@ -49,7 +49,21 @@ void MessageFSM::sendStatusMessage(uint8_t CU, uint8_t DV,  uint8_t status, uint
   txDataCb(0x00);
   txDataCb(PAD);
 }
-void MessageFSM::sendTestRequestMessage(uint16_t header, uint8_t * msg){
+void MessageFSM::sendTestRequestMessage(int messageLength, uint8_t * msg){
+  int i;
+  txDataCb(SYN);
+  txDataCb(SYN);
+  txDataCb(SOH);
+  txDataCb(0x6c);
+  txDataCb(0x61);
+  txDataCb(STX);
+  for (i=0; i<messageLength; i++) {
+    txDataCb(msg[i]);
+  }
+  txDataCb(ETX);
+  txDataCb(0x00); // Fix CRC
+  txDataCb(0x00);
+  txDataCb(PAD);
 }
 void MessageFSM::sendTextMessage(uint8_t * msg){
 }
@@ -89,9 +103,10 @@ void MessageFSM::sendNAK(){
 }
 
 void MessageFSM::rxData(uint8_t data) {
-  #ifdef DEBUG
-  printf ("Received %02X in state %d\n", data, rxState);
-  #endif
+  //#ifdef DEBUG
+  //printf ("Received %02X in state %d\n", data, rxState);
+  //#endif
+  MSG msg;
   if (data == SYN) {
     return;
   }
@@ -160,13 +175,21 @@ void MessageFSM::rxData(uint8_t data) {
 	if (msgBuffer[1] == 0x6c) {
 	  switch (msgBuffer[2]) {
 	  case 0xd9:
-	    receivedMessageCb(STATUS_MESSAGE, msgBuffer+4);
+	    msg.statusData.CU = msgBuffer[4];
+	    msg.statusData.DV = msgBuffer[5];
+	    msg.statusData.status = msgBuffer[6];
+	    msg.statusData.sense = msgBuffer[7];
+	    receivedMessageCb(STATUS_MESSAGE, (uint8_t *) &msg);
 	    enterHuntStateCb();
 	    msgBufferCnt=0;
 	    break;  // Status Message                
 	  case 0x61:
-	    //Serial.println("Test request received");
-	    //printMsgBuffer();
+	    msg.testData.length = length; 
+	    msg.testData.msg = msgBuffer+4;
+	    msg.testData.thereIsMoreComing = thereIsMoreComing;
+	    receivedMessageCb(TEST_MESSAGE, (uint8_t *) &msg);
+	    enterHuntStateCb();
+	    msgBufferCnt=0;
 	    break;  // Test request message
 	  default:
 	    //Serial.println("Error SOH with wrong header code");
@@ -215,8 +238,15 @@ void MessageFSM::rxData(uint8_t data) {
   } else if (rxState == 5) {
     // Waiting for ETB or ETX to come
     if ((data == ETB) || (data == ETX)) {
+      length = 254-byteCounter;
       byteCounter=2;
       rxState = 9;
+      if (data == ETB) {
+	thereIsMoreComing = true;
+      }
+      else {
+	thereIsMoreComing = false;
+      }
     } else { // Here comes the data. Up to 254 bytes of EBCDIC data
       if (byteCounter == 0) {
 	rxState = 0;
@@ -224,6 +254,7 @@ void MessageFSM::rxData(uint8_t data) {
 	enterHuntStateCb();
 	msgBufferCnt=0;
       }
+      byteCounter--;
     }
   } else if (rxState==7) {
     byteCounter--;
