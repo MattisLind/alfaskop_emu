@@ -11,7 +11,8 @@ typedef uint32_t uint32;
 // Message types
 #define EOT_MESSAGE 0
 #define ENQ_MESSAGE 1
-
+#define ACK_MESSAGE 2
+#define NAK_MESSAGE 3
 
 class MessageFSM {
   private:
@@ -20,9 +21,10 @@ class MessageFSM {
     int rxState;
     int byteCounter;
     void (* txDataCb)(unsigned char);
+    void (* enterHuntStateCb)();
     void (* receivedMessageCb)(unsigned char, unsigned char *);
   public:
-    MessageFSM(void (*)(unsigned char), void (*)(unsigned char, unsigned char *));
+    MessageFSM(void (*)(unsigned char), void (*)(unsigned char, unsigned char *), void (*)());
     void rxData (uint8_t data);
     void sendEOT();
     void sendENQ(uint8_t CU, uint8_t DV);

@@ -5,9 +5,10 @@
 // the Message FSM has a byte to send. Typically these bytes are put in the ringbuffer for transmission by the interrupt routine
 
 
-MessageFSM::MessageFSM(void (*txData)(unsigned char), void (*recivedMessage)(unsigned char, unsigned char *)) {
+MessageFSM::MessageFSM(void (*txData)(unsigned char), void (*recivedMessage)(unsigned char, unsigned char *),void (*enterHuntState)()) {
   txDataCb = txData;
   receivedMessageCb = recivedMessage;
+  enterHuntStateCb = enterHuntState;
   rxState = 0;
 }
 
@@ -34,6 +35,10 @@ void MessageFSM::sendWACK(){
 void MessageFSM::sendRVI(){
 }
 void MessageFSM::sendNAK(){
+  txDataCb(SYN);
+  txDataCb(SYN);
+  txDataCb(NAK);
+  txDataCb(PAD);
 }
 
 void MessageFSM::rxData(uint8_t data) {
@@ -75,8 +80,6 @@ void MessageFSM::rxData(uint8_t data) {
           case STX:
             rxState = 5;
             break;
-          case PAD:
-            break;
           default:  // Enquiry POLL / SELECTION
             rxState = 7;
             byteCounter=3; // 4 with this byte
@@ -89,16 +92,16 @@ void MessageFSM::rxData(uint8_t data) {
           switch (msgBuffer[2]) {
             case EOT:
 	      receivedMessageCb(EOT_MESSAGE, NULL);
-	      
-              //Serial.println("EOT received");
-              //printMsgBuffer();
+	      enterHuntStateCb();
+	      msgBufferCnt=0;
               break;
             case NAK:
-              //Serial.println("NAK received");
-              //printMsgBuffer();
+	      receivedMessageCb(NAK_MESSAGE, NULL);
+	      enterHuntStateCb();
+	      msgBufferCnt=0;
               break;
             case DLE:
-              switch (msgBuffer[1]) {
+              switch (msgBuffer[3]) {
                 case 0x70: // ACK 0
                   //Serial.println("ACK0 received");
                   //printMsgBuffer();
