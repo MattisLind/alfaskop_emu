@@ -41,6 +41,11 @@ void MessageFSM::sendACK1(){
   txDataCb(PAD);
 }
 void MessageFSM::sendWACK(){
+  txDataCb(SYN);
+  txDataCb(SYN);
+  txDataCb(DLE);
+  txDataCb(0x6b);
+  txDataCb(PAD);
 }
 void MessageFSM::sendRVI(){
 }
@@ -123,8 +128,9 @@ void MessageFSM::rxData(uint8_t data) {
 		  msgBufferCnt=0;
                   break;
                 case 0x6b: // WACK
-                  //Serial.println("WACK received");
-                  //printMsgBuffer();
+		  receivedMessageCb(WACK_MESSAGE, NULL);
+		  enterHuntStateCb();
+		  msgBufferCnt=0;
                   break;
                 case 0x7c: // RVI
                   break;

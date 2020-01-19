@@ -15,6 +15,7 @@ typedef uint32_t uint32;
 #define NAK_MESSAGE 3
 #define ACK0_MESSAGE 4
 #define ACK1_MESSAGE 5
+#define WACK_MESSAGE 6
 
 
 class MessageFSM {
