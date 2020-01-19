@@ -44,6 +44,11 @@ void receivedMessage (unsigned char msgType, unsigned char * msg) {
     assert (msg == NULL);
     testCase = 3;
     break;
+  case 3:
+    assert (msgType == ACK1_MESSAGE);
+    assert (msg == NULL);
+    testCase = 4;
+    break;
   }
 }
 
@@ -69,6 +74,12 @@ int main () {
   testCase = 2;
   messageFSM.sendACK0();
   assert (testCase == 3);
+  assert (huntState == 1);
+  // Testing sending and receiving ACK1
+  huntState = 0;
+  testCase = 3;
+  messageFSM.sendACK1();
+  assert (testCase == 4);
   assert (huntState == 1);
 
 }
