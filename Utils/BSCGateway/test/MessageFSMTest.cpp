@@ -39,6 +39,11 @@ void receivedMessage (unsigned char msgType, unsigned char * msg) {
     assert (msg == NULL);
     testCase = 2;
     break;
+  case 2:
+    assert (msgType == ACK0_MESSAGE);
+    assert (msg == NULL);
+    testCase = 3;
+    break;
   }
 }
 
@@ -47,15 +52,23 @@ void enterHuntState () {
 }
 
 int main () {
+  // Testing sending and receiving EOT
   huntState = 0;
   testCase = 0;
   messageFSM.sendEOT();
   assert (testCase == 1);
   assert (huntState == 1);
+  // Testing sending and receiving NAK
   huntState = 0;
   testCase = 1;
   messageFSM.sendNAK();
   assert (testCase == 2);
+  assert (huntState == 1);
+  // Testing sending and receiving ACK0
+  huntState = 0;
+  testCase = 2;
+  messageFSM.sendACK0();
+  assert (testCase == 3);
   assert (huntState == 1);
 
 }

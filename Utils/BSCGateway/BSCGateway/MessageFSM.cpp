@@ -27,6 +27,11 @@ void MessageFSM::sendSOHMessage(uint16_t header, uint8_t * msg){
 void MessageFSM::sendSTXMessage(uint8_t * msg){
 }
 void MessageFSM::sendACK0(){
+  txDataCb(SYN);
+  txDataCb(SYN);
+  txDataCb(DLE);
+  txDataCb(0x70);
+  txDataCb(PAD);
 }
 void MessageFSM::sendACK1(){
 }
@@ -103,8 +108,9 @@ void MessageFSM::rxData(uint8_t data) {
             case DLE:
               switch (msgBuffer[3]) {
                 case 0x70: // ACK 0
-                  //Serial.println("ACK0 received");
-                  //printMsgBuffer();
+		  receivedMessageCb(ACK0_MESSAGE, NULL);
+		  enterHuntStateCb();
+		  msgBufferCnt=0;
                   break;
                 case 0x61: // ACK 1
                   //Serial.println("ACK1 received");
