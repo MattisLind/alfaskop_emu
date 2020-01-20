@@ -30,7 +30,7 @@ All commands start with a command letter which are in the range G to Z. A comman
 |  Command      |  Description                            |  Parameters                             |
 |---------------|-----------------------------------------|-----------------------------------------|
 |    G          |  Request handshake line status report   |                                         |
-|    H          |  Set or reset specifiec hand shake line |  R0 RFS=0, R1 RFS=1                     |
+|    H          |  Set or reset specific handshake line   |  R0 RFS=0, R1 RFS=1                     |
 |    I          |  Handshake signals changed              |  C0 CTS=0  C1 CTS=1, D0 DTR=0, D1 DTR=1 |
 |    Q          |  EOT message                            |                                         |
 |    P          |  ENQ message                            |  Two hex digits CU, DV. e.g P4040       |
@@ -42,3 +42,16 @@ All commands start with a command letter which are in the range G to Z. A comman
 |    W          |  WACK message                           |                                         |
 |    R          |  RVI message                            |                                         |
 |    N          |  NAK message                            |                                         |
+
+#### Examples
+
+All commands are terminated with a NL.
+
+ P4040 - Send a Poll to CU 40 DV 40.
+ X5152535455  - Send a test message request
+ S40405070    - Send a status message
+ 
+ 
+  
+
+
