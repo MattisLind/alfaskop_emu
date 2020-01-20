@@ -46,11 +46,11 @@ All commands start with a command letter which are in the range G to Z. A comman
 #### Examples
 
 All commands are terminated with a NL.
-
+```
  P4040 - Send a Poll to CU 40 DV 40.
  X5152535455  - Send a test message request
  S40405070    - Send a status message
- 
+``` 
  
   
 
