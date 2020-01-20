@@ -50,6 +50,9 @@ All commands are terminated with a NL.
  P4040 - Send a Poll to CU 40 DV 40.
  X5152535455  - Send a test message request
  S40405070    - Send a status message
+ G            - Request the current status of the handshake lines
+ HR1          - Set RFS (Ready For Sending) to a 1
+ IC0D1        - An interface handshake signal changed. All signals are reported back. CTS=0 DTR=1.
 ``` 
  
   
