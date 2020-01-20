@@ -71,8 +71,6 @@ class MessageFSM {
     void sendStatusMessage(uint8_t CU, uint8_t DV,  uint8_t status, uint8_t sense);
     void sendTestRequestMessage(int messageLength, uint8_t * msg, bool thereIsMoreComing);
     void sendTextMessage(int messageLength, uint8_t * msg, bool thereIsMoreComing);
-    void sendSOHMessage(uint16_t header, uint8_t * msg);
-    void sendSTXMessage(uint8_t * msg);
     void sendACK0();
     void sendACK1();
     void sendWACK();
