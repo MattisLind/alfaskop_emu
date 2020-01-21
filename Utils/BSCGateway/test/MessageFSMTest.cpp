@@ -2,12 +2,12 @@
 
   Test program for MessageFSM 
 
-  Compile using : c++ MessageFSMTest.cpp ../BSCGateway/MessageFSM.cpp -DDEBUG 
+  Compile using : c++ MessageFSMTest.cpp ../BSCGateway-STM32/MessageFSM.cpp -DDEBUG 
 
  */
 
 #include <stdio.h>
-#include "../BSCGateway/MessageFSM.h"
+#include "../BSCGateway-STM32/MessageFSM.h"
 #include <assert.h>
 #include <string.h>
 

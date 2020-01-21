@@ -2,13 +2,13 @@
 
    Test program for SyncFSM
 
-   Compile using:  c++ SyncFSMTest.cpp ../BSCGateway/SyncFSM.cpp -DDEBUG
+   Compile using:  c++ SyncFSMTest.cpp ../BSCGateway-STM32/SyncFSM.cpp -DDEBUG
 
-
+*/
 #include <assert.h>
-#include "../BSCGateway/SyncFSM.h"
+#include "../BSCGateway-STM32/SyncFSM.h"
 #include <stdio.h>
-#include "../BSCGateway/ebcdic.h"
+#include "../BSCGateway-STM32/ebcdic.h"
 // Testdata MSBFIRST from the SPI.
 // 11010011 00010011 00111011 00111111 11111111 11111010 01100010 01100111 01100111 11111111 11111111 
 // 0xd3,0x13,0x3b,0x3f,0xff,0xfa,0x62, 0x67, 0x67, 0xff, 0xff 
