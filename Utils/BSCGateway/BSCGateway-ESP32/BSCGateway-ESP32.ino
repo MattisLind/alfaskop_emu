@@ -8,13 +8,16 @@
 // systems. A nice splash would be great!
 
 
+
 void setup () {
-
-
+     Serial.begin(9600);
 }
 
 
 
 void loop () {
-
+     int ch;
+     if (Serial.available()>0) {
+     	Serial.write(Serial.read());
+     }
 }
