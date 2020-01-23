@@ -36,7 +36,7 @@
 
 class Serial {
   speed_t translateSpeed(int);
-  char devStr[256];
+  const char * devStr;
   int  fd;
  public:
   Serial(const char *);

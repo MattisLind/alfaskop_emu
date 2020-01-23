@@ -3,7 +3,7 @@
 #include "Serial.h"
 
 Serial::Serial(const char * devStr) {
-  devStr = Serial::devStr;
+  Serial::devStr = devStr;
 }
 
 speed_t Serial::translateSpeed(int speed) {

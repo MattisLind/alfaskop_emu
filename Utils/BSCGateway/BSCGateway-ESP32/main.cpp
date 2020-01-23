@@ -7,6 +7,9 @@
 
 
   Compile on Macos: c++ -DLINUX -DMACOS main.cpp Serial.cpp
+  Compile on Linux: c++ -DLINUX  main.cpp Serial.cpp
+
+  Run as sudo to be able to open the serial port.
 
 */
 #include "Serial.h"
