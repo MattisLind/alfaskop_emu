@@ -16,14 +16,56 @@
 #include "../BSCGateway-STM32/MessageFSM.h"
 #include "../BSCGateway-STM32/RingBuffer.h"
 
+class HardwareTimer {
+
+public:
+  HardwareTimer(int);
+  void pause();
+  int setPeriod (int);
+  void refresh ();
+  void resume ();
+  
+};
+
+
+class Serial {
+
+public:
+  Serial ();
+  int available ();
+  void begin (int);
+  void print(char * str);
+  void print(char);
+  void print(const char * str);
+  void print(char, int);
+  void print(short, int);
+  void print(long, int);
+  void println();
+  void println(char * str);
+  void println(const char * str);
+  void write (char);
+};
+
+
+#define PA8 1
+#define DEC 0
+#define HEX 2
+#define PWM 2
+
+void pinMode(int, int) {
+};
+
+void pwmWrite (int, int) {
+}
 
 
 void setup();
 void loop();
 
-class Serial Serial ("/dev/ttyUSB0");
+class Serial Serial;
+class Serial Serial1;
 
-main (int argc, char ** argv) {
+int main (int argc, char ** argv) {
 
   setup();
   do {
