@@ -1,4 +1,14 @@
+#ifndef _SERIAL_H_
+#define _SERIAL_H_
+
 #include <termios.h>
+#include <fcntl.h>
+#include <poll.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/uio.h>
+#include <unistd.h>
+
 #define SERIAL_5N1 CS5  
 #define SERIAL_6N1 CS6
 #define SERIAL_5N2 CS5 | CSTOPB
@@ -35,6 +45,7 @@ class Serial {
   int write(char);
   int write(char *);
   int write(unsigned char *, int);
-  void begin (int, int);
+  void begin (int speed = 9600, int config = SERIAL_8N1);
 };
 
+#endif
