@@ -5,7 +5,11 @@ at startup.
 
 ## Wireshark dumps.
 
-Two Wireshark dumps were taken. 
+Two Wireshark traces were taken. The pictures below is from the standard data stream. The traces are stored in the dumps folder.
+
+![Data from host](https://raw.githubusercontent.com/MattisLind/alfaskop_emu/master/pics/TN3270_Extended_data_stream_from_host.png)
+
+![Data from host](https://raw.githubusercontent.com/MattisLind/alfaskop_emu/master/pics/TN3270_Extended_data_to_host.png)
 
 ## Telnet handshake
 
