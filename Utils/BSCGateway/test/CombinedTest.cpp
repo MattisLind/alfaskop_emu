@@ -11,10 +11,13 @@
 #include <stdio.h>
 #include <assert.h>
 #include <string.h>
+#include "../BSCGateway-STM32/lsbmsb.h"
 #include "../BSCGateway-STM32/SyncFSM.h"
 #include "../BSCGateway-STM32/ebcdic.h"
 #include "../BSCGateway-STM32/MessageFSM.h"
 #include "../BSCGateway-STM32/RingBuffer.h"
+#include "SPI.h"
+
 
 class HardwareTimer {
 
@@ -40,10 +43,12 @@ public:
   void print(char, int);
   void print(short, int);
   void print(long, int);
+  void print(int, int);
   void println();
   void println(char * str);
   void println(const char * str);
   void write (char);
+  int  read();
 };
 
 
@@ -58,6 +63,11 @@ void pinMode(int, int) {
 void pwmWrite (int, int) {
 }
 
+
+void spi_tx_reg(spi_dev *, int);
+uint16 spi_rx_reg(spi_dev *); 
+bool spi_is_rx_nonempty(spi_dev *);
+bool spi_is_tx_empty(spi_dev *);
 
 void setup();
 void loop();
@@ -77,6 +87,5 @@ int main (int argc, char ** argv) {
 
 #include "../BSCGateway-STM32/BSCGateway-STM32.ino"
 
-#endif
 
 
