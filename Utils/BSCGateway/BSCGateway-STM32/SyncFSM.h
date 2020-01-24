@@ -9,7 +9,7 @@ The Sync FSM has two states, Hunt state and Sync state. When in Hunt state it wi
 #include "libmaple/libmaple_types.h"
 #else
 #include <stdio.h>
-typedef unsigned int uint32_t;
+#include "../test/types.h"
 #endif
 #include "ebcdic.h"
 #include "lsbmsb.h"

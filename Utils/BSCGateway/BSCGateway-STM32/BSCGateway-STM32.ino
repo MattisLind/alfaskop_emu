@@ -66,7 +66,7 @@ void printMsgBuffer () {
 
 
 void loop() {
-  spi_dev * spi_d = SPI2;
+spi_dev * spi_d = SPI2;
   uint16 read;
   uint8_t data;
   uint8_t msg;
