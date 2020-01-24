@@ -52,6 +52,46 @@ public:
 };
 
 
+Serial::Serial() {};
+int Serial::available() {};
+void Serial::begin(int speed) {};
+void Serial::print(char * str) {};
+void Serial::print(char ch) {};
+void Serial::print(const char * str) {};
+void Serial::print(char, int) {};
+void Serial::print(short, int) {};
+void Serial::print(long, int) {};
+void Serial::print(int, int) {};
+void Serial::println() {};
+void Serial::println(char * str) {};
+void Serial::println(const char * str) {};
+void Serial::write(char ch) {};
+int Serial::read() {};
+
+
+HardwareTimer::HardwareTimer(int timerId) {
+}
+void HardwareTimer::pause() {
+}
+void HardwareTimer::refresh() {
+}
+void HardwareTimer::resume() {
+}
+int HardwareTimer::setPeriod(int period) {
+  return 0;
+}
+
+void SPIClass::beginSlave () {
+}
+
+void SPIClass::setBitOrder (int bitOrder) {
+}
+void SPIClass::setDataMode (int dataMode) {
+}
+
+SPIClass::SPIClass(int id) {
+}
+
 #define PA8 1
 #define DEC 0
 #define HEX 2
@@ -64,10 +104,14 @@ void pwmWrite (int, int) {
 }
 
 
-void spi_tx_reg(spi_dev *, int);
-uint16 spi_rx_reg(spi_dev *); 
-bool spi_is_rx_nonempty(spi_dev *);
-bool spi_is_tx_empty(spi_dev *);
+void spi_tx_reg(spi_dev *, int) {
+}
+uint16 spi_rx_reg(spi_dev *) {
+} 
+bool spi_is_rx_nonempty(spi_dev *) {
+}
+bool spi_is_tx_empty(spi_dev *) {
+}
 
 void setup();
 void loop();
