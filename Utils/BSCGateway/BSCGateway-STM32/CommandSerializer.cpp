@@ -3,8 +3,12 @@
 
 #include "CommandSerializer.h"
 
+/*CommandSerializer::CommandSerializer (class Serial &serial, void (* processMessage) (MSG *)) {
+  Serial=serial;
+  processMessageCb = processMessage;
+  }*/
 
-inline unsigned char CommandSerializer::AsciiHexToChar (char ch) {
+unsigned char CommandSerializer::AsciiHexToChar (char ch) {
   return (ch > '9')?ch-'A'-10:ch-'0';
 }
 
@@ -87,7 +91,7 @@ void CommandSerializer::processCharacter (char ch) {
 	dtrVal = ch-'0';
 	break;
       }
-      berak;
+      break;
     case '\n':
       commandState = 0;
       Serial.println('E');
@@ -106,8 +110,8 @@ void CommandSerializer::processCharacter (char ch) {
       hexdigit |= AsciiHexToChar (ch) & 0x0f;
       
     } else {
-      commandState = 5 // Error clean up
-	Serial.println('E');
+      commandState = 5; // Error clean up
+      Serial.println('E');
     }
   } else if (commandState == 5) {
     if (ch == '\n') { // We have an error. Wait until next NL and start parsing again.
@@ -151,10 +155,11 @@ void CommandSerializer::doHandshakeLinesChanged(int rtsVal, int ctsVal, int dtrV
 void CommandSerializer::doEOT() {
   Serial.println("Q");
 }
-void CommandSerializer::doENQ(unsigned char CU, unsigend char DV) {
+void CommandSerializer::doENQ(unsigned char CU, unsigned char DV) {
   Serial.print("P");
   Serial.print(CU, HEX);
-  Serial.println(DV,HEX);
+  Serial.print(DV,HEX);
+  Serial.println();
 }
 void CommandSerializer::doStatus() {}
 void CommandSerializer::doTestRequestMessage() {}
