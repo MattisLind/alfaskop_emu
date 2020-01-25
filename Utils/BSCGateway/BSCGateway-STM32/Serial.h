@@ -6,7 +6,8 @@
 
 
 class Serial {
-
+  char buffer [1024];
+  char * currentBufferPointer;
 public:
   Serial ();
   int available ();
@@ -24,6 +25,8 @@ public:
   void println(const char * str);
   void write (char);
   int  read();
+  void flush();
+  void debugPrint();
 };
 
 #endif
