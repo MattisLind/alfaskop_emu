@@ -90,10 +90,10 @@ void Serial::print(int val, int type) {
   char tmp [16];
   switch (type) {
   case DEC:
-    printf(tmp, "%d", val);
+    sprintf(tmp, "%d", val);
     break;
   case HEX:
-    printf(tmp, "%X", val);
+    sprintf(tmp, "%X", val);
   }
   strcpy(currentBufferPointer, tmp);
   currentBufferPointer+= strlen(tmp);
@@ -160,10 +160,28 @@ void processMessage (MSG * msg) {
     printf ("Test case 2 I: command DONE!\n");    
     testCase = 3;
     break;
+  case 3:
+    assert(msg->type == EOT_MSG);
+    printf ("Test case 3 Q: command DONE!\n");    
+    testCase = 4;
+    break;
+  case 4:
+    assert(msg->type == ENQ_MSG);
+    assert(msg->data.enqData.CU == 0x40);
+    assert(msg->data.enqData.DV == 0x41);
+    printf ("Test case 4 P: command DONE!\n");    
+    testCase = 5;
+    break;
+  case 5:
+    assert(msg->type == STAT_MSG);
+    assert(msg->data.statusData.CU == 0x42);
+    assert(msg->data.statusData.DV == 0x43);
+    assert(msg->data.statusData.status == 0x44);
+    assert(msg->data.statusData.sense == 0x45);
+    printf ("Test case 5 P: command DONE!\n");    
+    testCase = 6;
+    break;
       /*
-  case REP_HAND:
-  case EOT_MSG:
-  case ENQ_MSG:
   case STAT_MSG:
   case TEST_MSG:
   case TEXT_MSG:
@@ -212,5 +230,16 @@ int main () {
   commandSerializer.doHandshakeLinesChanged(-1, 1, 0);
   doTest();
   assert (testCase==3);
-  
+  Serial.flush();
+  commandSerializer.doEOT();
+  doTest();
+  assert (testCase==4);  
+  Serial.flush();
+  commandSerializer.doENQ(0x40, 0x41);
+  doTest();
+  assert (testCase==5);  
+  Serial.flush();
+  commandSerializer.doStatus(0x42, 0x43, 0x44, 0x45);
+  doTest();
+  assert (testCase==6);  
 }
