@@ -51,6 +51,23 @@ void CommandSerializer::processCharacter (char ch) {
       case 'G':
 	msg.type = HAND_REQ;
 	break;
+      case 'Q':
+	msg.type = EOT_MSG;
+	break;
+      case 'P':
+	msg.type = ENQ_MSG;
+	printf ("messagebuffer: %02X%02X\n", messageBuffer[0], messageBuffer[1]);
+	msg.data.enqData.CU = messageBuffer[0];
+        msg.data.enqData.DV = messageBuffer[1];
+	break;
+      case 'S':
+	msg.type = STAT_MSG;
+	printf ("messagebuffer: %02X%02X%02X%02X\n", messageBuffer[0], messageBuffer[1],messageBuffer[2], messageBuffer[3] );
+	msg.data.statusData.CU = messageBuffer[0];
+        msg.data.statusData.DV = messageBuffer[1];
+	msg.data.statusData.status = messageBuffer[2];
+        msg.data.statusData.sense = messageBuffer[3];
+	break;
       }
       processMessageCb (&msg);	    
       commandState = 0;
@@ -60,7 +77,7 @@ void CommandSerializer::processCharacter (char ch) {
       commandState=1; // Go back and look for another hexdigit
       hexdigit = AsciiHexToChar(ch) << 4;   
       commandState = 4;
-      messageBuffer[bufferPtr++] = hexdigit;
+      printf("High Hexdigit=%02X\n", hexdigit);
     } else {
       commandState = 5; // Error clean up
       Serial.println('E');	  
@@ -128,7 +145,9 @@ void CommandSerializer::processCharacter (char ch) {
       // Second hexdigit
       commandState=1; // Go back and look for another hexdigit
       hexdigit |= AsciiHexToChar (ch) & 0x0f;
-      
+      printf("bufferPtr=%d\n", bufferPtr);
+      messageBuffer[bufferPtr++] = hexdigit;
+      printf("Low Hexdigit=%02X\n", hexdigit);
     } else {
       commandState = 5; // Error clean up
       Serial.println('E');
@@ -177,11 +196,19 @@ void CommandSerializer::doEOT() {
 }
 void CommandSerializer::doENQ(unsigned char CU, unsigned char DV) {
   Serial.print("P");
-  Serial.print(CU, HEX);
+  Serial.print(CU,HEX);
   Serial.print(DV,HEX);
   Serial.println();
 }
-void CommandSerializer::doStatus() {}
+void CommandSerializer::doStatus(unsigned char CU, unsigned char DV, unsigned char status, unsigned char sense) {
+  Serial.print("S");
+  Serial.print(CU,HEX);
+  Serial.print(DV,HEX);
+  Serial.print(status,HEX);
+  Serial.print(sense,HEX);
+  Serial.println();
+  
+}
 void CommandSerializer::doTestRequestMessage() {}
 void CommandSerializer::doTextMessage() {}
 void CommandSerializer::doACK0() {

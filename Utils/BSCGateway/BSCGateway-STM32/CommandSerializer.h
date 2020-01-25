@@ -82,7 +82,7 @@ class CommandSerializer {
   void doHandshakeLinesChanged(int, int, int);
   void doEOT();
   void doENQ(unsigned char, unsigned char);
-  void doStatus();
+  void doStatus(unsigned char, unsigned char, unsigned char, unsigned char);
   void doTestRequestMessage();
   void doTextMessage();
   void doACK0();
