@@ -25,22 +25,6 @@ void setup() {
   SPI_2.setDataMode(SPI_MODE0); //Set the  SPI_2 data mode 0
 }
 
-/*
-int count;
-int cmdState=0;
-int txDone=1;
-int txCnt=8;
-char txBuf[] = {SYN, SYN, 0x40, 0x40, 0x40, 0x40, ENQ, PAD};
-int txLen = sizeof txBuf;
-char cmd;
-int hexValue;
-uint32 dataWord;
-int syncPoint;
-uint8_t msgBuffer [300];
-int msgBufferCnt = 0;
-int byteCounter;
-int rxState=0;
-*/
 
 void printTwoDigitHex (int data) {
   if (data < 16) {
@@ -63,15 +47,27 @@ class RingBuffer txBuffer;
 void receiveCallback(unsigned char ch) {
   rxBuffer.writeBuffer(ch);
 }
+
+
+void messageReceivedCallback(unsigned char msgType, unsigned char * msg) {
+     // Serialize and send messgae over serial port
+}
+
+void txDataCallback (unsigned char ch) {
+     txBuffer.writeBuffer(ch);
+}
+
 class SyncFSM syncFSM(receiveCallback);
+
+
+void enterHuntStateCallback () {
+     syncFSM.enterHuntState();     
+}
+
+class MessageFSM messageFSM(txDataCallback, messageReceivedCallback, enterHuntStateCallback);
 
 void loop() {
 spi_dev * spi_d = SPI2;
-//  uint16 read;
-//  uint8_t data;
-//  uint8_t msg;
-//  char tmp;
-//  int i;
   if (spi_is_tx_empty(spi_d)){
     if (txBuffer.isBufferEmpty()) {
       spi_tx_reg(spi_d, 0xff);  
@@ -82,5 +78,8 @@ spi_dev * spi_d = SPI2;
            
   if (spi_is_rx_nonempty(spi_d)) {
     syncFSM.receivedData(spi_rx_reg(spi_d));  
+  }
+  if (Serial.available()>0) {
+     // Read serial protocol and write to MessageFSM
   }
 }

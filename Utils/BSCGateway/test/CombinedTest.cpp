@@ -4,7 +4,7 @@
   at the serial port interface to upper level host and SPI level to sync line
    
 
-  Compile using : c++ MessageFSMTest.cpp ../BSCGateway-STM32/MessageFSM.cpp ../BSCGateway-STM32/SyncFSM.cpp ../BSCGateway-STM32/RingBuffer.cpp  -DDEBUG 
+  Compile using : c++ -DDEBUG CombinedTest.cpp -I. ../BSCGateway-STM32/SyncFSM.cpp ../BSCGateway-STM32/RingBuffer.cpp ../BSCGateway-STM32/MessageFSM.cpp 
 
  */
 
