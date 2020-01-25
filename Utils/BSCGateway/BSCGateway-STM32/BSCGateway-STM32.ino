@@ -66,20 +66,30 @@ void enterHuntStateCallback () {
 
 class MessageFSM messageFSM(txDataCallback, messageReceivedCallback, enterHuntStateCallback);
 
+void sendSerializedCharacter (char ch) {
+     Serial.write(ch);
+}
+
+void processIncomingMessage (MSG * msg) {
+     
+}
+
+class CommandSerializer commandSerializer(Serial, processIncomingMessage);
+
 void loop() {
-spi_dev * spi_d = SPI2;
-  if (spi_is_tx_empty(spi_d)){
+char ch;
+if (spi_is_tx_empty(SPI2)){
     if (txBuffer.isBufferEmpty()) {
-      spi_tx_reg(spi_d, 0xff);  
+      spi_tx_reg(SPI2, 0xff);  
     } else {
-      spi_tx_reg(spi_d, translationArray[txBuffer.readBuffer()]);  
+      spi_tx_reg(SPI2, translationArray[txBuffer.readBuffer()]);  
     }    
   }
            
-  if (spi_is_rx_nonempty(spi_d)) {
-    syncFSM.receivedData(spi_rx_reg(spi_d));  
+  if (spi_is_rx_nonempty(SPI2)) {
+    syncFSM.receivedData(spi_rx_reg(SPI2));  
   }
   if (Serial.available()>0) {
-     // Read serial protocol and write to MessageFSM
+     commandSerializer.processCharacter(Serial.read());
   }
 }
