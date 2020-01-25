@@ -1,4 +1,4 @@
-
+#include <stdio.h>
 
 
 #include "CommandSerializer.h"
@@ -13,6 +13,8 @@ unsigned char CommandSerializer::AsciiHexToChar (char ch) {
 }
 
 void CommandSerializer::processCharacter (char ch) {
+  MSG msg;
+  printf ("commandState=%d ch=%c\n", commandState, ch);
   if (commandState == 0) {
     bufferPtr=0;  
     command = ch;    
@@ -33,6 +35,10 @@ void CommandSerializer::processCharacter (char ch) {
       break;
     case 'H':
     case 'I':
+      command = ch;
+      rtsVal = -1;
+      ctsVal = -1;
+      dtrVal = -1;
       commandState=2;
       break;
     default:
@@ -41,8 +47,13 @@ void CommandSerializer::processCharacter (char ch) {
   }
   else if (commandState == 1) {
     if (ch == '\n') { // NL
+      switch (command) {
+      case 'G':
+	msg.type = HAND_REQ;
+	break;
+      }
+      processMessageCb (&msg);	    
       commandState = 0;
-      // Execute command!
     } else if ((ch >= '0' && ch <= '9') || (ch >= 'A' && ch <= 'F' )) {
       // First hex digit	
       // Valid hex digit
@@ -66,6 +77,15 @@ void CommandSerializer::processCharacter (char ch) {
       break;
     case '\n':
       commandState = 0; // execute handshake command
+      if (command == 'H') {
+	msg.type = SET_HAND;
+      } else {
+	msg.type = REP_HAND;
+      }
+      msg.data.handshakeData.dtr = dtrVal;
+      msg.data.handshakeData.rts = rtsVal;
+      msg.data.handshakeData.cts = ctsVal;
+      processMessageCb (&msg);      
       break;
     default:
       // wait for next NL and start over
@@ -128,15 +148,15 @@ void CommandSerializer::doRequestHandshakeLineState() {
 void CommandSerializer::handleHandshakeLines (int rtsVal, int ctsVal, int dtrVal) {
   if (rtsVal>=0) {
     Serial.print('R');
-    Serial.print(rtsVal);
+    Serial.print(rtsVal+'0');
   }
   if (ctsVal>=0) {
     Serial.print('C');
-    Serial.print(ctsVal);
+    Serial.print(ctsVal+'0');
   }
   if (dtrVal>=0) {
     Serial.print('D');
-    Serial.print(dtrVal);
+    Serial.print(dtrVal+'0');
   }
   Serial.println();  
 }

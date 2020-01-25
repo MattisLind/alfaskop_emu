@@ -45,11 +45,16 @@ union msgData {
     int errorCode;
     char * errorText;
   } errorData;
+  struct HandshakeData {
+    int dtr;
+    int cts;
+    int rts;
+  } handshakeData;
 };
 
 struct msg {
-  int msgType;
-  union msgData;
+  int type;
+  union msgData data;
 };
 
 typedef struct msg MSG;
@@ -70,7 +75,7 @@ class CommandSerializer {
   void (* processMessageCb) (MSG *);
   void handleHandshakeLines (int, int, int);
   public:
-  CommandSerializer (class Serial & serial, void (* processMessage) (MSG *)) : Serial(serial), processMessageCb(processMessage)  {}
+  CommandSerializer (class Serial & serial, void (* processMessage) (MSG *)) : Serial(serial), processMessageCb(processMessage), commandState(0)  {}
   void processCharacter (char);
   void doRequestHandshakeLineState();
   void doSetResetHandshakeLines(int, int, int);
