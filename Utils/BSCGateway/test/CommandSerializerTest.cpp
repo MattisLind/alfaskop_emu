@@ -131,6 +131,8 @@ void Serial::debugPrint() {
   printf ("%s", buffer);
 }
 
+char testString [] = "This is a test message ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890+-.,#$%&/()=";
+
   
 
 int testCase;
@@ -178,20 +180,52 @@ void processMessage (MSG * msg) {
     assert(msg->data.statusData.DV == 0x43);
     assert(msg->data.statusData.status == 0x44);
     assert(msg->data.statusData.sense == 0x45);
-    printf ("Test case 5 P: command DONE!\n");    
+    printf ("Test case 6 S: command DONE!\n");    
     testCase = 6;
     break;
-      /*
-  case STAT_MSG:
-  case TEST_MSG:
-  case TEXT_MSG:
-  case ACK0_MSG:
-  case ACK1_MSG:
-  case WACK_MSG:
-  case RVI_MSG:
-  case NAK_MSG
-  }
-      */
+  case 6:
+    assert(msg->type == TEST_MSG);
+    assert(msg->data.testData.length == (strlen(testString)+1));
+    printf ("testString::%s::\n", msg->data.testData.msg);
+    assert(strncmp((const char *) msg->data.testData.msg, testString, msg->data.testData.length) == 0);
+    assert(msg->data.testData.thereIsMoreComing == false);
+    printf ("Test case 7 X: command DONE!\n");    
+    testCase = 7;
+    break;
+  case 7:
+    assert(msg->type == TEXT_MSG);
+    assert(msg->data.textData.length == (strlen(testString)+1));
+    printf ("testString::%s::\n", msg->data.textData.msg);
+    assert(strncmp((const char *) msg->data.textData.msg, testString, msg->data.textData.length) == 0);
+    assert(msg->data.textData.thereIsMoreComing == false);
+    printf ("Test case 7 X: command DONE!\n");    
+    testCase = 8;
+    break;
+  case 8:
+    assert(msg->type == ACK0_MSG);
+    printf ("Test case 8 L: command DONE!\n");    
+    testCase = 9;
+    break;
+  case 9:
+    assert(msg->type == ACK1_MSG);
+    printf ("Test case 9 M: command DONE!\n");    
+    testCase = 10;
+    break;
+  case 10:
+    assert(msg->type == WACK_MSG);
+    printf ("Test case 10 W: command DONE!\n");    
+    testCase = 11;
+    break;
+  case 11:
+    assert(msg->type == RVI_MSG);
+    printf ("Test case 11 R: command DONE!\n");    
+    testCase = 12;
+    break;
+  case 12:
+    assert(msg->type == NAK_MSG);
+    printf ("Test case 12 N: command DONE!\n");    
+    testCase = 13;
+    break;
   }
   
 }
@@ -242,4 +276,32 @@ int main () {
   commandSerializer.doStatus(0x42, 0x43, 0x44, 0x45);
   doTest();
   assert (testCase==6);  
+  Serial.flush();
+  commandSerializer.doTestRequestMessage(testString, strlen(testString)+1, false);
+  doTest();
+  assert (testCase==7);  
+  Serial.flush();
+  commandSerializer.doTextMessage(testString, strlen(testString)+1, false);
+  doTest();
+  assert (testCase==8);  
+  Serial.flush();
+  commandSerializer.doACK0();
+  doTest();
+  assert (testCase==9);  
+  Serial.flush();
+  commandSerializer.doACK1();
+  doTest();
+  assert (testCase==10);  
+  Serial.flush();
+  commandSerializer.doWACK();
+  doTest();
+  assert (testCase==11);  
+  Serial.flush();
+  commandSerializer.doRVI();
+  doTest();
+  assert (testCase==12);  
+  Serial.flush();
+  commandSerializer.doNAK();
+  doTest();
+  assert (testCase==13);  
 }
