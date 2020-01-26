@@ -74,6 +74,7 @@ class CommandSerializer {
   class Serial & Serial;
   void (* processMessageCb) (MSG *);
   void handleHandshakeLines (int, int, int);
+  void printTwoDigitHex(int data);
   public:
   CommandSerializer (class Serial & serial, void (* processMessage) (MSG *)) : Serial(serial), processMessageCb(processMessage), commandState(0)  {}
   void processCharacter (char);
@@ -83,8 +84,8 @@ class CommandSerializer {
   void doEOT();
   void doENQ(unsigned char, unsigned char);
   void doStatus(unsigned char, unsigned char, unsigned char, unsigned char);
-  void doTestRequestMessage();
-  void doTextMessage();
+  void doTestRequestMessage(char * msg, int length, bool thereIsMoreComing);
+  void doTextMessage(char * msg, int length, bool thereIsMoreComing);
   void doACK0();
   void doACK1();
   void doWACK();
