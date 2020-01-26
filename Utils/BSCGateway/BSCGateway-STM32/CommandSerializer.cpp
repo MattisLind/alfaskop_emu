@@ -9,8 +9,16 @@
   }*/
 
 unsigned char CommandSerializer::AsciiHexToChar (char ch) {
-  return (ch > '9')?ch-'A'-10:ch-'0';
+  return (ch > '9')?ch-'A'+10:ch-'0';
 }
+
+void CommandSerializer::printTwoDigitHex (int data) {
+  if (data < 16) {
+    Serial.print('0');
+  } 
+  Serial.print(data, HEX);
+}
+
 
 void CommandSerializer::processCharacter (char ch) {
   MSG msg;
@@ -68,6 +76,36 @@ void CommandSerializer::processCharacter (char ch) {
 	msg.data.statusData.status = messageBuffer[2];
         msg.data.statusData.sense = messageBuffer[3];
 	break;
+      case 'X':
+	msg.type = TEST_MSG;
+	printf ("messagebuffer: length= %d\n", bufferPtr);
+	msg.data.testData.msg = (uint8_t *) messageBuffer;
+        msg.data.testData.length = bufferPtr;
+	msg.data.testData.thereIsMoreComing = false;
+	break;
+      case 'T':
+	msg.type = TEXT_MSG;
+	printf ("messagebuffer: length= %d\n", bufferPtr);
+	msg.data.textData.msg = (uint8_t *) messageBuffer;
+        msg.data.textData.length = bufferPtr;
+	msg.data.textData.thereIsMoreComing = false;
+	break;
+      case 'L':
+	msg.type = ACK0_MSG;
+	break;
+      case 'M':
+	msg.type = ACK1_MSG;
+	break;
+      case 'W':
+	msg.type = WACK_MSG;
+	break;
+      case 'R':
+	msg.type = RVI_MSG;
+	break;
+      case 'N':
+	msg.type = NAK_MSG;
+	break;
+
       }
       processMessageCb (&msg);	    
       commandState = 0;
@@ -209,8 +247,31 @@ void CommandSerializer::doStatus(unsigned char CU, unsigned char DV, unsigned ch
   Serial.println();
   
 }
-void CommandSerializer::doTestRequestMessage() {}
-void CommandSerializer::doTextMessage() {}
+void CommandSerializer::doTestRequestMessage(char * msg, int length, bool thereIsMoreComing) {
+  int i;
+  if (thereIsMoreComing) {
+    Serial.print("Z");
+  } else {
+    Serial.print("X");
+  }
+  for (i=0; i<length;i++) {
+    printTwoDigitHex(msg[i]);
+  }
+  Serial.println();
+}
+void CommandSerializer::doTextMessage(char * msg, int length, bool thereIsMoreComing) {
+  int i;
+  if (thereIsMoreComing) {
+    Serial.print("U");
+  } else {
+    Serial.print("T");
+  }
+  for (i=0; i<length;i++) {
+    printTwoDigitHex(msg[i]);
+  }
+  Serial.println();
+
+}
 void CommandSerializer::doACK0() {
   Serial.println('L');
 }
