@@ -5,7 +5,8 @@
   https://people.cs.umu.se/isak/snippets/crc-16.c
 
  */
-#define POLY 0x8408
+//#define POLY 0x8408
+//#define POLY 0xA001
 /*
 //                                      16   12   5
 // this is the CCITT CRC 16 polynomial X  + X  + X  + 1.
@@ -14,12 +15,14 @@
 // bit is always assumed to be set, thus we only use 16 bits to
 // represent the 17 bit value.
 */
+//            16   15   2
+// CRC-16 is X  + X  + X  + 1 is 8005 and a001 reversed.
+//
 
-unsigned short crc16(char *data_p, unsigned short length)
+unsigned short crc16(char *data_p, unsigned short length, unsigned short crc, unsigned short POLY)
 {
   unsigned char i;
   unsigned int data;
-  unsigned int crc = 0xffff;
 
   if (length == 0)
     return (~crc);
@@ -36,9 +39,9 @@ unsigned short crc16(char *data_p, unsigned short length)
             }
 	} while (--length);
 
-      crc = ~crc;
-      data = crc;
-      crc = (crc << 8) | (data >> 8 & 0xff);
+      //crc = ~crc;
+      //data = crc;
+      //crc = (crc << 8) | (data >> 8 & 0xff);
 
       return (crc);
 }
