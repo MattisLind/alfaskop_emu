@@ -20,7 +20,7 @@
 //
 
 
-unsigned short calculateCrcChar (unsigned int crc, char data_p) {
+unsigned short calculateCrcChar (unsigned int crc, unsigned char data_p) {
   unsigned char i;
   unsigned int data;
   for (i=0, data=(unsigned int)0xff & data_p;
@@ -31,10 +31,10 @@ unsigned short calculateCrcChar (unsigned int crc, char data_p) {
 	crc = (crc >> 1) ^ 0xa001;
       else  crc >>= 1;
     }
-return crc;
+  return crc;
 }
 
-unsigned short crc16(char *data_p, unsigned short length, unsigned short crc, unsigned short POLY)
+unsigned short crc16(unsigned char *data_p, unsigned short length, unsigned short crc, unsigned short POLY)
 {
 
 
@@ -42,7 +42,7 @@ unsigned short crc16(char *data_p, unsigned short length, unsigned short crc, un
   if (length == 0)
     return (~crc);
 
-  do crc = calculateCrcChar(crc, *data_p);  while (--length, data_p++);
+  do { crc = calculateCrcChar(crc, (*data_p) & 0xff ); data_p++; } while (--length);
 
 
       return (crc);

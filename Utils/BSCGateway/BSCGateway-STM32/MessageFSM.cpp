@@ -4,6 +4,8 @@
 #include <stdio.h>
 #endif
 
+unsigned short calculateCrcChar (unsigned int crc, unsigned char data_p);
+
 // The constructor have a number of callbacks for the various received messages and for the txByte. txByte is called each time 
 // the Message FSM has a byte to send. Typically these bytes are put in the ringbuffer for transmission by the interrupt routine
 
@@ -34,19 +36,28 @@ void MessageFSM::sendENQ(uint8_t CU, uint8_t DV){
   txDataCb(PAD);  
 }
 void MessageFSM::sendStatusMessage(uint8_t CU, uint8_t DV,  uint8_t status, uint8_t sense) {
+  int crc=0;
   txDataCb(SYN);
   txDataCb(SYN);
   txDataCb(SOH);
   txDataCb(0x6c);
+  crc = calculateCrcChar (crc, 0x6c);
   txDataCb(0xd9);
+  crc = calculateCrcChar (crc, 0xd9);
   txDataCb(STX);
+  crc = calculateCrcChar (crc, STX);
   txDataCb(CU);
+  crc = calculateCrcChar (crc, CU);
   txDataCb(DV);
+  crc = calculateCrcChar (crc, DV);
   txDataCb(status);
+  crc = calculateCrcChar (crc, status);
   txDataCb(sense);  
+  crc = calculateCrcChar (crc, sense);
   txDataCb(ETX);
-  txDataCb(0x00); // Fix CRC
-  txDataCb(0x00);
+  crc = calculateCrcChar (crc, ETX);
+  txDataCb((crc >> 8) & 0xff);
+  txDataCb(crc & 0xff);
   txDataCb(PAD);
 }
 
