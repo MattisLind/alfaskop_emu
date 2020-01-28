@@ -4,7 +4,7 @@
 #include <stdio.h>
 #endif
 
-unsigned short calculateCrcChar (unsigned int crc, unsigned char data_p);
+unsigned short calculateCrcChar (unsigned short crc, unsigned char data_p);
 
 // The constructor have a number of callbacks for the various received messages and for the txByte. txByte is called each time 
 // the Message FSM has a byte to send. Typically these bytes are put in the ringbuffer for transmission by the interrupt routine
@@ -56,47 +56,58 @@ void MessageFSM::sendStatusMessage(uint8_t CU, uint8_t DV,  uint8_t status, uint
   crc = calculateCrcChar (crc, sense);
   txDataCb(ETX);
   crc = calculateCrcChar (crc, ETX);
-  txDataCb((crc >> 8) & 0xff);
   txDataCb(crc & 0xff);
+  txDataCb((crc >> 8) & 0xff);
   txDataCb(PAD);
 }
 
 void MessageFSM::sendTestRequestMessage(int messageLength, uint8_t * msg, bool thereIsMoreComing) {
   int i;
+  int crc=0;
   txDataCb(SYN);
   txDataCb(SYN);
   txDataCb(SOH);
   txDataCb(0x6c);
+  crc = calculateCrcChar (crc, 0x6c);
   txDataCb(0x61);
+  crc = calculateCrcChar (crc, 0x61);
   txDataCb(STX);
+  crc = calculateCrcChar (crc, STX);
   for (i=0; i<messageLength; i++) {
     txDataCb(msg[i]);
+    crc = calculateCrcChar (crc, msg[i]);
   }
   if (thereIsMoreComing) {
     txDataCb(ETB);
+    crc = calculateCrcChar (crc, ETB);
   } else {
     txDataCb(ETX);
+    crc = calculateCrcChar (crc, ETX);
   }
-  txDataCb(0x00); // Fix CRC
-  txDataCb(0x00);
+  txDataCb(crc & 0xff);
+  txDataCb((crc >> 8) & 0xff);
   txDataCb(PAD);
 }
 
 void MessageFSM::sendTextMessage(int messageLength, uint8_t * msg, bool thereIsMoreComing) {
   int i;
+  int crc=0;
   txDataCb(SYN);
   txDataCb(SYN);
   txDataCb(STX);
   for (i=0; i<messageLength; i++) {
     txDataCb(msg[i]);
+    crc = calculateCrcChar (crc, msg[i]);
   }
   if (thereIsMoreComing) {
     txDataCb(ETB);
+    crc = calculateCrcChar (crc, ETB);
   } else {
     txDataCb(ETX);
+    crc = calculateCrcChar (crc, ETX);
   }
-  txDataCb(0x00); // Fix CRC
-  txDataCb(0x00);
+  txDataCb(crc & 0xff);
+  txDataCb((crc >> 8) & 0xff);
   txDataCb(PAD);
 }
 void MessageFSM::sendACK0(){
@@ -142,6 +153,7 @@ void MessageFSM::rxData(uint8_t data) {
   if (data == SYN) {
     return;
   }
+  crc = calculateCrcChar (crc, data);
   msgBuffer[msgBufferCnt++] = data;
   if (rxState == 0) { 
     switch (data) {
@@ -155,10 +167,12 @@ void MessageFSM::rxData(uint8_t data) {
     case SOH:
       byteCounter=2;
       rxState = 4;
+      crc = 0;
       break;
     case STX:
       byteCounter=254;
       rxState = 5;
+      crc = 0;
       break;
     default:  // Enquiry POLL / SELECTION
       rxState = 7;
@@ -212,6 +226,7 @@ void MessageFSM::rxData(uint8_t data) {
 	    msg.statusData.DV = msgBuffer[5];
 	    msg.statusData.status = msgBuffer[6];
 	    msg.statusData.sense = msgBuffer[7];
+	    msg.statusData.crcOk = crcOk;
 	    receivedMessageCb(STATUS_MESSAGE, (uint8_t *) &msg);
 	    enterHuntStateCb();
 	    msgBufferCnt=0;
@@ -220,6 +235,7 @@ void MessageFSM::rxData(uint8_t data) {
 	    msg.testData.length = length; 
 	    msg.testData.msg = msgBuffer+4;
 	    msg.testData.thereIsMoreComing = thereIsMoreComing;
+	    msg.testData.crcOk = crcOk;
 	    receivedMessageCb(TEST_MESSAGE, (uint8_t *) &msg);
 	    enterHuntStateCb();
 	    msgBufferCnt=0;
@@ -238,6 +254,7 @@ void MessageFSM::rxData(uint8_t data) {
 	msg.textData.length = length; 
 	msg.textData.msg = msgBuffer+1;
 	msg.textData.thereIsMoreComing = thereIsMoreComing;
+	msg.textData.crcOk = crcOk;
 	receivedMessageCb(TEXT_MESSAGE, (uint8_t *) &msg);
 	enterHuntStateCb();
 	msgBufferCnt=0;
@@ -316,7 +333,11 @@ void MessageFSM::rxData(uint8_t data) {
     // Two CRC digits to be received
     byteCounter--;
     if (byteCounter == 0) {
-      // Check CRC
+      if (crc == 0) {
+	crcOk=true;
+      } else {
+	crcOk=false;
+      }
       rxState = 2; // wait for the PAD
     }
   } else if (rxState == 10) {

@@ -20,7 +20,7 @@
 //
 
 
-unsigned short calculateCrcChar (unsigned int crc, unsigned char data_p) {
+unsigned short calculateCrcChar (unsigned short crc, unsigned char data_p) {
   unsigned char i;
   unsigned int data;
   for (i=0, data=(unsigned int)0xff & data_p;

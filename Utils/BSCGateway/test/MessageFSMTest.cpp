@@ -23,7 +23,7 @@ class MessageFSM messageFSM(txData, receivedMessage, enterHuntState);
 
 void txData (unsigned char data) {
   // loop the data back into the receiver to test!
-  //printf ("Received data %02X\n", data);
+  printf ("Received data %02X\n", data);
   messageFSM.rxData(data);
 }
 
@@ -78,24 +78,26 @@ void receivedMessage (unsigned char msgType, unsigned char * msg) {
     break;
   case 7:
     assert (msgType == STATUS_MESSAGE);
-
+    assert (m->statusData.crcOk == true);
     assert (m->statusData.CU == 0x40); // CU
-    assert (m->statusData.DV == 0x41); // DV
-    assert (m->statusData.status == 0x42); // Status
-    assert (m->statusData.sense == 0x43); // Sense
+    assert (m->statusData.DV == 0x40); // DV
+    assert (m->statusData.status == 0x40); // Status
+    assert (m->statusData.sense == 0x50); // Sense
     testCase = 8;
     break;
   case 8:
     assert (msgType == TEST_MESSAGE);
     assert (m->testData.thereIsMoreComing == false);
     assert (m->testData.length == strlen(testRequestString));
+    assert (m->testData.crcOk == true);
     assert ((strncmp ((char *) m->testData.msg,testRequestString ,m->testData.length) == 0));
     testCase = 9;
     break;
   case 9:
     assert (msgType == TEXT_MESSAGE);
-    assert (m->testData.thereIsMoreComing == false);
-    assert (m->testData.length == strlen(testRequestString));
+    assert (m->textData.thereIsMoreComing == false);
+    assert (m->textData.length == strlen(testRequestString));
+    assert (m->textData.crcOk == true);
     assert ((strncmp ((char *) m->testData.msg,testRequestString ,m->testData.length) == 0));
     testCase = 10;
     break;
@@ -160,7 +162,7 @@ int main () {
   // Testing sending and receiving Status Message
   huntState = 0;
   testCase = 7;
-  messageFSM.sendStatusMessage(0x40,0x41,0x42,0x43);
+  messageFSM.sendStatusMessage(0x40,0x40,0x40,0x50);
   assert (testCase == 8);
   assert (huntState == 1);
   printf("Test passed -  sending and receiving Status Message\n");

@@ -30,17 +30,20 @@ union msg {
     int length;
     uint8_t * msg;
     bool thereIsMoreComing;
+    bool crcOk;
   } testData;
   struct StatusData {
     uint8_t CU;
     uint8_t DV;
     uint8_t status;
     uint8_t sense;
+    bool crcOk;
   } statusData;
   struct TextData {
     int length;
     bool thereIsMoreComing;
     uint8_t * msg;
+    bool crcOk;
   } textData;
   struct ErrorData {
     int errorCode;
@@ -52,6 +55,8 @@ typedef union msg MSG;
 
 class MessageFSM {
   private:
+    unsigned short crc;
+    bool crcOk;
     uint8_t msgBuffer [300];
     int msgBufferCnt;
     int rxState;
