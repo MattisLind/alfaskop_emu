@@ -19,29 +19,31 @@
 // CRC-16 is X  + X  + X  + 1 is 8005 and a001 reversed.
 //
 
-unsigned short crc16(char *data_p, unsigned short length, unsigned short crc, unsigned short POLY)
-{
+
+unsigned short calculateCrcChar (unsigned int crc, char data_p) {
   unsigned char i;
   unsigned int data;
+  for (i=0, data=(unsigned int)0xff & data_p;
+       i < 8; 
+       i++, data >>= 1)
+    {
+      if ((crc & 0x0001) ^ (data & 0x0001))
+	crc = (crc >> 1) ^ 0xa001;
+      else  crc >>= 1;
+    }
+return crc;
+}
+
+unsigned short crc16(char *data_p, unsigned short length, unsigned short crc, unsigned short POLY)
+{
+
+
 
   if (length == 0)
     return (~crc);
 
-      do
-	{
-	  for (i=0, data=(unsigned int)0xff & *data_p++;
-	       i < 8; 
-	       i++, data >>= 1)
-            {
-	      if ((crc & 0x0001) ^ (data & 0x0001))
-		crc = (crc >> 1) ^ POLY;
-	      else  crc >>= 1;
-            }
-	} while (--length);
+  do crc = calculateCrcChar(crc, *data_p);  while (--length, data_p++);
 
-      //crc = ~crc;
-      //data = crc;
-      //crc = (crc << 8) | (data >> 8 & 0xff);
 
       return (crc);
 }
