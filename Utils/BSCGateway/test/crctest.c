@@ -2,7 +2,7 @@
 #include <assert.h>
 #include "../BSCGateway-STM32/lsbmsb.h"
 
-unsigned short crc16(char *data_p, unsigned short length, unsigned short crc, unsigned short poly);
+unsigned short crc16(unsigned char *data_p, unsigned short length, unsigned short crc, unsigned short poly);
 
 unsigned char testMessage1 [8] = {0x6c,0xd9,0x02,0x40,0x40,0x40,0x70,0x03};
 unsigned char testMessage2 [10] = {0x6c,0xd9,0x02,0x40,0xc8,0x40,0x50,0x03, 0x0d, 0x28};
@@ -53,7 +53,7 @@ unsigned crc162(unsigned char *buf, size_t len, unsigned short crc, unsigned sho
 
 
 
-void printmessage (char * str, int length) {
+void printmessage (unsigned char * str, int length) {
   int i;
   for (i=0;i<length;i++) {
     printf("%02X", str[i] & 0xff); 
