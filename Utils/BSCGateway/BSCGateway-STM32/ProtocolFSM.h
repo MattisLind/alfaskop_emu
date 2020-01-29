@@ -41,15 +41,21 @@ typedef struct ProtocolMsg ProtocolMsg ;
 #define PROTOCOL_FSM_WAIT_FOR_MSG 2
 #define PROTOCOL_FSM_WAIT_FOR_NOT_RTS 4
 
+#define PROTOCOL_MODE_POLL   64
+#define PROTOCOL_MODE_WRITE  128
+#define PROTOCOL_MODE_READ   192
+
 class ProtocolFSM {
   receiveBuffer [2048];
   void (*  receivedMessage ) ( ProtocolMsg * );
   class MessageFSM & messageFSM;
   int state;
+  int cnt;
+  int mode; // POLL, WRITE or READ
   bool rtsIsSet();
   void cts (bool value);
  public:
- PollFSM(class MessageFSM & mFSM, void (* pRCB) (ProtocolMsg *) ) : messageFSM(mFSM), pollResponseCb(pRCB);
+ PollFSM(class MessageFSM & mFSM, void (* pRCB) (ProtocolMsg *) ) : messageFSM(mFSM), pollResponseCb(pRCB), cnt(0);
   void doPoll (unsigned short CU, unsigned short DV);
   void doWrite (unsigned short CU, unsigned short DV, unsigned char * data);
   void doRead (unsigned short CU, unsigned short DV, unsigned char * data);
