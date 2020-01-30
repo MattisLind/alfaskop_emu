@@ -57,6 +57,7 @@ class ProtocolFSM {
   int subState;
   int cnt;
   int mode; // POLL, WRITE or READ
+  void thereIsMoreComing;
   bool rtsIsSet();
   void cts (bool value);
  public:
