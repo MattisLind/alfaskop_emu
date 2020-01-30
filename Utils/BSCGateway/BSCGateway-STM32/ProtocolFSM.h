@@ -37,9 +37,13 @@ typedef struct ProtocolMsg ProtocolMsg ;
 #define PROTOCOL_TYPE_ERROR   3
 
 #define PROTOCOL_FSM_IDLE 0
-#define PROTOCOL_FSM_WAIT_FOR_RTS 1
-#define PROTOCOL_FSM_WAIT_FOR_MSG 2
-#define PROTOCOL_FSM_WAIT_FOR_NOT_RTS 4
+#define PROTOCOL_FSM_WAIT_FOR_MSG 1
+#define PROTOCOL_FSM_SENDACK 2
+
+#define PROTOCOL_FSM_SUBSTATE_IDLE 0
+#define PROTOCOL_FSM_SUBSTATE_WAIT_FOR_RTS 16
+#define PROTOCOL_FSM_SUBSTATE_WAIT_FOR_NOT_RTS 32
+
 
 #define PROTOCOL_MODE_POLL   64
 #define PROTOCOL_MODE_WRITE  128
@@ -50,6 +54,7 @@ class ProtocolFSM {
   void (*  receivedMessage ) ( ProtocolMsg * );
   class MessageFSM & messageFSM;
   int state;
+  int subState;
   int cnt;
   int mode; // POLL, WRITE or READ
   bool rtsIsSet();
