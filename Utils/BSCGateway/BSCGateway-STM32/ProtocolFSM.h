@@ -39,6 +39,8 @@ typedef struct ProtocolMsg ProtocolMsg ;
 #define PROTOCOL_FSM_IDLE 0
 #define PROTOCOL_FSM_WAIT_FOR_MSG 1
 #define PROTOCOL_FSM_SENDACK 2
+#define PROTOCOL_SEND_FSM_DATA 3
+#define PROTOCOL_FSM_SEND_EOT 4
 
 #define PROTOCOL_FSM_SUBSTATE_IDLE 0
 #define PROTOCOL_FSM_SUBSTATE_WAIT_FOR_RTS 16
@@ -50,23 +52,23 @@ typedef struct ProtocolMsg ProtocolMsg ;
 #define PROTOCOL_MODE_READ   192
 
 class ProtocolFSM {
-  receiveBuffer [2048];
-  void (*  receivedMessage ) ( ProtocolMsg * );
+  unsigned char receiveBuffer [2048];
   class MessageFSM & messageFSM;
   int state;
   int subState;
   int cnt;
   int mode; // POLL, WRITE or READ
-  void thereIsMoreComing;
+  unsigned char thereIsMoreComing;
   bool rtsIsSet();
   void cts (bool value);
+  void ( * protocolResponseCb ) (ProtocolMsg *);
  public:
- PollFSM(class MessageFSM & mFSM, void (* pRCB) (ProtocolMsg *) ) : messageFSM(mFSM), pollResponseCb(pRCB), cnt(0);
-  void doPoll (unsigned short CU, unsigned short DV);
-  void doWrite (unsigned short CU, unsigned short DV, unsigned char * data);
-  void doRead (unsigned short CU, unsigned short DV, unsigned char * data);
+ ProtocolFSM(class MessageFSM & mFSM, void (* pRCB) (ProtocolMsg *) ) : messageFSM(mFSM), protocolResponseCb(pRCB), cnt(0) {}
+  int sendPoll (unsigned short CU, unsigned short DV);
+  int sendWrite (unsigned short CU, unsigned short DV, unsigned char * data);
+  int sendRead (unsigned short CU, unsigned short DV, unsigned char * data);
   // Called when receiving a message. A callback in the MessageFSM class
-  void rxMessage (unsigned char, unsigned char *);
+  void receivedMessage( unsigned char, MSG *  );
   void workerPoll ();
 };
 
