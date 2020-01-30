@@ -68,7 +68,7 @@ class ProtocolFSM {
   int sendWrite (unsigned short CU, unsigned short DV, unsigned char * data);
   int sendRead (unsigned short CU, unsigned short DV, unsigned char * data);
   // Called when receiving a message. A callback in the MessageFSM class
-  void receivedMessage( unsigned char, MSG *  );
+  void receivedMessage( unsigned char, MSG *);
   void workerPoll ();
 };
 

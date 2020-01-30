@@ -121,4 +121,10 @@ void ProtocolFSM::receivedMessage( unsigned char type, MSG * msg ) {
   }
 }
   
+bool ProtocolFSM::rtsIsSet() {
+  return true;
+}
 
+void ProtocolFSM::cts(bool value) {
+
+}
