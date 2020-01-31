@@ -12,18 +12,18 @@ void ProtocolFSM::workerPoll() {
       break;
     case PROTOCOL_FSM_SUBSTATE_WAIT_FOR_RTS:
       if (rtsIsSet()) {
-	state = PROTOCOL_FSM_SUBSTATE_IDLE;
+	subState = PROTOCOL_FSM_SUBSTATE_IDLE;
 	cts(true);
       }
       break;
     case PROTOCOL_FSM_SUBSTATE_WAIT_FOR_NOT_RTS:
       if (!rtsIsSet()) {
-	state = PROTOCOL_FSM_SUBSTATE_IDLE;
+	subState = PROTOCOL_FSM_SUBSTATE_IDLE;
 	cts(false);
       }
       break;
   }
-  switch (mode | state) {
+  switch (mode | state | subState) {
     case PROTOCOL_MODE_POLL | PROTOCOL_FSM_SENDACK | PROTOCOL_FSM_SUBSTATE_IDLE:
       if (cnt&1) {
 	messageFSM.sendACK1();
@@ -95,6 +95,8 @@ void ProtocolFSM::receivedMessage( unsigned char type, MSG * msg ) {
     } else {
       // Now we should get a EOT if the last message had an ETX
       if (type == EOT_MESSAGE) {
+	subState = PROTOCOL_FSM_SUBSTATE_WAIT_FOR_NOT_RTS;
+	state = PROTOCOL_FSM_IDLE;
 	// do the callback. We have aggregated all data into the receive buffer and sends it to initiator
       } else {
 	// protocol violation
