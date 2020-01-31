@@ -59,11 +59,11 @@ class ProtocolFSM {
   int cnt;
   int mode; // POLL, WRITE or READ
   unsigned char thereIsMoreComing;
-  bool rtsIsSet();
-  void cts (bool value);
+  bool ( * rtsIsSet )();
+  void ( * cts ) (bool value);
   void ( * protocolResponseCb ) (ProtocolMsg *);
  public:
- ProtocolFSM(class MessageFSM & mFSM, void (* pRCB) (ProtocolMsg *) ) : messageFSM(mFSM), protocolResponseCb(pRCB), cnt(0) {}
+ ProtocolFSM(class MessageFSM & mFSM, void (* pRCB) (ProtocolMsg *), bool ( * rtsIsSet ) (), void ( * cts ) (bool) ) : messageFSM(mFSM), protocolResponseCb(pRCB), cnt(0), cts(cts), rtsIsSet(rtsIsSet) {}
   int sendPoll (unsigned short CU, unsigned short DV);
   int sendWrite (unsigned short CU, unsigned short DV, unsigned char * data);
   int sendRead (unsigned short CU, unsigned short DV, unsigned char * data);
