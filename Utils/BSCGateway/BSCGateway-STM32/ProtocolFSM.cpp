@@ -46,6 +46,7 @@ int ProtocolFSM::sendPoll (unsigned short CU, unsigned short DV) {
     mode = PROTOCOL_MODE_POLL;
     thereIsMoreComing=true;    
   }
+  return 0;
 }
 
 int ProtocolFSM::sendWrite (unsigned short CU, unsigned short DV, unsigned char * data) {
@@ -58,7 +59,7 @@ int ProtocolFSM::sendWrite (unsigned short CU, unsigned short DV, unsigned char 
     mode = PROTOCOL_MODE_WRITE;
     thereIsMoreComing=true;    
   }
-
+  return 0;
 }
 
 int ProtocolFSM::sendRead (unsigned short CU, unsigned short DV, unsigned char * data) {
@@ -71,7 +72,7 @@ int ProtocolFSM::sendRead (unsigned short CU, unsigned short DV, unsigned char *
     mode = PROTOCOL_MODE_READ;
     thereIsMoreComing=true;    
   }
-
+  return 0;
 }
 
 // This is called when the MessageFSM has decoded a message to process.
