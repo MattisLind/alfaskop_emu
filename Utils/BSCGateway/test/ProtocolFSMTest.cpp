@@ -219,7 +219,7 @@ int main () {
   assert(protocolFSM.state == PROTOCOL_FSM_SENDACK);
   assert(protocolFSM.subState == PROTOCOL_FSM_SUBSTATE_WAIT_FOR_NOT_RTS);
   rtsValue = 0;
-  printf("\nNow we should get a ACK0 message:");
+  printf("\nNow we should get a ACK1 message:");
   protocolFSM.workerPoll();
   assert (ctsValue == 0);
   assert(protocolFSM.mode == PROTOCOL_MODE_POLL);
@@ -256,9 +256,9 @@ int main () {
 
   printf ("\nNow we should get a ENQ message:");
   assert(protocolFSM.state == PROTOCOL_FSM_IDLE);
-  protocolFSM.sendPoll(0x60,0x40);
+  protocolFSM.sendWrite(0x40,0x40, (unsigned char *) "ABCDEFGHIJKLMNOPQRSTUVXYZ");
   assert(protocolFSM.state == PROTOCOL_FSM_WAIT_FOR_MSG);
-  assert(protocolFSM.mode == PROTOCOL_MODE_POLL);
+  assert(protocolFSM.mode == PROTOCOL_MODE_WRITE);
   assert(protocolFSM.subState == PROTOCOL_FSM_SUBSTATE_WAIT_FOR_RTS);
   // Now we need to do a poll to have the worker inside to the work.
   rtsValue = 0;
@@ -266,7 +266,22 @@ int main () {
   rtsValue = 1;
   protocolFSM.workerPoll();
   assert (ctsValue == 1);
-  assert(protocolFSM.mode == PROTOCOL_MODE_POLL);
+  assert(protocolFSM.mode == PROTOCOL_MODE_WRITE);
+  assert(protocolFSM.state == PROTOCOL_FSM_WAIT_FOR_MSG);
+  assert(protocolFSM.subState == PROTOCOL_FSM_SUBSTATE_IDLE);
+  printf("Sending ACK message\n");
+  sendACK0();
+  assert(protocolFSM.mode == PROTOCOL_MODE_WRITE);
+  assert(protocolFSM.state == PROTOCOL_SEND_FSM_DATA);
+  assert(protocolFSM.subState == PROTOCOL_FSM_SUBSTATE_WAIT_FOR_NOT_RTS);
+  protocolFSM.workerPoll();
+  assert(protocolFSM.mode == PROTOCOL_MODE_WRITE);
+  assert(protocolFSM.state == PROTOCOL_SEND_FSM_DATA);
+  assert(protocolFSM.subState == PROTOCOL_FSM_SUBSTATE_WAIT_FOR_NOT_RTS);
+  rtsValue = 0;
+  protocolFSM.workerPoll();
+  assert (ctsValue == 0);
+  assert(protocolFSM.mode == PROTOCOL_MODE_WRITE);
   assert(protocolFSM.state == PROTOCOL_FSM_WAIT_FOR_MSG);
   assert(protocolFSM.subState == PROTOCOL_FSM_SUBSTATE_IDLE);
 
