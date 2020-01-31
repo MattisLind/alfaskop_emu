@@ -26,9 +26,9 @@ void ProtocolFSM::workerPoll() {
   switch (mode | state) {
     case PROTOCOL_MODE_POLL | PROTOCOL_FSM_SENDACK | PROTOCOL_FSM_SUBSTATE_IDLE:
       if (cnt&1) {
-	messageFSM.sendACK0();
-      } else {
 	messageFSM.sendACK1();
+      } else {
+	messageFSM.sendACK0();
       }
       subState = PROTOCOL_FSM_SUBSTATE_WAIT_FOR_RTS;
       state = PROTOCOL_FSM_WAIT_FOR_MSG;
@@ -121,11 +121,6 @@ void ProtocolFSM::receivedMessage( unsigned char type, MSG * msg ) {
     break;
   }
 }
-  
-bool ProtocolFSM::rtsIsSet() {
-  return true;
-}
 
-void ProtocolFSM::cts(bool value) {
+// These pins shall have a proper definitions. And the functions should really be callbacks so that theu can be implemented in the code instatiating the ProtocolFSM class.
 
-}
