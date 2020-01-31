@@ -32,6 +32,12 @@ void ProtocolFSM::workerPoll() {
       }
       subState = PROTOCOL_FSM_SUBSTATE_WAIT_FOR_RTS;
       state = PROTOCOL_FSM_WAIT_FOR_MSG;
+      break;
+    case PROTOCOL_MODE_WRITE | PROTOCOL_FSM_SENDDATA | PROTOCOL_FSM_SUBSTATE_IDLE:
+      subState = PROTOCOL_FSM_SUBSTATE_WAIT_FOR_RTS;
+      state = PROTOCOL_FSM_WAIT_FOR_ACK;
+      messageFSM.sendText();
+      break;
   }
 }
 
@@ -53,7 +59,7 @@ int ProtocolFSM::sendWrite (unsigned short CU, unsigned short DV, unsigned char 
   if (state != PROTOCOL_FSM_IDLE) {
     return -1; // We are busy processing another transaction. Wait!
   } else {
-    messageFSM.sendENQ(CU, DV);                              // Send the ENQ message
+    messageFSM.sendENQ(CU+0x20, DV);                              // Send the ENQ message
     subState = PROTOCOL_FSM_SUBSTATE_WAIT_FOR_RTS;           // Goto state wait for RTS
     state = PROTOCOL_FSM_WAIT_FOR_MSG; 
     mode = PROTOCOL_MODE_WRITE;
