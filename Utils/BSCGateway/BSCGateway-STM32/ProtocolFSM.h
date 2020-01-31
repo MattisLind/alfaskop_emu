@@ -1,5 +1,5 @@
-#ifndef _POLLFSM_H_
-#define _POLLFSM_H
+#ifndef _PROTOCOLFSM_H_
+#define _PROTOCOLFSM_H_
 
 #include "MessageFSM.h"
 
