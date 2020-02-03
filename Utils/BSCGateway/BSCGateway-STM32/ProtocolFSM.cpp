@@ -36,7 +36,7 @@ void ProtocolFSM::workerPoll() {
     case PROTOCOL_MODE_WRITE | PROTOCOL_FSM_SENDDATA | PROTOCOL_FSM_SUBSTATE_IDLE:
       subState = PROTOCOL_FSM_SUBSTATE_WAIT_FOR_RTS;
       state = PROTOCOL_FSM_WAIT_FOR_ACK;
-      messageFSM.sendText();
+      messageFSM.sendTextMessage(messageLength, msg,thereIsMoreComing);
       break;
   }
 }
@@ -55,7 +55,8 @@ int ProtocolFSM::sendPoll (unsigned short CU, unsigned short DV) {
   return 0;
 }
 
-int ProtocolFSM::sendWrite (unsigned short CU, unsigned short DV, unsigned char * data) {
+int ProtocolFSM::sendWrite (unsigned short CU, unsigned short DV, int length, unsigned char * data) {
+  int i;
   if (state != PROTOCOL_FSM_IDLE) {
     return -1; // We are busy processing another transaction. Wait!
   } else {
@@ -64,6 +65,17 @@ int ProtocolFSM::sendWrite (unsigned short CU, unsigned short DV, unsigned char 
     state = PROTOCOL_FSM_WAIT_FOR_MSG; 
     mode = PROTOCOL_MODE_WRITE;
     thereIsMoreComing=true;    
+    // We need to figure out if we need to use transparent mode or not.
+    // That can be done iterating through the inbound buffer and find if there are any character 
+    // that has to be esacped.
+    for (i=0; i<length; i++) {
+      
+    }
+
+    // We need to slice the incoming data so that we get right amount of data in each message
+    // and decide idf the thereIsMoreComing flag is to be set or not. Copy data character by character. 
+    // If in transparent mode we do the escaping at this time.
+
   }
   return 0;
 }

@@ -65,7 +65,7 @@ class ProtocolFSM {
   int mode; // POLL, WRITE or READ
  ProtocolFSM(class MessageFSM & mFSM, void (* pRCB) (ProtocolMsg *), bool ( * rtsIsSet ) (), void ( * cts ) (bool) ) : messageFSM(mFSM), protocolResponseCb(pRCB), cnt(0), cts(cts), rtsIsSet(rtsIsSet) {}
   int sendPoll (unsigned short CU, unsigned short DV);
-  int sendWrite (unsigned short CU, unsigned short DV, unsigned char * data);
+  int sendWrite (unsigned short CU, unsigned short DV, int length, unsigned char * data);
   int sendRead (unsigned short CU, unsigned short DV, unsigned char * data);
   // Called when receiving a message. A callback in the MessageFSM class
   void receivedMessage( unsigned char, MSG *);
