@@ -57,6 +57,8 @@ int ProtocolFSM::sendPoll (unsigned short CU, unsigned short DV) {
 
 int ProtocolFSM::sendWrite (unsigned short CU, unsigned short DV, int length, unsigned char * data) {
   int i;
+  bool transparentMode=false;
+  int byteLeftToCopy=256;
   if (state != PROTOCOL_FSM_IDLE) {
     return -1; // We are busy processing another transaction. Wait!
   } else {
@@ -64,19 +66,37 @@ int ProtocolFSM::sendWrite (unsigned short CU, unsigned short DV, int length, un
     subState = PROTOCOL_FSM_SUBSTATE_WAIT_FOR_RTS;           // Goto state wait for RTS
     state = PROTOCOL_FSM_WAIT_FOR_MSG; 
     mode = PROTOCOL_MODE_WRITE;
+    
     thereIsMoreComing=true;    
     // We need to figure out if we need to use transparent mode or not.
     // That can be done iterating through the inbound buffer and find if there are any character 
-    // that has to be esacped.
+    // that has to be escaped.
     for (i=0; i<length; i++) {
-      
+      if (isLinkControlChar(*(data+i))) {
+	transparentMode=true;
+	break;
+      }
     }
-
     // We need to slice the incoming data so that we get right amount of data in each message
-    // and decide idf the thereIsMoreComing flag is to be set or not. Copy data character by character. 
+    // and decide if the thereIsMoreComing flag is to be set or not. Copy data character by character. 
     // If in transparent mode we do the escaping at this time.
-
-  }
+    i=0;
+    do {
+      if (*data==DLE) {
+	if (byteLeftToCopy == 1) {
+	  // We have no space for this esacpe
+	  break;
+	} else {
+	  txBuffer[i++] = DLE;
+	  txBuffer[i++] = DLE;
+	}	
+      } else {
+	txBuffer[i++] = *data;
+      }
+      data++;
+      byteLeftToCopy--;
+    } while(byteLeftToCopy>0);
+  } 
   return 0;
 }
 
