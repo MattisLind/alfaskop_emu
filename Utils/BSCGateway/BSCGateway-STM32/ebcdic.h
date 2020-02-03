@@ -48,3 +48,5 @@
 #define NAK 0x3d
 #define SUB 0x3f
 #define PAD 0xff
+
+#define isLinkControlChar(ch) ((ch==STX) || (ch==ETX) || (ch==DLE) || (ch==ETB) || (ch==ENQ) || (ch==SYN) || (ch==IUS)) 

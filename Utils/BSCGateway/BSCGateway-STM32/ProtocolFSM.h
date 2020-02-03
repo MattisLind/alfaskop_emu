@@ -53,6 +53,8 @@ typedef struct ProtocolMsg ProtocolMsg ;
 
 class ProtocolFSM {
   unsigned char receiveBuffer [2048];
+  unsigned char transmitBuffer [256];
+  unsigned char * incomingTransmitBufP;
   class MessageFSM & messageFSM;
   unsigned char thereIsMoreComing;
   bool ( * rtsIsSet )();
