@@ -35,7 +35,7 @@ int digitalRead (int pin) {
 
 bool rtsIsSet() {
   bool tmp = (digitalRead(RTS)==1);
-  printf ("\nrtsIsSet is returing %d\n", tmp);
+  //printf ("\nrtsIsSet is returing %d\n", tmp);
   return tmp;
 }
 
@@ -54,9 +54,15 @@ void receivedMessage(unsigned char type, unsigned char * msg) {
   protocolFSM.receivedMessage(type, (MSG *) msg);
 }
 
+unsigned char receivedBuffer [300];
+int receivedBufferPtr;
+
+
 void txData (unsigned char ch) {
-  printf ("%02X", ch);
+  //printf ("%02X", ch);
+  receivedBuffer[receivedBufferPtr++]=ch;
 }
+
 void enterHuntState() {
 }
 void protocolResponse (ProtocolMsg * pMsg) {
@@ -191,13 +197,32 @@ void sendNAK(){
 
 char testString1[] = "ABCDEFGHIJKLMNOPQRSTUVXYZ";
 
+void clearBuffer () {
+  receivedBufferPtr=0;
+}
 
+void assertReceivedMessage(int len, unsigned char * data) {
+  int i;
+  for (i=0; i<len; i++) {
+    //printf ("%02X %02X\n", receivedBuffer[i], data[i]);
+    assert(receivedBuffer[i] == data[i]);
+  }
+  printf("Message received OK!\n");
+}
 
-int main () {
+unsigned char ENQmessage [] = {0x32, 0x32, 0x40, 0x40, 0x40, 0x40, 0x2d, 0xff};
+unsigned char SelectENQmessage [] = {0x32, 0x32, 0x60, 0x60, 0x40, 0x40, 0x2d, 0xff};
+unsigned char ACK1message [] = {0x32, 0x32, 0x10, 0x61, 0xff};
+
+void test1 () {
   // First send the poll.
-  printf ("\nNow we should get a ENQ message:");
+  printf("Testing Poll\n");
+  printf("============\n");
+  printf ("Now we should get a ENQ message:");
+  clearBuffer();
   assert(protocolFSM.state == PROTOCOL_FSM_IDLE);
   protocolFSM.sendPoll(0x40,0x40);
+  assertReceivedMessage(8, ENQmessage);
   assert(protocolFSM.state == PROTOCOL_FSM_WAIT_FOR_MSG);
   assert(protocolFSM.mode == PROTOCOL_MODE_POLL);
   assert(protocolFSM.subState == PROTOCOL_FSM_SUBSTATE_WAIT_FOR_RTS);
@@ -215,13 +240,15 @@ int main () {
   assert(protocolFSM.mode == PROTOCOL_MODE_POLL);
   assert(protocolFSM.state == PROTOCOL_FSM_SENDACK);
   assert(protocolFSM.subState == PROTOCOL_FSM_SUBSTATE_WAIT_FOR_NOT_RTS);
+  clearBuffer();
   protocolFSM.workerPoll();
   assert(protocolFSM.mode == PROTOCOL_MODE_POLL);
   assert(protocolFSM.state == PROTOCOL_FSM_SENDACK);
   assert(protocolFSM.subState == PROTOCOL_FSM_SUBSTATE_WAIT_FOR_NOT_RTS);
   rtsValue = 0;
-  printf("\nNow we should get a ACK1 message:");
+  printf("Now we should get a ACK1 message:");
   protocolFSM.workerPoll();
+  assertReceivedMessage(5, ACK1message);
   assert (ctsValue == 0);
   assert(protocolFSM.mode == PROTOCOL_MODE_POLL);
   assert(protocolFSM.state == PROTOCOL_FSM_WAIT_FOR_MSG);
@@ -236,7 +263,7 @@ int main () {
   assert(protocolFSM.state == PROTOCOL_FSM_WAIT_FOR_MSG);
   assert(protocolFSM.subState == PROTOCOL_FSM_SUBSTATE_IDLE);
   assert (ctsValue == 1);
-  printf("\nNow we send in the EOT message.\n");
+  printf("Now we send in the EOT message.\n");
   sendEOT();
   assert(protocolFSM.mode == PROTOCOL_MODE_POLL);
   assert(protocolFSM.state == PROTOCOL_FSM_IDLE);
@@ -253,15 +280,27 @@ int main () {
   assert(protocolFSM.subState == PROTOCOL_FSM_SUBSTATE_IDLE);
   printf ("Test done\n");
 
-  printf ("Testing Write\n");
+}
 
-  printf ("\nNow we should get a ENQ message:");
+unsigned char Textmessage [] = {0x32, 0x32, 0x02, 0x41, 0x42, 0x43, 0x44, 0x45,
+				0x46, 0x47, 0x48, 0x49, 0x4A, 0x4B, 0x4C, 0x4D,
+				0x4E, 0x4F, 0x50, 0x51, 0x52, 0x53, 0x54, 0x55,
+				0x56, 0x58, 0x59, 0x5A, 0x03, 0x75, 0x06, 0xFF};
+unsigned char EOTmessage [] = {0x32, 0x32, 0x37, 0xFF};
+
+unsigned test2 () {
+  printf ("Testing Write\n");
+  printf ("=============\n");
+  printf ("Now we should get a ENQ message:");
   assert(protocolFSM.state == PROTOCOL_FSM_IDLE);
+  clearBuffer();
   protocolFSM.sendWrite(0x40,0x40, strlen(testString1), (unsigned char *) testString1);
+  assertReceivedMessage(8, SelectENQmessage);
   assert(protocolFSM.state == PROTOCOL_FSM_WAIT_FOR_ACK);
   assert(protocolFSM.mode == PROTOCOL_MODE_WRITE);
   assert(protocolFSM.subState == PROTOCOL_FSM_SUBSTATE_WAIT_FOR_RTS);
-  // Now we need to do a poll to have the worker inside to the work.
+
+  
   rtsValue = 0;
   protocolFSM.workerPoll();
   rtsValue = 1;
@@ -280,7 +319,12 @@ int main () {
   assert(protocolFSM.state == PROTOCOL_FSM_SEND_DATA);
   assert(protocolFSM.subState == PROTOCOL_FSM_SUBSTATE_WAIT_FOR_NOT_RTS);
   rtsValue = 0;
+  clearBuffer();
+  printf ("Now we should get a Text message:");
   protocolFSM.workerPoll();
+  assertReceivedMessage(32, Textmessage);
+
+  
   assert (ctsValue == 0);
   assert(protocolFSM.mode == PROTOCOL_MODE_WRITE);
   assert(protocolFSM.state == PROTOCOL_FSM_WAIT_FOR_ACK);
@@ -301,10 +345,21 @@ int main () {
   assert(protocolFSM.state == PROTOCOL_FSM_SEND_DATA);
   assert(protocolFSM.subState == PROTOCOL_FSM_SUBSTATE_WAIT_FOR_NOT_RTS);
   rtsValue=0;
+  printf("Now we should get a EOT message:");
+  clearBuffer();
   protocolFSM.workerPoll();
+  assertReceivedMessage(4, EOTmessage);
+  
   assert (ctsValue == 0);
   assert(protocolFSM.mode == PROTOCOL_MODE_WRITE);
   assert(protocolFSM.state == PROTOCOL_FSM_IDLE);
   assert(protocolFSM.subState == PROTOCOL_FSM_SUBSTATE_IDLE);
-  
+
+}
+
+int main () {
+  test1();
+  printf("\n");
+  test2();
+  printf("\n");
 }
