@@ -258,7 +258,7 @@ int main () {
   printf ("\nNow we should get a ENQ message:");
   assert(protocolFSM.state == PROTOCOL_FSM_IDLE);
   protocolFSM.sendWrite(0x40,0x40, strlen(testString1), (unsigned char *) testString1);
-  assert(protocolFSM.state == PROTOCOL_FSM_WAIT_FOR_MSG);
+  assert(protocolFSM.state == PROTOCOL_FSM_WAIT_FOR_ACK);
   assert(protocolFSM.mode == PROTOCOL_MODE_WRITE);
   assert(protocolFSM.subState == PROTOCOL_FSM_SUBSTATE_WAIT_FOR_RTS);
   // Now we need to do a poll to have the worker inside to the work.
@@ -268,7 +268,7 @@ int main () {
   protocolFSM.workerPoll();
   assert (ctsValue == 1);
   assert(protocolFSM.mode == PROTOCOL_MODE_WRITE);
-  assert(protocolFSM.state == PROTOCOL_FSM_WAIT_FOR_MSG);
+  assert(protocolFSM.state == PROTOCOL_FSM_WAIT_FOR_ACK);
   assert(protocolFSM.subState == PROTOCOL_FSM_SUBSTATE_IDLE);
   printf("Sending ACK message\n");
   sendACK0();
@@ -283,7 +283,28 @@ int main () {
   protocolFSM.workerPoll();
   assert (ctsValue == 0);
   assert(protocolFSM.mode == PROTOCOL_MODE_WRITE);
-  assert(protocolFSM.state == PROTOCOL_FSM_WAIT_FOR_MSG);
+  assert(protocolFSM.state == PROTOCOL_FSM_WAIT_FOR_ACK);
+  assert(protocolFSM.subState == PROTOCOL_FSM_SUBSTATE_WAIT_FOR_RTS);
+  protocolFSM.workerPoll();
+  assert(protocolFSM.mode == PROTOCOL_MODE_WRITE);
+  assert(protocolFSM.state == PROTOCOL_FSM_WAIT_FOR_ACK);
+  assert(protocolFSM.subState == PROTOCOL_FSM_SUBSTATE_WAIT_FOR_RTS);
+  rtsValue = 1;
+  protocolFSM.workerPoll();
+  assert (ctsValue == 1);
+  assert(protocolFSM.mode == PROTOCOL_MODE_WRITE);
+  assert(protocolFSM.state == PROTOCOL_FSM_WAIT_FOR_ACK);
   assert(protocolFSM.subState == PROTOCOL_FSM_SUBSTATE_IDLE);
-
+  printf("Sending ACK message\n");
+  sendACK1();
+  assert(protocolFSM.mode == PROTOCOL_MODE_WRITE);
+  assert(protocolFSM.state == PROTOCOL_FSM_SEND_DATA);
+  assert(protocolFSM.subState == PROTOCOL_FSM_SUBSTATE_WAIT_FOR_NOT_RTS);
+  rtsValue=0;
+  protocolFSM.workerPoll();
+  assert (ctsValue == 0);
+  assert(protocolFSM.mode == PROTOCOL_MODE_WRITE);
+  assert(protocolFSM.state == PROTOCOL_FSM_IDLE);
+  assert(protocolFSM.subState == PROTOCOL_FSM_SUBSTATE_IDLE);
+  
 }
