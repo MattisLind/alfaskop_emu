@@ -35,33 +35,39 @@ void ProtocolFSM::workerPoll() {
       state = PROTOCOL_FSM_WAIT_FOR_MSG;
       break;
     case PROTOCOL_MODE_WRITE | PROTOCOL_FSM_SEND_DATA | PROTOCOL_FSM_SUBSTATE_IDLE:
-      subState = PROTOCOL_FSM_SUBSTATE_WAIT_FOR_RTS;
-      state = PROTOCOL_FSM_WAIT_FOR_ACK;
       // We need to slice the incoming data so that we get right amount of data in each message
       // and decide if the thereIsMoreComing flag is to be set or not. Copy data character by character. 
       // If in transparent mode we do the escaping at this time.
-      i=0;
-      do {
-	if (*incomingTransmitBufP==DLE) {
-	  if (bytesLeftToCopy == 1) {
-	    // We have no space for this esacpe
-	    break;
+      if (txMessageLength == 0) {
+	messageFSM.sendEOT();
+	subState = PROTOCOL_FSM_SUBSTATE_IDLE;
+	state = PROTOCOL_FSM_IDLE;
+      } else {
+	subState = PROTOCOL_FSM_SUBSTATE_WAIT_FOR_RTS;
+	state = PROTOCOL_FSM_WAIT_FOR_ACK;
+	i=0;
+	do {
+	  if (*incomingTransmitBufP==DLE) {
+	    if (bytesLeftToCopy == 1) {
+	      // We have no space for this esacpe
+	      break;
+	    } else {
+	      transmitBuffer[i++] = DLE;
+	      transmitBuffer[i++] = DLE;
+	      bytesLeftToCopy--;
+	    }	
 	  } else {
-	    transmitBuffer[i++] = DLE;
-	    transmitBuffer[i++] = DLE;
-	    bytesLeftToCopy--;
-	  }	
-	} else {
-	  transmitBuffer[i++] = *incomingTransmitBufP;
-	}
-	incomingTransmitBufP++;
-	bytesLeftToCopy--;
-	txMessageLength--;
-      } while(bytesLeftToCopy>0 && txMessageLength > 0);
-      if (txMessageLength > 0) {
-	thereIsMoreComing = true;
-      }      
-      messageFSM.sendTextMessage(256-bytesLeftToCopy, transmitBuffer,thereIsMoreComing);
+	    transmitBuffer[i++] = *incomingTransmitBufP;
+	  }
+	  incomingTransmitBufP++;
+	  bytesLeftToCopy--;
+	  txMessageLength--;
+	} while(bytesLeftToCopy>0 && txMessageLength > 0);
+	if (txMessageLength > 0) {
+	  thereIsMoreComing = true;
+	}      
+	messageFSM.sendTextMessage(256-bytesLeftToCopy, transmitBuffer,thereIsMoreComing);
+      }
       break;
   }
 }
@@ -89,7 +95,7 @@ int ProtocolFSM::sendWrite (unsigned short CU, unsigned short DV, int length, un
   } else {
     messageFSM.sendENQ(CU+0x20, DV);                              // Send the ENQ message
     subState = PROTOCOL_FSM_SUBSTATE_WAIT_FOR_RTS;           // Goto state wait for RTS
-    state = PROTOCOL_FSM_WAIT_FOR_MSG; 
+    state = PROTOCOL_FSM_WAIT_FOR_ACK; 
     mode = PROTOCOL_MODE_WRITE;
     transparentMode = false;
     thereIsMoreComing=false;    
@@ -149,9 +155,13 @@ void ProtocolFSM::receivedMessage( unsigned char type, MSG * msg ) {
       }
     }
     break;
-  case PROTOCOL_MODE_WRITE | PROTOCOL_FSM_WAIT_FOR_MSG | PROTOCOL_FSM_SUBSTATE_IDLE:
+  case PROTOCOL_MODE_WRITE | PROTOCOL_FSM_WAIT_FOR_ACK | PROTOCOL_FSM_SUBSTATE_IDLE:
     switch (type) {
-    case ACK0_MESSAGE:
+    case ACK0_MESSAGE: // Check odd / even also!
+      subState = PROTOCOL_FSM_SUBSTATE_WAIT_FOR_NOT_RTS;
+      state = PROTOCOL_FSM_SEND_DATA;
+      break;
+    case ACK1_MESSAGE:
       subState = PROTOCOL_FSM_SUBSTATE_WAIT_FOR_NOT_RTS;
       state = PROTOCOL_FSM_SEND_DATA;
       break;
