@@ -7,7 +7,7 @@
 // continue processing.
 
 void ProtocolFSM::workerPoll() {
-  int byteLeftToCopy=256, i;
+  int bytesLeftToCopy=256, i;
   switch (subState) {
     case PROTOCOL_FSM_SUBSTATE_IDLE:
       break;
@@ -34,7 +34,7 @@ void ProtocolFSM::workerPoll() {
       subState = PROTOCOL_FSM_SUBSTATE_WAIT_FOR_RTS;
       state = PROTOCOL_FSM_WAIT_FOR_MSG;
       break;
-    case PROTOCOL_MODE_WRITE | PROTOCOL_FSM_SENDDATA | PROTOCOL_FSM_SUBSTATE_IDLE:
+    case PROTOCOL_MODE_WRITE | PROTOCOL_FSM_SEND_DATA | PROTOCOL_FSM_SUBSTATE_IDLE:
       subState = PROTOCOL_FSM_SUBSTATE_WAIT_FOR_RTS;
       state = PROTOCOL_FSM_WAIT_FOR_ACK;
       // We need to slice the incoming data so that we get right amount of data in each message
@@ -47,21 +47,21 @@ void ProtocolFSM::workerPoll() {
 	    // We have no space for this esacpe
 	    break;
 	  } else {
-	    txBuffer[i++] = DLE;
-	    txBuffer[i++] = DLE;
+	    transmitBuffer[i++] = DLE;
+	    transmitBuffer[i++] = DLE;
 	    bytesLeftToCopy--;
 	  }	
 	} else {
-	  txBuffer[i++] = *incomingTransmitBufP;
+	  transmitBuffer[i++] = *incomingTransmitBufP;
 	}
 	incomingTransmitBufP++;
 	bytesLeftToCopy--;
 	txMessageLength--;
-      } while(byteLeftToCopy>0 && txMessageLength > 0);
+      } while(bytesLeftToCopy>0 && txMessageLength > 0);
       if (txMessageLength > 0) {
 	thereIsMoreComing = true;
       }      
-      messageFSM.sendTextMessage(256-bytesLeftToCopy, txBuffer,thereIsMoreComing);
+      messageFSM.sendTextMessage(256-bytesLeftToCopy, transmitBuffer,thereIsMoreComing);
       break;
   }
 }
@@ -153,7 +153,7 @@ void ProtocolFSM::receivedMessage( unsigned char type, MSG * msg ) {
     switch (type) {
     case ACK0_MESSAGE:
       subState = PROTOCOL_FSM_SUBSTATE_WAIT_FOR_NOT_RTS;
-      state = PROTOCOL_SEND_FSM_DATA;
+      state = PROTOCOL_FSM_SEND_DATA;
       break;
     case RVI_MESSAGE:
     case WACK_MESSAGE:

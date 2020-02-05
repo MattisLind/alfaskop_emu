@@ -8,6 +8,7 @@
 #include "../BSCGateway-STM32/ProtocolFSM.h"
 #include <assert.h>
 #include <stdio.h>
+#include <string.h>
 
 unsigned short calculateCrcChar (unsigned short crc, unsigned char data_p);
 void txData (unsigned char);
@@ -188,7 +189,7 @@ void sendNAK(){
   messageFSM.rxData(PAD);
 }
 
-
+char testString1[] = "ABCDEFGHIJKLMNOPQRSTUVXYZ";
 
 
 
@@ -256,7 +257,7 @@ int main () {
 
   printf ("\nNow we should get a ENQ message:");
   assert(protocolFSM.state == PROTOCOL_FSM_IDLE);
-  protocolFSM.sendWrite(0x40,0x40, (unsigned char *) "ABCDEFGHIJKLMNOPQRSTUVXYZ");
+  protocolFSM.sendWrite(0x40,0x40, strlen(testString1), (unsigned char *) testString1);
   assert(protocolFSM.state == PROTOCOL_FSM_WAIT_FOR_MSG);
   assert(protocolFSM.mode == PROTOCOL_MODE_WRITE);
   assert(protocolFSM.subState == PROTOCOL_FSM_SUBSTATE_WAIT_FOR_RTS);
@@ -272,11 +273,11 @@ int main () {
   printf("Sending ACK message\n");
   sendACK0();
   assert(protocolFSM.mode == PROTOCOL_MODE_WRITE);
-  assert(protocolFSM.state == PROTOCOL_SEND_FSM_DATA);
+  assert(protocolFSM.state == PROTOCOL_FSM_SEND_DATA);
   assert(protocolFSM.subState == PROTOCOL_FSM_SUBSTATE_WAIT_FOR_NOT_RTS);
   protocolFSM.workerPoll();
   assert(protocolFSM.mode == PROTOCOL_MODE_WRITE);
-  assert(protocolFSM.state == PROTOCOL_SEND_FSM_DATA);
+  assert(protocolFSM.state == PROTOCOL_FSM_SEND_DATA);
   assert(protocolFSM.subState == PROTOCOL_FSM_SUBSTATE_WAIT_FOR_NOT_RTS);
   rtsValue = 0;
   protocolFSM.workerPoll();
