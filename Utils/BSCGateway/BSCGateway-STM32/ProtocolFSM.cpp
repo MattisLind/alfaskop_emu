@@ -7,6 +7,7 @@
 // continue processing.
 
 void ProtocolFSM::workerPoll() {
+  int byteLeftToCopy=256, i;
   switch (subState) {
     case PROTOCOL_FSM_SUBSTATE_IDLE:
       break;
@@ -36,7 +37,31 @@ void ProtocolFSM::workerPoll() {
     case PROTOCOL_MODE_WRITE | PROTOCOL_FSM_SENDDATA | PROTOCOL_FSM_SUBSTATE_IDLE:
       subState = PROTOCOL_FSM_SUBSTATE_WAIT_FOR_RTS;
       state = PROTOCOL_FSM_WAIT_FOR_ACK;
-      messageFSM.sendTextMessage(messageLength, msg,thereIsMoreComing);
+      // We need to slice the incoming data so that we get right amount of data in each message
+      // and decide if the thereIsMoreComing flag is to be set or not. Copy data character by character. 
+      // If in transparent mode we do the escaping at this time.
+      i=0;
+      do {
+	if (*incomingTransmitBufP==DLE) {
+	  if (bytesLeftToCopy == 1) {
+	    // We have no space for this esacpe
+	    break;
+	  } else {
+	    txBuffer[i++] = DLE;
+	    txBuffer[i++] = DLE;
+	    bytesLeftToCopy--;
+	  }	
+	} else {
+	  txBuffer[i++] = *incomingTransmitBufP;
+	}
+	incomingTransmitBufP++;
+	bytesLeftToCopy--;
+	txMessageLength--;
+      } while(byteLeftToCopy>0 && txMessageLength > 0);
+      if (txMessageLength > 0) {
+	thereIsMoreComing = true;
+      }      
+      messageFSM.sendTextMessage(256-bytesLeftToCopy, txBuffer,thereIsMoreComing);
       break;
   }
 }
@@ -57,8 +82,8 @@ int ProtocolFSM::sendPoll (unsigned short CU, unsigned short DV) {
 
 int ProtocolFSM::sendWrite (unsigned short CU, unsigned short DV, int length, unsigned char * data) {
   int i;
-  bool transparentMode=false;
-  int byteLeftToCopy=256;
+
+
   if (state != PROTOCOL_FSM_IDLE) {
     return -1; // We are busy processing another transaction. Wait!
   } else {
@@ -66,8 +91,10 @@ int ProtocolFSM::sendWrite (unsigned short CU, unsigned short DV, int length, un
     subState = PROTOCOL_FSM_SUBSTATE_WAIT_FOR_RTS;           // Goto state wait for RTS
     state = PROTOCOL_FSM_WAIT_FOR_MSG; 
     mode = PROTOCOL_MODE_WRITE;
-    
-    thereIsMoreComing=true;    
+    transparentMode = false;
+    thereIsMoreComing=false;    
+    incomingTransmitBufP = data;
+    txMessageLength = length;
     // We need to figure out if we need to use transparent mode or not.
     // That can be done iterating through the inbound buffer and find if there are any character 
     // that has to be escaped.
@@ -76,26 +103,7 @@ int ProtocolFSM::sendWrite (unsigned short CU, unsigned short DV, int length, un
 	transparentMode=true;
 	break;
       }
-    }
-    // We need to slice the incoming data so that we get right amount of data in each message
-    // and decide if the thereIsMoreComing flag is to be set or not. Copy data character by character. 
-    // If in transparent mode we do the escaping at this time.
-    i=0;
-    do {
-      if (*data==DLE) {
-	if (byteLeftToCopy == 1) {
-	  // We have no space for this esacpe
-	  break;
-	} else {
-	  txBuffer[i++] = DLE;
-	  txBuffer[i++] = DLE;
-	}	
-      } else {
-	txBuffer[i++] = *data;
-      }
-      data++;
-      byteLeftToCopy--;
-    } while(byteLeftToCopy>0);
+    }    
   } 
   return 0;
 }
