@@ -224,13 +224,16 @@ unsigned char ACK1message [] = {0x32, 0x32, 0x10, 0x61, 0xff};
 
 #define assertRTSTransaction(MODE, STATE) {\
   printf ("========================================================\n");\
-  printf ("Verifying RTS tranaction going from RTS low to RTS high.\n");\
-  printf ("Verifying STATE=%d\n", STATE);assert(protocolFSM.state == (STATE)); \
-  printf ("Verifying MODE=%d\n", MODE);assert(protocolFSM.mode == (MODE)); \
-  printf ("verifying Substate=PROTOCOL_FSM_SUBSTATE_WAIT_FOR_RTS\n"); assert(protocolFSM.subState == PROTOCOL_FSM_SUBSTATE_WAIT_FOR_RTS); \
-  rtsValue = 0; printf("Setting RTS LOW expecting a CTS LOW.\n");  \
+  printf ("Verifying RTS transaction going from RTS low to RTS high.\n");\
+  assert (ctsValue == 0);\
+  assert(protocolFSM.state == (STATE)); \
+  assert(protocolFSM.mode == (MODE)); \
+  assert(protocolFSM.subState == PROTOCOL_FSM_SUBSTATE_WAIT_FOR_RTS); \
   protocolFSM.workerPoll(); assert(ctsValue==0); \
   rtsValue = 1; printf ("Setting RTS HIGH expecting a CTS HIGH.\n");	\
+  assert(protocolFSM.state == (STATE));					\
+  assert(protocolFSM.mode == (MODE));					\
+  assert(protocolFSM.subState == PROTOCOL_FSM_SUBSTATE_WAIT_FOR_RTS);\
   protocolFSM.workerPoll(); \
   assert (ctsValue == 1); \
   assert(protocolFSM.mode == (MODE)); \
@@ -240,76 +243,57 @@ unsigned char ACK1message [] = {0x32, 0x32, 0x10, 0x61, 0xff};
 }
 
 
+#define assertNotRTSTransaction(MODE, STARTSTATE, ENDSTATE, ENDSUBSTATE) { \
+  printf ("========================================================\n"); \
+  printf ("Verifying RTS transaction going from RTS high to RTS low.\n"); \
+  assert(protocolFSM.mode == MODE);\
+  assert(protocolFSM.state == STARTSTATE);\
+  assert(protocolFSM.subState == PROTOCOL_FSM_SUBSTATE_WAIT_FOR_NOT_RTS);\
+  protocolFSM.workerPoll();\
+  assert(protocolFSM.mode == MODE);\
+  assert(protocolFSM.state == STARTSTATE);\
+  assert(protocolFSM.subState == PROTOCOL_FSM_SUBSTATE_WAIT_FOR_NOT_RTS);\
+  clearBuffer();\
+  printf("Setting RTS LOW expecting a CTS LOW.\n");\
+  rtsValue = 0;\
+  protocolFSM.workerPoll();\
+  assert (ctsValue == 0); \
+  assert(protocolFSM.mode == MODE);\
+  assert(protocolFSM.state == ENDSTATE);\
+  assert(protocolFSM.subState == ENDSUBSTATE);\
+  printf ("========================================================\n"); \
+  }
+
 void test1 () {
   // First send the poll.
   printf("Testing Poll\n");
-  printf("============\n");
+  printf ("========================================================\n");
   printf ("Now we should get a ENQ message:");
   clearBuffer();
   assert(protocolFSM.state == PROTOCOL_FSM_IDLE);
   protocolFSM.sendPoll(0x40,0x40);
   assertReceivedMessage(8, ENQmessage);
   assertRTSTransaction((PROTOCOL_MODE_POLL), (PROTOCOL_FSM_WAIT_FOR_MSG))
-  /*
-  assert(protocolFSM.state == PROTOCOL_FSM_WAIT_FOR_MSG);
-  assert(protocolFSM.mode == PROTOCOL_MODE_POLL);
-  assert(protocolFSM.subState == PROTOCOL_FSM_SUBSTATE_WAIT_FOR_RTS);
-  // Now we need to do a poll to have the worker inside to the work.
-  rtsValue = 0;
-  protocolFSM.workerPoll();
-  rtsValue = 1;
-  protocolFSM.workerPoll();
-  assert (ctsValue == 1);
-  assert(protocolFSM.mode == PROTOCOL_MODE_POLL);
-  assert(protocolFSM.state == PROTOCOL_FSM_WAIT_FOR_MSG);
-  assert(protocolFSM.subState == PROTOCOL_FSM_SUBSTATE_IDLE);
-  */
-
 
   sendStatusMessage(0x40, 0x40,  0x40, 0x50);
-  printf ("Sent the status message in\n");
-  assert(protocolFSM.mode == PROTOCOL_MODE_POLL);
-  assert(protocolFSM.state == PROTOCOL_FSM_SENDACK);
-  assert(protocolFSM.subState == PROTOCOL_FSM_SUBSTATE_WAIT_FOR_NOT_RTS);
-  clearBuffer();
-  protocolFSM.workerPoll();
-  assert(protocolFSM.mode == PROTOCOL_MODE_POLL);
-  assert(protocolFSM.state == PROTOCOL_FSM_SENDACK);
-  assert(protocolFSM.subState == PROTOCOL_FSM_SUBSTATE_WAIT_FOR_NOT_RTS);
-  rtsValue = 0;
+  printf ("Sent status message.\n");
+
+  assertNotRTSTransaction(PROTOCOL_MODE_POLL, PROTOCOL_FSM_SENDACK, PROTOCOL_FSM_WAIT_FOR_MSG, PROTOCOL_FSM_SUBSTATE_WAIT_FOR_RTS);
+  
   printf("Now we should get a ACK1 message:");
-  protocolFSM.workerPoll();
+
   assertReceivedMessage(5, ACK1message);
-  assert (ctsValue == 0);
-  assert(protocolFSM.mode == PROTOCOL_MODE_POLL);
-  assert(protocolFSM.state == PROTOCOL_FSM_WAIT_FOR_MSG);
-  assert(protocolFSM.subState == PROTOCOL_FSM_SUBSTATE_WAIT_FOR_RTS);
-  protocolFSM.workerPoll();
-  assert(protocolFSM.mode == PROTOCOL_MODE_POLL);
-  assert(protocolFSM.state == PROTOCOL_FSM_WAIT_FOR_MSG);
-  assert(protocolFSM.subState == PROTOCOL_FSM_SUBSTATE_WAIT_FOR_RTS);
-  rtsValue = 1;
-  protocolFSM.workerPoll();
-  assert(protocolFSM.mode == PROTOCOL_MODE_POLL);
-  assert(protocolFSM.state == PROTOCOL_FSM_WAIT_FOR_MSG);
-  assert(protocolFSM.subState == PROTOCOL_FSM_SUBSTATE_IDLE);
-  assert (ctsValue == 1);
-  printf("Now we send in the EOT message.\n");
+
+  assertRTSTransaction((PROTOCOL_MODE_POLL), (PROTOCOL_FSM_WAIT_FOR_MSG))
+
+  printf("Sent EOT message.\n");
+  
   sendEOT();
-  assert(protocolFSM.mode == PROTOCOL_MODE_POLL);
-  assert(protocolFSM.state == PROTOCOL_FSM_IDLE);
-  assert(protocolFSM.subState == PROTOCOL_FSM_SUBSTATE_WAIT_FOR_NOT_RTS);  
-  protocolFSM.workerPoll();
-  assert(protocolFSM.mode == PROTOCOL_MODE_POLL);
-  assert(protocolFSM.state == PROTOCOL_FSM_IDLE);
-  assert(protocolFSM.subState == PROTOCOL_FSM_SUBSTATE_WAIT_FOR_NOT_RTS);
-  rtsValue = 0;
-  protocolFSM.workerPoll();
-  assert(ctsValue == 0);
-  assert(protocolFSM.mode == PROTOCOL_MODE_POLL);
-  assert(protocolFSM.state == PROTOCOL_FSM_IDLE);
-  assert(protocolFSM.subState == PROTOCOL_FSM_SUBSTATE_IDLE);
+
+  assertNotRTSTransaction(PROTOCOL_MODE_POLL, PROTOCOL_FSM_IDLE, PROTOCOL_FSM_IDLE, PROTOCOL_FSM_SUBSTATE_IDLE);
+
   printf ("Test done\n");
+  printf ("========================================================\n"); 
 
 }
 
