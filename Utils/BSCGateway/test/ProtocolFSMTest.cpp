@@ -214,6 +214,32 @@ unsigned char ENQmessage [] = {0x32, 0x32, 0x40, 0x40, 0x40, 0x40, 0x2d, 0xff};
 unsigned char SelectENQmessage [] = {0x32, 0x32, 0x60, 0x60, 0x40, 0x40, 0x2d, 0xff};
 unsigned char ACK1message [] = {0x32, 0x32, 0x10, 0x61, 0xff};
 
+/*
+  
+  Did a try to refactor test case so that they would be more compact. Moving the assert into function. It turned out to be a bad idea since it
+  is hard to track down which line aborts. Better to let the abort stay in the main test flow. Is there a possibility to track which line it was called from and 
+  thus get traceability? Create a macro instead of function? A macro was much better since it didn't obscure the causing line. At least not entirely. You at least now what line the expansion took place..
+
+ */
+
+#define assertRTSTransaction(MODE, STATE) {\
+  printf ("========================================================\n");\
+  printf ("Verifying RTS tranaction going from RTS low to RTS high.\n");\
+  printf ("Verifying STATE=%d\n", STATE);assert(protocolFSM.state == (STATE)); \
+  printf ("Verifying MODE=%d\n", MODE);assert(protocolFSM.mode == (MODE)); \
+  printf ("verifying Substate=PROTOCOL_FSM_SUBSTATE_WAIT_FOR_RTS\n"); assert(protocolFSM.subState == PROTOCOL_FSM_SUBSTATE_WAIT_FOR_RTS); \
+  rtsValue = 0; printf("Setting RTS LOW expecting a CTS LOW.\n");  \
+  protocolFSM.workerPoll(); assert(ctsValue==0); \
+  rtsValue = 1; printf ("Setting RTS HIGH expecting a CTS HIGH.\n");	\
+  protocolFSM.workerPoll(); \
+  assert (ctsValue == 1); \
+  assert(protocolFSM.mode == (MODE)); \
+  assert(protocolFSM.state == (STATE));			      \
+  assert(protocolFSM.subState == PROTOCOL_FSM_SUBSTATE_IDLE); \
+  printf ("========================================================\n"); \
+}
+
+
 void test1 () {
   // First send the poll.
   printf("Testing Poll\n");
@@ -223,6 +249,8 @@ void test1 () {
   assert(protocolFSM.state == PROTOCOL_FSM_IDLE);
   protocolFSM.sendPoll(0x40,0x40);
   assertReceivedMessage(8, ENQmessage);
+  assertRTSTransaction((PROTOCOL_MODE_POLL), (PROTOCOL_FSM_WAIT_FOR_MSG))
+  /*
   assert(protocolFSM.state == PROTOCOL_FSM_WAIT_FOR_MSG);
   assert(protocolFSM.mode == PROTOCOL_MODE_POLL);
   assert(protocolFSM.subState == PROTOCOL_FSM_SUBSTATE_WAIT_FOR_RTS);
@@ -235,6 +263,9 @@ void test1 () {
   assert(protocolFSM.mode == PROTOCOL_MODE_POLL);
   assert(protocolFSM.state == PROTOCOL_FSM_WAIT_FOR_MSG);
   assert(protocolFSM.subState == PROTOCOL_FSM_SUBSTATE_IDLE);
+  */
+
+
   sendStatusMessage(0x40, 0x40,  0x40, 0x50);
   printf ("Sent the status message in\n");
   assert(protocolFSM.mode == PROTOCOL_MODE_POLL);
@@ -288,7 +319,7 @@ unsigned char Textmessage [] = {0x32, 0x32, 0x02, 0x41, 0x42, 0x43, 0x44, 0x45,
 				0x56, 0x58, 0x59, 0x5A, 0x03, 0x75, 0x06, 0xFF};
 unsigned char EOTmessage [] = {0x32, 0x32, 0x37, 0xFF};
 
-unsigned test2 () {
+void test2 () {
   printf ("Testing Write\n");
   printf ("=============\n");
   printf ("Now we should get a ENQ message:");
@@ -362,4 +393,5 @@ int main () {
   printf("\n");
   test2();
   printf("\n");
+  return 0;
 }
