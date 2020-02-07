@@ -264,7 +264,7 @@ unsigned char ACK1message [] = {0x32, 0x32, 0x10, 0x61, 0xff};
   printf ("========================================================\n"); \
   }
 
-void test1 () {
+void testPollSuccess () {
   // First send the poll.
   printf("Testing Poll\n");
   printf ("========================================================\n");
@@ -303,79 +303,46 @@ unsigned char Textmessage [] = {0x32, 0x32, 0x02, 0x41, 0x42, 0x43, 0x44, 0x45,
 				0x56, 0x58, 0x59, 0x5A, 0x03, 0x75, 0x06, 0xFF};
 unsigned char EOTmessage [] = {0x32, 0x32, 0x37, 0xFF};
 
-void test2 () {
+void testWriteSuccess () {
   printf ("Testing Write\n");
-  printf ("=============\n");
+  printf ("========================================================\n"); 
   printf ("Now we should get a ENQ message:");
   assert(protocolFSM.state == PROTOCOL_FSM_IDLE);
   clearBuffer();
   protocolFSM.sendWrite(0x40,0x40, strlen(testString1), (unsigned char *) testString1);
-  assertReceivedMessage(8, SelectENQmessage);
-  assert(protocolFSM.state == PROTOCOL_FSM_WAIT_FOR_ACK);
-  assert(protocolFSM.mode == PROTOCOL_MODE_WRITE);
-  assert(protocolFSM.subState == PROTOCOL_FSM_SUBSTATE_WAIT_FOR_RTS);
 
-  
-  rtsValue = 0;
-  protocolFSM.workerPoll();
-  rtsValue = 1;
-  protocolFSM.workerPoll();
-  assert (ctsValue == 1);
-  assert(protocolFSM.mode == PROTOCOL_MODE_WRITE);
-  assert(protocolFSM.state == PROTOCOL_FSM_WAIT_FOR_ACK);
-  assert(protocolFSM.subState == PROTOCOL_FSM_SUBSTATE_IDLE);
+  assertReceivedMessage(8, SelectENQmessage);
+
+  assertRTSTransaction(PROTOCOL_MODE_WRITE, PROTOCOL_FSM_WAIT_FOR_ACK);
+
   printf("Sending ACK message\n");
+
   sendACK0();
-  assert(protocolFSM.mode == PROTOCOL_MODE_WRITE);
-  assert(protocolFSM.state == PROTOCOL_FSM_SEND_DATA);
-  assert(protocolFSM.subState == PROTOCOL_FSM_SUBSTATE_WAIT_FOR_NOT_RTS);
-  protocolFSM.workerPoll();
-  assert(protocolFSM.mode == PROTOCOL_MODE_WRITE);
-  assert(protocolFSM.state == PROTOCOL_FSM_SEND_DATA);
-  assert(protocolFSM.subState == PROTOCOL_FSM_SUBSTATE_WAIT_FOR_NOT_RTS);
-  rtsValue = 0;
-  clearBuffer();
+
+  assertNotRTSTransaction(PROTOCOL_MODE_WRITE, PROTOCOL_FSM_SEND_DATA, PROTOCOL_FSM_WAIT_FOR_ACK, PROTOCOL_FSM_SUBSTATE_WAIT_FOR_RTS);
+
   printf ("Now we should get a Text message:");
-  protocolFSM.workerPoll();
+
   assertReceivedMessage(32, Textmessage);
 
-  
-  assert (ctsValue == 0);
-  assert(protocolFSM.mode == PROTOCOL_MODE_WRITE);
-  assert(protocolFSM.state == PROTOCOL_FSM_WAIT_FOR_ACK);
-  assert(protocolFSM.subState == PROTOCOL_FSM_SUBSTATE_WAIT_FOR_RTS);
-  protocolFSM.workerPoll();
-  assert(protocolFSM.mode == PROTOCOL_MODE_WRITE);
-  assert(protocolFSM.state == PROTOCOL_FSM_WAIT_FOR_ACK);
-  assert(protocolFSM.subState == PROTOCOL_FSM_SUBSTATE_WAIT_FOR_RTS);
-  rtsValue = 1;
-  protocolFSM.workerPoll();
-  assert (ctsValue == 1);
-  assert(protocolFSM.mode == PROTOCOL_MODE_WRITE);
-  assert(protocolFSM.state == PROTOCOL_FSM_WAIT_FOR_ACK);
-  assert(protocolFSM.subState == PROTOCOL_FSM_SUBSTATE_IDLE);
+  assertRTSTransaction(PROTOCOL_MODE_WRITE, PROTOCOL_FSM_WAIT_FOR_ACK);
+
   printf("Sending ACK message\n");
   sendACK1();
-  assert(protocolFSM.mode == PROTOCOL_MODE_WRITE);
-  assert(protocolFSM.state == PROTOCOL_FSM_SEND_DATA);
-  assert(protocolFSM.subState == PROTOCOL_FSM_SUBSTATE_WAIT_FOR_NOT_RTS);
-  rtsValue=0;
-  printf("Now we should get a EOT message:");
-  clearBuffer();
-  protocolFSM.workerPoll();
-  assertReceivedMessage(4, EOTmessage);
-  
-  assert (ctsValue == 0);
-  assert(protocolFSM.mode == PROTOCOL_MODE_WRITE);
-  assert(protocolFSM.state == PROTOCOL_FSM_IDLE);
-  assert(protocolFSM.subState == PROTOCOL_FSM_SUBSTATE_IDLE);
 
+  assertNotRTSTransaction(PROTOCOL_MODE_WRITE, PROTOCOL_FSM_SEND_DATA, PROTOCOL_FSM_IDLE, PROTOCOL_FSM_SUBSTATE_IDLE);
+
+  printf("Now we should get a EOT message:");
+  assertReceivedMessage(4, EOTmessage);
+  printf ("Test done!\n");
+  printf ("========================================================\n"); 
+  
 }
 
 int main () {
-  test1();
+  testPollSuccess();
   printf("\n");
-  test2();
+  testWriteSuccess();
   printf("\n");
   return 0;
 }
