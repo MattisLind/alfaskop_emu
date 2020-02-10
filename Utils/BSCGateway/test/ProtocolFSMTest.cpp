@@ -75,6 +75,7 @@ void protocolResponse (ProtocolMsg * pMsg) {
   // Here we assert that a test case has returned the correct high level response
   switch (testCase) {
   case TEST_SUCCESSFUL_POLL:
+    assert (pMsg->type == PROTOCOL_TYPE_DONE);
     break;
   case TEST_SUCCESSFUL_WRITE:
     break;
