@@ -65,7 +65,20 @@ void txData (unsigned char ch) {
 
 void enterHuntState() {
 }
+
+#define TEST_SUCCESSFUL_POLL 0
+#define TEST_SUCCESSFUL_WRITE 1
+
+int testCase;
+
 void protocolResponse (ProtocolMsg * pMsg) {
+  // Here we assert that a test case has returned the correct high level response
+  switch (testCase) {
+  case TEST_SUCCESSFUL_POLL:
+    break;
+  case TEST_SUCCESSFUL_WRITE:
+    break;
+  }
 }
 
 
@@ -266,6 +279,7 @@ unsigned char ACK1message [] = {0x32, 0x32, 0x10, 0x61, 0xff};
 
 void testPollSuccess () {
   // First send the poll.
+  testCase = TEST_SUCCESSFUL_POLL;
   printf("Testing Poll\n");
   printf ("========================================================\n");
   printf ("Now we should get a ENQ message:");
@@ -304,6 +318,7 @@ unsigned char Textmessage [] = {0x32, 0x32, 0x02, 0x41, 0x42, 0x43, 0x44, 0x45,
 unsigned char EOTmessage [] = {0x32, 0x32, 0x37, 0xFF};
 
 void testWriteSuccess () {
+  testCase = TEST_SUCCESSFUL_WRITE;
   printf ("Testing Write\n");
   printf ("========================================================\n"); 
   printf ("Now we should get a ENQ message:");
