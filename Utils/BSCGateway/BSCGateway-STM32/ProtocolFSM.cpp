@@ -149,6 +149,7 @@ void ProtocolFSM::receivedMessage( unsigned char type, MSG * msg ) {
       if (type == EOT_MESSAGE) {
 	subState = PROTOCOL_FSM_SUBSTATE_WAIT_FOR_NOT_RTS;
 	state = PROTOCOL_FSM_IDLE;
+	
 	// do the callback. We have aggregated all data into the receive buffer and sends it to initiator
       } else {
 	// protocol violation
