@@ -35,6 +35,8 @@ typedef struct ProtocolMsg ProtocolMsg ;
 #define PROTOCOL_TYPE_TEXT    1
 #define PROTOCOL_TYPE_TEST    2
 #define PROTOCOL_TYPE_ERROR   3
+#define PROTOCOL_TYPE_DONE    4
+
 
 #define PROTOCOL_FSM_IDLE 0
 #define PROTOCOL_FSM_WAIT_FOR_MSG 1
