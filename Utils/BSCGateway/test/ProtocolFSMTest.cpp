@@ -71,15 +71,10 @@ void enterHuntState() {
 
 int testCase;
 
+ProtocolMsg storedPMsg;
+
 void protocolResponse (ProtocolMsg * pMsg) {
-  // Here we assert that a test case has returned the correct high level response
-  switch (testCase) {
-  case TEST_SUCCESSFUL_POLL:
-    assert (pMsg->type == PROTOCOL_TYPE_DONE);
-    break;
-  case TEST_SUCCESSFUL_WRITE:
-    break;
-  }
+  memcpy((void *) &storedPMsg,(void *)  pMsg, sizeof (ProtocolMsg));
 }
 
 
@@ -306,7 +301,9 @@ void testPollSuccess () {
   sendEOT();
 
   assertNotRTSTransaction(PROTOCOL_MODE_POLL, PROTOCOL_FSM_IDLE, PROTOCOL_FSM_IDLE, PROTOCOL_FSM_SUBSTATE_IDLE);
-
+  printf("Verifying that we received the correct response from the stack:");
+  assert(storedPMsg.type == PROTOCOL_TYPE_DONE);
+  printf("Received DONE - OK\n");
   printf ("Test done\n");
   printf ("========================================================\n"); 
 
@@ -350,6 +347,9 @@ void testWriteSuccess () {
 
   printf("Now we should get a EOT message:");
   assertReceivedMessage(4, EOTmessage);
+  printf("Verifying that we received the correct response from the stack:");
+  assert(storedPMsg.type == PROTOCOL_TYPE_DONE);
+  printf("Received DONE - OK\n");
   printf ("Test done!\n");
   printf ("========================================================\n"); 
   
