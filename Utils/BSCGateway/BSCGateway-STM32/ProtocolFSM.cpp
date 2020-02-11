@@ -8,6 +8,7 @@
 
 void ProtocolFSM::workerPoll() {
   int bytesLeftToCopy=256, i;
+  ProtocolMsg * pMsg;
   switch (subState) {
     case PROTOCOL_FSM_SUBSTATE_IDLE:
       break;
@@ -42,6 +43,8 @@ void ProtocolFSM::workerPoll() {
 	messageFSM.sendEOT();
 	subState = PROTOCOL_FSM_SUBSTATE_IDLE;
 	state = PROTOCOL_FSM_IDLE;
+	pMsg->type = PROTOCOL_TYPE_DONE;
+	protocolResponseCb(pMsg);
       } else {
 	subState = PROTOCOL_FSM_SUBSTATE_WAIT_FOR_RTS;
 	state = PROTOCOL_FSM_WAIT_FOR_ACK;
@@ -129,6 +132,7 @@ int ProtocolFSM::sendRead (unsigned short CU, unsigned short DV, unsigned char *
 
 // This is called when the MessageFSM has decoded a message to process.
 void ProtocolFSM::receivedMessage( unsigned char type, MSG * msg ) {
+  ProtocolMsg * pMsg;
   switch (mode | state | subState) {
   case PROTOCOL_MODE_POLL | PROTOCOL_FSM_WAIT_FOR_MSG | PROTOCOL_FSM_SUBSTATE_IDLE:
     if (thereIsMoreComing) {
@@ -149,7 +153,8 @@ void ProtocolFSM::receivedMessage( unsigned char type, MSG * msg ) {
       if (type == EOT_MESSAGE) {
 	subState = PROTOCOL_FSM_SUBSTATE_WAIT_FOR_NOT_RTS;
 	state = PROTOCOL_FSM_IDLE;
-	
+	pMsg->type = PROTOCOL_TYPE_DONE;
+	protocolResponseCb(pMsg)	;
 	// do the callback. We have aggregated all data into the receive buffer and sends it to initiator
       } else {
 	// protocol violation
