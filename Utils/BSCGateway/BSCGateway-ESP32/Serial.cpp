@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 #ifdef LINUX
 
 #include "Serial.h"
@@ -44,20 +46,25 @@ speed_t Serial::translateSpeed(int speed) {
 void Serial::begin(int speed, int config) {
 
   speed_t speedSetting = translateSpeed(speed);
-  
+  int ret;
 	      
   struct termios options;
 
   /* open the port */
-  fd = open(devStr, O_RDWR | O_NOCTTY | O_NDELAY);
-  fcntl(fd, F_SETFL, 0);
-  
+  fprintf(stderr, "devStr=%s\n", devStr);
+  Serial::fd = open(devStr, O_RDWR | O_NOCTTY | O_NDELAY);
+  fprintf(stderr, "1 fd=%d", Serial::fd);
+  ret = fcntl(fd, F_SETFL, 0);
+  if (ret == -1) {
+    perror("Error:");
+  }
+  fprintf(stderr, "2 ret=%d",ret);
 
 
 
 /* get the current options */
-  tcgetattr(fd, &options);
-
+  ret = tcgetattr(fd, &options);
+  fprintf(stderr, "3 ret=%d",ret);
   
   options.c_cflag &= ~CSIZE;
   options.c_cflag &= ~CSTOPB;
@@ -76,7 +83,8 @@ void Serial::begin(int speed, int config) {
   options.c_cc[VTIME] = 10;
   
   /* set the options */
-  tcsetattr(fd, TCSANOW, &options);
+  ret=tcsetattr(fd, TCSANOW, &options);
+  fprintf(stderr, "4 ret=%d", ret);
 }
 
 int Serial::available () {

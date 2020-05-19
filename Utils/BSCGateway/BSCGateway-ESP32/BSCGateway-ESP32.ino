@@ -11,6 +11,10 @@
 
 void setup () {
      Serial.begin(2400);
+     Serial.write('A');
+     Serial.write('B');
+     Serial.write('C');
+     Serial.write('D');
 }
 
 

@@ -17,7 +17,7 @@
 void setup();
 void loop();
 
-class Serial Serial ("/dev/ttyUSB0");
+class Serial Serial ("/dev/ttyUSB1");
 
 int main (int argc, char ** argv) {
 
