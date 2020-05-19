@@ -13,7 +13,7 @@ So one need to create a MCP (Message Control Program) targeted for TSO. This pro
 I happened to find a post in the H390-MVS group where Doug Wegscheid had described how he made TCAM & TSO work under MVS for a regular line oriented terminal. Would it be possible to get the same work for a remotely attached 3270? After quite some research into old IBM documents I found some information about the [LINEGRP](https://github.com/moshix/MVS38j.SYS1.MACLIB/blob/master/LINEGRP) macro and the related [LISTTA](https://github.com/moshix/MVS38j.SYS1.MACLIB/blob/master/LISTTA) macro that would be useful in this case. I also took a look in the source code for these macros which helped a bit to understand how to use it. Helpful people pointed me to the location for the source code. The result was this JCL file which was 95% identical to what Doug had come up with.
 
 ```
-//TCAMSTG1 JOB (DOUG,5278),TCAM.L3335,CLASS=A,MSGCLASS=A,MSGLEVEL=(1,1)
+//TCAMSTG1 JOB (MATTIS),TCAM.R3270,CLASS=A,MSGCLASS=A,MSGLEVEL=(1,1)
 //ASM EXEC ASMFC,PARM.ASM='DECK',REGION.ASM=512K
 //ASM.SYSUT1 DD UNIT=SYSDA
 //ASM.SYSUT2 DD UNIT=SYSDA
@@ -54,7 +54,7 @@ I happened to find a post in the H390-MVS group where Doug Wegscheid had describ
 When this has been successfully processed by JES a new job to create a start procedure need to be run. This job defines a program TP that is linked to the TCU unit a 604.
 
 ```
-//TCAMPRCS JOB (DOUG,5278),TCAM.PROC,CLASS=A,MSGLEVEL=(1,1)
+//TCAMPRCS JOB (MATTIS),TCAM.PROC,CLASS=A,MSGLEVEL=(1,1)
 //TCAM     EXEC PGM=IEBUPDTE
 //SYSPRINT DD  SYSOUT=A
 //SYSUT1   DD  DISP=SHR,DSN=SYS2.PROCLIB
