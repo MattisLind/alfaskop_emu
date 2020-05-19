@@ -1,16 +1,16 @@
 # Hercules Integration
 
-The intention is to get the Alfaskop terminal up and running with the Hercules IBM mainframe emulator. What was the best way to interface a 3270 terminal to Hercules. The obvious answer would be over TN3270. But is it the best solution. Not necessarily.
+The intention is to get the Alfaskop terminal up and running with the Hercules IBM mainframe emulator. What was the best way to interface a 3270 terminal to Hercules? The obvious answer would be over TN3270. But is it the best solution? Not necessarily.
 
-Making it TN3270 compatible is a some what over engineered solution. It creates a need to full application layer suppport for the 3270 BSC protocol so that the 3270 data stream can be sent over it. 
+Making it TN3270 compatible is a some what over-engineered solution. It creates a need to full application layer suppport for the 3270 BSC protocol so that the 3270 data stream can be sent over it. 
 
-Originally an IBM mainframe used a 2703 or possible a 3705 Telecommunication Control Unit (TCU) for communicaating with remote cluster controllers over BSC. Inside Hercules there were already support for emulating the 2703 and also did it support BSC which what is needed here.
+Originally an IBM mainframe used a 2703 or later a 3705 Telecommunication Control Unit (TCU) for communicaating with remote cluster controllers over BSC. Inside Hercules there were already support for emulating the 2703 and also did it support BSC which what is needed here.
 
 The question was then how to make the guest operating system in Hercules, fo example MVS 3.8 aware of the terminal and the cluster controller. It turns out that for getting a 3270 terminal connected to the Time Sharing Option inside the MVS OS one need to configure TCAM. TCAM is handling the processing of BSC messages between TSO and the terminal.
 
-So one need to create a MCP (Message Control Program) targeted for TSO. This program is called TSOMCP. TSOMCP is built using a bunch of macro directives that sets what lines this MCP shall handle. The build file itself is a JCL job file that need to be siubmitted to JES. The output is TSOMCP.
+So one need to create a MCP (Message Control Program) targeted for TSO. This program is called TSOMCP. [TSOMCP](https://github.com/moshix/MVS38j.SYS1.MACLIB/blob/master/TSOMCP) is built using a bunch of macro directives that sets what lines this MCP shall handle. The build file itself is a JCL job file that need to be submitted to JES. The output is TSOMCP.
 
-I happened to find a post in the H390-MVS group where Doug Wegscheid had described how he made TCAM & TSO wok under MVS for a regular line oriented terminal. Would it be possible to get the same work for a remotely attached 3270? After quite some research into old IBM documents I found some information about the LINEGRP macro and the related LISTTA macro that would be useful in this case. I also took a look in the source code for these macros which helped a bit to understand how to use it. The result was thid JCL file which was 95% identical to waht Doug had come up with.
+I happened to find a post in the H390-MVS group where Doug Wegscheid had described how he made TCAM & TSO work under MVS for a regular line oriented terminal. Would it be possible to get the same work for a remotely attached 3270? After quite some research into old IBM documents I found some information about the [LINEGRP](https://github.com/moshix/MVS38j.SYS1.MACLIB/blob/master/LINEGRP) macro and the related [LISTTA](https://github.com/moshix/MVS38j.SYS1.MACLIB/blob/master/LISTTA) macro that would be useful in this case. I also took a look in the source code for these macros which helped a bit to understand how to use it. Helpful people pointed me to the location for the source code. The result was this JCL file which was 95% identical to what Doug had come up with.
 
 ```
 //TCAMSTG1 JOB (DOUG,5278),TCAM.L3335,CLASS=A,MSGCLASS=A,MSGLEVEL=(1,1)
@@ -85,7 +85,7 @@ BSC3@6   IODEVICE                                               C03630000
 *
 ```
 
-After a re-IPL of the system I could do a S TP to have TSOMCP started. If I then connected a netcat instance to port 32701 (as specified in the Hercules config above) I received output "7@@@@-". This is BSC for <EOT>40 40 40 40 <ENQ> and is essentially a specific POLL message to control unit 0 and terminal 0.
+After a re-IPL of the system I could do a S TP to have TSOMCP started. If I then connected a netcat instance to port 32701 (as specified in the Hercules config above) I received output "7@@@@-". This is BSC for EOT 40 40 40 40 ENQ and is essentially a specific POLL message to control unit 0 and terminal 0.
   
  At the same time message started poping up on the console terminal attached to the Hercules system.
  
