@@ -138,3 +138,11 @@ Installation and Planning ](http://www.computinghistory.org.uk/downloads/10255)
  * [3270 Intro to Programming](http://bitsavers.trailing-edge.com/pdf/ibm/3270/GC27-6999-2_Intro_To_Programming_3270_Aug77.pdf)
 * [OS/MFT and OS/MVT TCAM Logic Release 21.0](http://129.69.211.95/pdf/ibm/360/os/tcam/GY30-2029-3_OS_MFT_and_OS_MVT_TCAM_Logic_Release_21.0_Jul72.pdf)
  * [OS/VS1 Programmers Digest](http://www.bitsavers.org/pdf/ibm/370/OS_VS1/GC24-5091-3_OS_VS1_Rel_3_Programmers_Reference_Digest_Dec73.pdf)
+ 
+ Links
+ 
+  * [groups.io H390-MVS non-3270 TSO solution for bare MVS or TK3 (TK4 already has it...)](https://groups.io/g/H390-MVS/topic/non_3270_tso_solution_for/74007998?p=,,,20,0,0,0::recentpostdate%2Fsticky,,,20,2,0,74007998)
+  * [Guide to installing TSO under MVT on Hercules](http://www.clueful.co.uk/mbeattie/hercules/tso.html)
+  * [yahoo groups archieve of turnkey-mvs group: TTY TSI via 2703](https://turnkey-mvs.yahoogroups.narkive.com/McyCzPjS/tty-tso-via-2703)
+  * [yahoo groups archive of hercules-390: New Async 2703 TTY/2741 driver: request to include into Hercules](https://hercules-390.yahoogroups.narkive.com/B1RUA16u/new-async-2703-tty-2741-driver-request-to-include-into-hercules-mainline)
+  * [Pages of Max Pratte](http://www.lightlink.com/mhp/2703/)
