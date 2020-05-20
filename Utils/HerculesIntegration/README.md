@@ -4,6 +4,10 @@ The intention is to get the Alfaskop terminal up and running with the Hercules I
 
 Making it TN3270 compatible is a some what over-engineered solution. It creates a need to full application layer suppport for the 3270 BSC protocol so that the 3270 data stream can be sent over it. 
 
+But did TCAM in MVS (OS/VS2 or predecessor OS/VS) support the 2703 to connect to are remotely attached 3270 terminal? The IBM document [OS/VS TCAM Concepts and Facilities](http://www.bitsavers.org/pdf/ibm/370/OS_VS/GC30-2042-0_OS_VS_TCAM_Concepts_and_Facilities_Nov74.pdf) gave  the answer:
+
+![TCAM Support table](https://github.com/MattisLind/alfaskop_emu/raw/master/pics/TCAM-support-3270.jpg)
+
 Originally an IBM mainframe used a 2703 or later a 3705 Telecommunication Control Unit (TCU) for communicaating with remote cluster controllers over BSC. Inside Hercules there were already support for emulating the 2703 and also did it support BSC which what is needed here.
 
 The question was then how to make the guest operating system in Hercules, fo example MVS 3.8 aware of the terminal and the cluster controller. It turns out that for getting a 3270 terminal connected to the Time Sharing Option inside the MVS OS one need to configure TCAM. TCAM is handling the processing of BSC messages between TSO and the terminal.
