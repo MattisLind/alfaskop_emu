@@ -23,17 +23,17 @@ MessageFSM::MessageFSM(void (*txData)(unsigned char), void (*recivedMessage)(uns
 // Method to send the EOT message
 
 void MessageFSM::sendEOT(){
-  #ifdef HERCULES
+  #ifndef HERCULES
   txDataCb(SYN);
   txDataCb(SYN);
   #endif 
   txDataCb(EOT);
-  #ifdef HERCULES
+  #ifndef HERCULES
   txDataCb(PAD);
   #endif
 }
 void MessageFSM::sendENQ(uint8_t CU, uint8_t DV){
-  #ifdef HERCULES
+  #ifndef HERCULES
   txDataCb(SYN);
   txDataCb(SYN);
   #endif 
@@ -42,13 +42,13 @@ void MessageFSM::sendENQ(uint8_t CU, uint8_t DV){
   txDataCb(DV);
   txDataCb(DV);
   txDataCb(ENQ);
-  #ifdef HERCULES
+  #ifndef HERCULES
   txDataCb(PAD);
   #endif
 }
 void MessageFSM::sendStatusMessage(uint8_t CU, uint8_t DV,  uint8_t status, uint8_t sense) {
   int crc=0;
-  #ifdef HERCULES
+  #ifndef HERCULES
   txDataCb(SYN);
   txDataCb(SYN);
   #endif 
@@ -71,7 +71,7 @@ void MessageFSM::sendStatusMessage(uint8_t CU, uint8_t DV,  uint8_t status, uint
   crc = calculateCrcChar (crc, ETX);
   txDataCb(crc & 0xff);
   txDataCb((crc >> 8) & 0xff);
-  #ifdef HERCULES
+  #ifndef HERCULES
   txDataCb(PAD);
   #endif
 }
@@ -79,7 +79,7 @@ void MessageFSM::sendStatusMessage(uint8_t CU, uint8_t DV,  uint8_t status, uint
 void MessageFSM::sendTestRequestMessage(int messageLength, uint8_t * msg, bool thereIsMoreComing) {
   int i;
   int crc=0;
-  #ifdef HERCULES
+  #ifndef HERCULES
   txDataCb(SYN);
   txDataCb(SYN);
   #endif 
@@ -103,7 +103,7 @@ void MessageFSM::sendTestRequestMessage(int messageLength, uint8_t * msg, bool t
   }
   txDataCb(crc & 0xff);
   txDataCb((crc >> 8) & 0xff);
-  #ifdef HERCULES
+  #ifndef HERCULES
   txDataCb(PAD);
   #endif
 }
@@ -111,7 +111,7 @@ void MessageFSM::sendTestRequestMessage(int messageLength, uint8_t * msg, bool t
 void MessageFSM::sendTextMessage(int messageLength, uint8_t * msg, bool thereIsMoreComing) {
   int i;
   int crc=0;
-  #ifdef HERCULES
+  #ifndef HERCULES
   txDataCb(SYN);
   txDataCb(SYN);
   #endif 
@@ -129,65 +129,65 @@ void MessageFSM::sendTextMessage(int messageLength, uint8_t * msg, bool thereIsM
   }
   txDataCb(crc & 0xff);
   txDataCb((crc >> 8) & 0xff);
-  #ifdef HERCULES
+  #ifndef HERCULES
   txDataCb(PAD);
   #endif
 }
 
 void MessageFSM::sendACK0(){
-  #ifdef HERCULES
+  #ifndef HERCULES
   txDataCb(SYN);
   txDataCb(SYN);
   #endif 
   txDataCb(DLE);
   txDataCb(0x70);
-  #ifdef HERCULES
+  #ifndef HERCULES
   txDataCb(PAD);
   #endif
 }
 
 void MessageFSM::sendACK1(){
-  #ifdef HERCULES
+  #ifndef HERCULES
   txDataCb(SYN);
   txDataCb(SYN);
   #endif 
   txDataCb(DLE);
   txDataCb(0x61);
-  #ifdef HERCULES
+  #ifndef HERCULES
   txDataCb(PAD);
   #endif
 }
 
 void MessageFSM::sendWACK(){
-  #ifdef HERCULES
+  #ifndef HERCULES
   txDataCb(SYN);
   txDataCb(SYN);
   #endif 
   txDataCb(DLE);
   txDataCb(0x6b);
-  #ifdef HERCULES
+  #ifndef HERCULES
   txDataCb(PAD);
   #endif
 }
 
 void MessageFSM::sendRVI(){
-  #ifdef HERCULES
+  #ifndef HERCULES
   txDataCb(SYN);
   txDataCb(SYN);
   #endif 
   txDataCb(DLE);
   txDataCb(0x7c);
-  #ifdef HERCULES
+  #ifndef HERCULES
   txDataCb(PAD);
   #endif
 }
 void MessageFSM::sendNAK(){
-  #ifdef HERCULES
+  #ifndef HERCULES
   txDataCb(SYN);
   txDataCb(SYN);
   #endif 
   txDataCb(NAK);
-  #ifdef HERCULES
+  #ifndef HERCULES
   txDataCb(PAD);
   #endif
 }
@@ -280,9 +280,9 @@ void MessageFSM::messageDone() {
 }
 
 void MessageFSM::rxData(uint8_t data) {
-  //#ifdef DEBUG
-  //printf ("Received %02X in state %d\n", data, rxState);
-  //#endif
+  #ifdef DEBUG
+  printf ("Received %02X in state %d\n", data, rxState);
+  #endif
 
 #ifndef HERCULES
   if (data == SYN) {

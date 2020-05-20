@@ -1,0 +1,727 @@
+Read data from line: 37
+Received 37 in state 0
+msgType = 0
+Got EOT
+Read data from line: 40
+Received 40 in state 0
+Read data from line: 40
+Received 40 in state 7
+Read data from line: 40
+Received 40 in state 7
+Read data from line: 40
+Received 40 in state 7
+Read data from line: 2D
+Received 2D in state 10
+msgType = 1
+POLL CU=40 DV=40
+Sent 37 got back ret=1
+Read data from line: 37
+Received 37 in state 0
+msgType = 0
+Got EOT
+Read data from line: 40
+Received 40 in state 0
+Read data from line: 40
+Received 40 in state 7
+Read data from line: FFFFFFC1
+Received C1 in state 7
+Read data from line: FFFFFFC1
+Received C1 in state 7
+Read data from line: 2D
+Received 2D in state 10
+msgType = 1
+POLL CU=40 DV=C1
+Sent 01 got back ret=1
+Sent 6C got back ret=1
+Sent D9 got back ret=1
+Sent 02 got back ret=1
+Sent 40 got back ret=1
+Sent C1 got back ret=1
+Sent C2 got back ret=1
+Sent 40 got back ret=1
+Sent 03 got back ret=1
+Sent A3 got back ret=1
+Sent 5C got back ret=1
+Read data from line: 10
+Received 10 in state 0
+Read data from line: 61
+Received 61 in state 3
+msgType = 5
+Got ACK1
+Sent 37 got back ret=1
+Read data from line: 37
+Received 37 in state 0
+msgType = 0
+Got EOT
+Read data from line: 40
+Received 40 in state 0
+Read data from line: 40
+Received 40 in state 7
+Read data from line: FFFFFFC2
+Received C2 in state 7
+Read data from line: FFFFFFC2
+Received C2 in state 7
+Read data from line: 2D
+Received 2D in state 10
+msgType = 1
+POLL CU=40 DV=C2
+Sent 01 got back ret=1
+Sent 6C got back ret=1
+Sent D9 got back ret=1
+Sent 02 got back ret=1
+Sent 40 got back ret=1
+Sent C2 got back ret=1
+Sent C4 got back ret=1
+Sent 40 got back ret=1
+Sent 03 got back ret=1
+Sent 43 got back ret=1
+Sent 19 got back ret=1
+Read data from line: 10
+Received 10 in state 0
+Read data from line: 61
+Received 61 in state 3
+msgType = 5
+Got ACK1
+Sent 37 got back ret=1
+Read data from line: 37
+Received 37 in state 0
+msgType = 0
+Got EOT
+Read data from line: 40
+Received 40 in state 0
+Read data from line: 40
+Received 40 in state 7
+Read data from line: FFFFFFC3
+Received C3 in state 7
+Read data from line: FFFFFFC3
+Received C3 in state 7
+Read data from line: 2D
+Received 2D in state 10
+msgType = 1
+POLL CU=40 DV=C3
+Sent 01 got back ret=1
+Sent 6C got back ret=1
+Sent D9 got back ret=1
+Sent 02 got back ret=1
+Sent 40 got back ret=1
+Sent C3 got back ret=1
+Sent C8 got back ret=1
+Sent 40 got back ret=1
+Sent 03 got back ret=1
+Sent 82 got back ret=1
+Sent E6 got back ret=1
+Read data from line: 10
+Received 10 in state 0
+Read data from line: 61
+Received 61 in state 3
+msgType = 5
+Got ACK1
+Sent 37 got back ret=1
+Read data from line: 37
+Received 37 in state 0
+msgType = 0
+Got EOT
+Read data from line: 40
+Received 40 in state 0
+Read data from line: 40
+Received 40 in state 7
+Read data from line: FFFFFFC4
+Received C4 in state 7
+Read data from line: FFFFFFC4
+Received C4 in state 7
+Read data from line: 2D
+Received 2D in state 10
+msgType = 1
+POLL CU=40 DV=C4
+Sent 01 got back ret=1
+Sent 6C got back ret=1
+Sent D9 got back ret=1
+Sent 02 got back ret=1
+Sent 40 got back ret=1
+Sent C4 got back ret=1
+Sent 40 got back ret=1
+Sent 50 got back ret=1
+Sent 03 got back ret=1
+Sent 0E got back ret=1
+Sent 78 got back ret=1
+Read data from line: 10
+Received 10 in state 0
+Read data from line: 61
+Received 61 in state 3
+msgType = 5
+Got ACK1
+Sent 37 got back ret=1
+Read data from line: 37
+Received 37 in state 0
+msgType = 0
+Got EOT
+Read data from line: 40
+Received 40 in state 0
+Read data from line: 40
+Received 40 in state 7
+Read data from line: FFFFFFC5
+Received C5 in state 7
+Read data from line: FFFFFFC5
+Received C5 in state 7
+Read data from line: 2D
+Received 2D in state 10
+msgType = 1
+POLL CU=40 DV=C5
+Sent 01 got back ret=1
+Read data from line: 37
+Received 37 in state 0
+msgType = 0
+Got EOT
+Read data from line: 40
+Received 40 in state 0
+Read data from line: 40
+Received 40 in state 7
+Read data from line: 40
+Received 40 in state 7
+Read data from line: 40
+Received 40 in state 7
+Read data from line: 2D
+Received 2D in state 10
+msgType = 1
+POLL CU=40 DV=40
+Sent 37 got back ret=1
+Read data from line: 37
+Received 37 in state 0
+msgType = 0
+Got EOT
+Read data from line: 40
+Received 40 in state 0
+Read data from line: 40
+Received 40 in state 7
+Read data from line: FFFFFFC1
+Received C1 in state 7
+Read data from line: FFFFFFC1
+Received C1 in state 7
+Read data from line: 2D
+Received 2D in state 10
+msgType = 1
+POLL CU=40 DV=C1
+Sent 01 got back ret=1
+Sent 6C got back ret=1
+Sent D9 got back ret=1
+Sent 02 got back ret=1
+Sent 40 got back ret=1
+Sent C1 got back ret=1
+Sent C2 got back ret=1
+Sent 40 got back ret=1
+Sent 03 got back ret=1
+Sent A3 got back ret=1
+Sent 5C got back ret=1
+Read data from line: 10
+Received 10 in state 0
+Read data from line: 61
+Received 61 in state 3
+msgType = 5
+Got ACK1
+Sent 37 got back ret=1
+Read data from line: 37
+Received 37 in state 0
+msgType = 0
+Got EOT
+Read data from line: 40
+Received 40 in state 0
+Read data from line: 40
+Received 40 in state 7
+Read data from line: FFFFFFC2
+Received C2 in state 7
+Read data from line: FFFFFFC2
+Received C2 in state 7
+Read data from line: 2D
+Received 2D in state 10
+msgType = 1
+POLL CU=40 DV=C2
+Sent 01 got back ret=1
+Sent 6C got back ret=1
+Sent D9 got back ret=1
+Sent 02 got back ret=1
+Sent 40 got back ret=1
+Sent C2 got back ret=1
+Sent C4 got back ret=1
+Sent 40 got back ret=1
+Sent 03 got back ret=1
+Sent 43 got back ret=1
+Sent 19 got back ret=1
+Read data from line: 10
+Received 10 in state 0
+Read data from line: 61
+Received 61 in state 3
+msgType = 5
+Got ACK1
+Sent 37 got back ret=1
+Read data from line: 37
+Received 37 in state 0
+msgType = 0
+Got EOT
+Read data from line: 40
+Received 40 in state 0
+Read data from line: 40
+Received 40 in state 7
+Read data from line: FFFFFFC3
+Received C3 in state 7
+Read data from line: FFFFFFC3
+Received C3 in state 7
+Read data from line: 2D
+Received 2D in state 10
+msgType = 1
+POLL CU=40 DV=C3
+Sent 01 got back ret=1
+Sent 6C got back ret=1
+Sent D9 got back ret=1
+Sent 02 got back ret=1
+Sent 40 got back ret=1
+Sent C3 got back ret=1
+Sent C8 got back ret=1
+Sent 40 got back ret=1
+Sent 03 got back ret=1
+Sent 82 got back ret=1
+Sent E6 got back ret=1
+Read data from line: 10
+Received 10 in state 0
+Read data from line: 61
+Received 61 in state 3
+msgType = 5
+Got ACK1
+Sent 37 got back ret=1
+Read data from line: 37
+Received 37 in state 0
+msgType = 0
+Got EOT
+Read data from line: 40
+Received 40 in state 0
+Read data from line: 40
+Received 40 in state 7
+Read data from line: FFFFFFC4
+Received C4 in state 7
+Read data from line: FFFFFFC4
+Received C4 in state 7
+Read data from line: 2D
+Received 2D in state 10
+msgType = 1
+POLL CU=40 DV=C4
+Sent 01 got back ret=1
+Sent 6C got back ret=1
+Sent D9 got back ret=1
+Sent 02 got back ret=1
+Sent 40 got back ret=1
+Sent C4 got back ret=1
+Sent 40 got back ret=1
+Sent 50 got back ret=1
+Sent 03 got back ret=1
+Sent 0E got back ret=1
+Sent 78 got back ret=1
+Read data from line: 10
+Received 10 in state 0
+Read data from line: 61
+Received 61 in state 3
+msgType = 5
+Got ACK1
+Sent 37 got back ret=1
+Read data from line: 37
+Received 37 in state 0
+msgType = 0
+Got EOT
+Read data from line: 40
+Received 40 in state 0
+Read data from line: 40
+Received 40 in state 7
+Read data from line: FFFFFFC5
+Received C5 in state 7
+Read data from line: FFFFFFC5
+Received C5 in state 7
+Read data from line: 2D
+Received 2D in state 10
+msgType = 1
+POLL CU=40 DV=C5
+Sent 01 got back ret=1
+Sent 6C got back ret=1
+Sent D9 got back ret=1
+Sent 02 got back ret=1
+Sent 40 got back ret=1
+Sent C5 got back ret=1
+Sent 40 got back ret=1
+Sent 60 got back ret=1
+Sent 03 got back ret=1
+Sent 1B got back ret=1
+Sent 84 got back ret=1
+Read data from line: 10
+Received 10 in state 0
+Read data from line: 61
+Received 61 in state 3
+msgType = 5
+Got ACK1
+Sent 37 got back ret=1
+Read data from line: 37
+Received 37 in state 0
+msgType = 0
+Got EOT
+Read data from line: 40
+Received 40 in state 0
+Read data from line: 40
+Received 40 in state 7
+Read data from line: FFFFFFC6
+Received C6 in state 7
+Read data from line: FFFFFFC6
+Received C6 in state 7
+Read data from line: 2D
+Received 2D in state 10
+msgType = 1
+POLL CU=40 DV=C6
+Sent 01 got back ret=1
+Sent 6C got back ret=1
+Sent D9 got back ret=1
+Sent 02 got back ret=1
+Sent 40 got back ret=1
+Sent C6 got back ret=1
+Sent 40 got back ret=1
+Sent C1 got back ret=1
+Sent 03 got back ret=1
+Sent 62 got back ret=1
+Sent 50 got back ret=1
+Read data from line: 10
+Received 10 in state 0
+Read data from line: 61
+Received 61 in state 3
+msgType = 5
+Got ACK1
+Sent 37 got back ret=1
+Read data from line: 37
+Received 37 in state 0
+msgType = 0
+Got EOT
+Read data from line: 40
+Received 40 in state 0
+Read data from line: 40
+Received 40 in state 7
+Read data from line: FFFFFFC7
+Received C7 in state 7
+Read data from line: FFFFFFC7
+Received C7 in state 7
+Read data from line: 2D
+Received 2D in state 10
+msgType = 1
+POLL CU=40 DV=C7
+Sent 01 got back ret=1
+Sent 6C got back ret=1
+Sent D9 got back ret=1
+Sent 02 got back ret=1
+Sent 40 got back ret=1
+Sent C7 got back ret=1
+Sent C2 got back ret=1
+Sent 40 got back ret=1
+Sent 03 got back ret=1
+Sent A3 got back ret=1
+Sent D4 got back ret=1
+Read data from line: 10
+Received 10 in state 0
+Read data from line: 61
+Received 61 in state 3
+msgType = 5
+Got ACK1
+Sent 37 got back ret=1
+Read data from line: 37
+Received 37 in state 0
+msgType = 0
+Got EOT
+Read data from line: 40
+Received 40 in state 0
+Read data from line: 40
+Received 40 in state 7
+Read data from line: 40
+Received 40 in state 7
+Read data from line: 40
+Received 40 in state 7
+Read data from line: 2D
+Received 2D in state 10
+msgType = 1
+POLL CU=40 DV=40
+Sent 37 got back ret=1
+Read data from line: 37
+Received 37 in state 0
+msgType = 0
+Got EOT
+Read data from line: 40
+Received 40 in state 0
+Read data from line: 40
+Received 40 in state 7
+Read data from line: FFFFFFC1
+Received C1 in state 7
+Read data from line: FFFFFFC1
+Received C1 in state 7
+Read data from line: 2D
+Received 2D in state 10
+msgType = 1
+POLL CU=40 DV=C1
+Sent 01 got back ret=1
+Sent 6C got back ret=1
+Sent D9 got back ret=1
+Sent 02 got back ret=1
+Sent 40 got back ret=1
+Sent C1 got back ret=1
+Sent C2 got back ret=1
+Sent 40 got back ret=1
+Sent 03 got back ret=1
+Sent A3 got back ret=1
+Sent 5C got back ret=1
+Read data from line: 10
+Received 10 in state 0
+Read data from line: 61
+Received 61 in state 3
+msgType = 5
+Got ACK1
+Sent 37 got back ret=1
+Read data from line: 37
+Received 37 in state 0
+msgType = 0
+Got EOT
+Read data from line: 40
+Received 40 in state 0
+Read data from line: 40
+Received 40 in state 7
+Read data from line: FFFFFFC2
+Received C2 in state 7
+Read data from line: FFFFFFC2
+Received C2 in state 7
+Read data from line: 2D
+Received 2D in state 10
+msgType = 1
+POLL CU=40 DV=C2
+Sent 01 got back ret=1
+Sent 6C got back ret=1
+Sent D9 got back ret=1
+Sent 02 got back ret=1
+Sent 40 got back ret=1
+Sent C2 got back ret=1
+Sent C4 got back ret=1
+Sent 40 got back ret=1
+Sent 03 got back ret=1
+Sent 43 got back ret=1
+Sent 19 got back ret=1
+Read data from line: 10
+Received 10 in state 0
+Read data from line: 61
+Received 61 in state 3
+msgType = 5
+Got ACK1
+Sent 37 got back ret=1
+Read data from line: 37
+Received 37 in state 0
+msgType = 0
+Got EOT
+Read data from line: 40
+Received 40 in state 0
+Read data from line: 40
+Received 40 in state 7
+Read data from line: FFFFFFC3
+Received C3 in state 7
+Read data from line: FFFFFFC3
+Received C3 in state 7
+Read data from line: 2D
+Received 2D in state 10
+msgType = 1
+POLL CU=40 DV=C3
+Sent 01 got back ret=1
+Sent 6C got back ret=1
+Sent D9 got back ret=1
+Sent 02 got back ret=1
+Sent 40 got back ret=1
+Sent C3 got back ret=1
+Sent C8 got back ret=1
+Sent 40 got back ret=1
+Sent 03 got back ret=1
+Sent 82 got back ret=1
+Sent E6 got back ret=1
+Read data from line: 10
+Received 10 in state 0
+Read data from line: 61
+Received 61 in state 3
+msgType = 5
+Got ACK1
+Sent 37 got back ret=1
+Read data from line: 37
+Received 37 in state 0
+msgType = 0
+Got EOT
+Read data from line: 40
+Received 40 in state 0
+Read data from line: 40
+Received 40 in state 7
+Read data from line: FFFFFFC4
+Received C4 in state 7
+Read data from line: FFFFFFC4
+Received C4 in state 7
+Read data from line: 2D
+Received 2D in state 10
+msgType = 1
+POLL CU=40 DV=C4
+Sent 01 got back ret=1
+Sent 6C got back ret=1
+Sent D9 got back ret=1
+Sent 02 got back ret=1
+Sent 40 got back ret=1
+Sent C4 got back ret=1
+Sent 40 got back ret=1
+Sent 50 got back ret=1
+Sent 03 got back ret=1
+Sent 0E got back ret=1
+Sent 78 got back ret=1
+Read data from line: 10
+Received 10 in state 0
+Read data from line: 61
+Received 61 in state 3
+msgType = 5
+Got ACK1
+Sent 37 got back ret=1
+Read data from line: 37
+Received 37 in state 0
+msgType = 0
+Got EOT
+Read data from line: 40
+Received 40 in state 0
+Read data from line: 40
+Received 40 in state 7
+Read data from line: FFFFFFC5
+Received C5 in state 7
+Read data from line: FFFFFFC5
+Received C5 in state 7
+Read data from line: 2D
+Received 2D in state 10
+msgType = 1
+POLL CU=40 DV=C5
+Sent 01 got back ret=1
+Sent 6C got back ret=1
+Sent D9 got back ret=1
+Sent 02 got back ret=1
+Sent 40 got back ret=1
+Sent C5 got back ret=1
+Sent 40 got back ret=1
+Sent 60 got back ret=1
+Sent 03 got back ret=1
+Sent 1B got back ret=1
+Sent 84 got back ret=1
+Read data from line: 10
+Received 10 in state 0
+Read data from line: 61
+Received 61 in state 3
+msgType = 5
+Got ACK1
+Sent 37 got back ret=1
+Read data from line: 37
+Received 37 in state 0
+msgType = 0
+Got EOT
+Read data from line: 40
+Received 40 in state 0
+Read data from line: 40
+Received 40 in state 7
+Read data from line: FFFFFFC6
+Received C6 in state 7
+Read data from line: FFFFFFC6
+Received C6 in state 7
+Read data from line: 2D
+Received 2D in state 10
+msgType = 1
+POLL CU=40 DV=C6
+Sent 01 got back ret=1
+Sent 6C got back ret=1
+Sent D9 got back ret=1
+Sent 02 got back ret=1
+Sent 40 got back ret=1
+Sent C6 got back ret=1
+Sent 40 got back ret=1
+Sent C1 got back ret=1
+Sent 03 got back ret=1
+Sent 62 got back ret=1
+Sent 50 got back ret=1
+Read data from line: 10
+Received 10 in state 0
+Read data from line: 61
+Received 61 in state 3
+msgType = 5
+Got ACK1
+Sent 37 got back ret=1
+Read data from line: 37
+Received 37 in state 0
+msgType = 0
+Got EOT
+Read data from line: 40
+Received 40 in state 0
+Read data from line: 40
+Received 40 in state 7
+Read data from line: FFFFFFC7
+Received C7 in state 7
+Read data from line: FFFFFFC7
+Received C7 in state 7
+Read data from line: 2D
+Received 2D in state 10
+msgType = 1
+POLL CU=40 DV=C7
+Sent 01 got back ret=1
+Sent 6C got back ret=1
+Sent D9 got back ret=1
+Sent 02 got back ret=1
+Sent 40 got back ret=1
+Sent C7 got back ret=1
+Sent C2 got back ret=1
+Sent 40 got back ret=1
+Sent 03 got back ret=1
+Sent A3 got back ret=1
+Sent D4 got back ret=1
+Read data from line: 10
+Received 10 in state 0
+Read data from line: 61
+Received 61 in state 3
+msgType = 5
+Got ACK1
+Sent 37 got back ret=1
+Read data from line: 61
+Received 61 in state 0
+Read data from line: 61
+Received 61 in state 7
+Read data from line: 61
+Received 61 in state 7
+Read data from line: 61
+Received 61 in state 7
+Read data from line: 61
+Received 61 in state 10
+msgType = 11
+Got ERROR
+Read data from line: 61
+Received 61 in state 0
+Read data from line: 61
+Received 61 in state 7
+Read data from line: 61
+Received 61 in state 7
+Read data from line: 61
+Received 61 in state 7
+Read data from line: 61
+Received 61 in state 10
+msgType = 11
+Got ERROR
+Read data from line: 61
+Received 61 in state 0
+Read data from line: 61
+Received 61 in state 7
+Read data from line: 61
+Received 61 in state 7
+Read data from line: 61
+Received 61 in state 7
+Read data from line: 61
+Received 61 in state 10
+msgType = 11
+Got ERROR
+Read data from line: 61
+Received 61 in state 0
+Read data from line: 61
+Received 61 in state 7
+Read data from line: 61
+Received 61 in state 7
+Read data from line: 61
+Received 61 in state 7
+Read data from line: 61
+Received 61 in state 10
+msgTyp

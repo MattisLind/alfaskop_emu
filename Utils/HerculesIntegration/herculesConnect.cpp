@@ -23,6 +23,7 @@ void txData (unsigned char data) {
   printf ("Sent %02X got back ret=%d\n", data, ret);
 }
 
+int ack;
 
 void receivedMessage (unsigned char msgType, unsigned char * msg) {
   MSG * m;
@@ -30,7 +31,8 @@ void receivedMessage (unsigned char msgType, unsigned char * msg) {
   printf ("msgType = %d\n", msgType);
   switch (msgType) {
   case ENQ_MESSAGE:
-    printf ("CU=%02X DV=%02X\n",msg[0],msg[2]);
+    printf ("POLL CU=%02X DV=%02X\n",msg[0],msg[2]);
+    if (msg[0] == 0x40) {
     switch (msg[2]) {
     case 0x40:
       messageFSM.sendEOT();
@@ -59,6 +61,46 @@ void receivedMessage (unsigned char msgType, unsigned char * msg) {
     default:
       break;
     }
+    } else {
+      // selection
+      messageFSM.sendACK0();
+      ack++;
+    }
+    break;
+  case EOT_MESSAGE:
+    printf ("Got EOT\n");
+    break;
+  case NAK_MESSAGE:
+    printf ("Got NAK\n");
+    break;
+  case ACK0_MESSAGE:
+    printf ("Got ACK0\n");
+    messageFSM.sendEOT();
+    break;
+  case ACK1_MESSAGE:
+    printf ("Got ACK1\n");
+    messageFSM.sendEOT();
+    break;
+  case WACK_MESSAGE:
+    printf ("Got WACK\n");
+    break;
+  case RVI_MESSAGE:
+    printf ("Got RVI\n");
+    break;
+  case STATUS_MESSAGE:
+    printf ("Got STATUS\n");
+    break;
+  case TEXT_MESSAGE:
+    printf ("Got TEXT\n");
+    if ((ack&1)==1) messageFSM.sendACK1();
+    else messageFSM.sendACK0();
+    ack++;
+    break;
+  case TEST_MESSAGE:
+    printf ("Got TEST\n");
+    break;
+  case ERROR_MESSAGE:
+    printf ("Got ERROR\n");
     break;
   default:
     break;
@@ -102,7 +144,8 @@ int main(int argc, char const *argv[])
       return -1; 
     } 
   do {
-  ret = read( sock , &ch, 1); 
+  ret = read( sock , &ch, 1);
+  printf ("Read data from line: %02X\n", ch);
   messageFSM.rxData(ch);
   } while (run);
 } 

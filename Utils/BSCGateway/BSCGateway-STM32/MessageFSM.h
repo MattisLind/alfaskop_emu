@@ -9,7 +9,6 @@
 // Message types
 #define EOT_MESSAGE 0
 #define ENQ_MESSAGE 1
-#define ACK_MESSAGE 2
 #define NAK_MESSAGE 3
 #define ACK0_MESSAGE 4
 #define ACK1_MESSAGE 5
