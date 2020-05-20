@@ -117,3 +117,24 @@ After a re-IPL of the system I could do a S TP to have TSOMCP started. If I then
  ```
 
 Most likely these errors comes from the fact that there are no response received from the terminals which are polled.
+
+Other relevant IBM manuals taht I browsed while researching this topic:
+ * [TCAM Programmers Guide and Reference Manual Rel 20.1](http://bitsavers.informatik.uni-stuttgart.de/pdf/ibm/360/os/tcam/GC30-2024-1_OS_TCAM_Programmers_Guide_and_Reference_Manual_Rel_20.1_Sep71.pdf
+)
+ * [OS/VS TCAM Concepts and Facilities](http://www.bitsavers.org/pdf/ibm/370/OS_VS/GC30-2042-0_OS_VS_TCAM_Concepts_and_Facilities_Nov74.pdf)
+ * [OS/MFT and OS/MVT TCAM Programmers Guide Rel 21](http://bitsavers.org/pdf/ibm/360/os/tcam/GC30-2024-3_OS_MFT_and_OS_MVT_TCAM_Programmers_Guide_Rel_21_Jul72.pdf)
+ * [OS TCAM Users Guide Rel 20.1](http://www.bitsavers.org/pdf/ibm/360/os/tcam/GC30-2025-0_OS_TCAM_Users_Guide_Rel_20.1_Jan72.pdf)
+ * [OS/VS2 MVS Programming Library TSO](https://ia801604.us.archive.org/17/items/bitsavers_ibm370OSVS06291OSVS2MVSProgrammingLibraryTSORel3.7_4123765/GC28-0629-1_OS_VS2_MVS_Programming_Library_TSO_Rel_3.7_Nov76.pdf)
+ * [360 OS Time Sharing Option Guide](http://www.bitsavers.org/pdf/ibm/360/os/tso/GC28-6698-5_Time_Sharing_Option_Guide_Jul72.pdf)
+ * [TSO Optione Guide Rel 20.1](http://bitsavers.informatik.uni-stuttgart.de/pdf/ibm/360/os/R20.1_Mar71/GC28-6698-3_TSO_Option_Guide_Rel_20.1_Jun71.pdf)
+ * [MVS 3.8 Cookbook](http://www.bsp-gmbh.com/turnkey/cookbook/pdf/mvs38bas.pdf
+)
+ * [System Productivity Facility
+for MVS](http://www.computinghistory.org.uk/downloads/10096)
+ * [System Programming Library: TSO Extensions
+Installation and Planning ](http://www.computinghistory.org.uk/downloads/10255)
+ * [Introduction to OS/VS2 Release 2](http://bitsavers.informatik.uni-stuttgart.de/pdf/ibm/370/OS_VS2/Release_2_1973/GC28-0661-1_Introduction_to_OS_VS2_Release_2_Mar73.pdf)
+ * [OS/VS2 System Generation Reference Release 3.8](http://bitsavers.trailing-edge.com/pdf/ibm/370/OS_VS2/Release_3.8_1978/GC26-3792-8_OS_VS2_System_Generation_Reference_Release_3.8_Oct80.pdf)
+ * [3270 Intro to Programming](http://bitsavers.trailing-edge.com/pdf/ibm/3270/GC27-6999-2_Intro_To_Programming_3270_Aug77.pdf)
+* [OS/MFT and OS/MVT TCAM Logic Release 21.0](http://129.69.211.95/pdf/ibm/360/os/tcam/GY30-2029-3_OS_MFT_and_OS_MVT_TCAM_Logic_Release_21.0_Jul72.pdf)
+ * [OS/VS1 Programmers Digest](http://www.bitsavers.org/pdf/ibm/370/OS_VS1/GC24-5091-3_OS_VS1_Rel_3_Programmers_Reference_Digest_Dec73.pdf)
