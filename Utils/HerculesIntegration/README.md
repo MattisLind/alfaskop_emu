@@ -4,17 +4,28 @@ The intention is to get the Alfaskop terminal up and running with the Hercules I
 
 Making it TN3270 compatible is a some what over-engineered solution. It creates a need to full application layer suppport for the 3270 BSC protocol so that the 3270 data stream can be sent over it. 
 
+Inside Herucules there are support for emulating both the older 2703 and the newer 3705. In the doumentation can be found that Hercules can be configured for BSC communication if we enable the virtual 2703 with LNCNTL=BSC.
+
 But did TCAM in MVS (OS/VS2 or predecessor OS/VS) support the 2703 to connect to are remotely attached 3270 terminal? The IBM document [OS/VS TCAM Concepts and Facilities](http://www.bitsavers.org/pdf/ibm/370/OS_VS/GC30-2042-0_OS_VS_TCAM_Concepts_and_Facilities_Nov74.pdf) gave  the answer:
 
 ![TCAM Support table](https://github.com/MattisLind/alfaskop_emu/raw/master/pics/TCAM-support-3270.jpg)
 
-Originally an IBM mainframe used a 2703 or later a 3705 Telecommunication Control Unit (TCU) for communicaating with remote cluster controllers over BSC. Inside Hercules there were already support for emulating the 2703 and also did it support BSC which what is needed here.
 
-The question was then how to make the guest operating system in Hercules, fo example MVS 3.8 aware of the terminal and the cluster controller. It turns out that for getting a 3270 terminal connected to the Time Sharing Option inside the MVS OS one need to configure TCAM. TCAM is handling the processing of BSC messages between TSO and the terminal.
+Unfortunately the mnauals online is quite scattered. I.e the full set of mamnuals for MVS (OS/VS2) is not found. Particurlary the guides for TCAM and TSO are missing in some cases. I found an older manual for the OS/VS2 predecessor the IBM 360 operating system called OS for the TSO function, [The Time Sharing Option Guide](http://www.bitsavers.org/pdf/ibm/360/os/tso/GC28-6698-5_Time_Sharing_Option_Guide_Jul72.pdf).
 
-So one need to create a MCP (Message Control Program) targeted for TSO. This program is called TSOMCP. [TSOMCP](https://github.com/moshix/MVS38j.SYS1.MACLIB/blob/master/TSOMCP) is built using a bunch of macro directives that sets what lines this MCP shall handle. The build file itself is a JCL job file that need to be submitted to JES. The output is TSOMCP.
+Page 75 describes how the implementation of TSO with TCAM takes place. It describes what steps to take and how to do it. 
 
-I happened to find a post in the H390-MVS group where Doug Wegscheid had described how he made TCAM & TSO work under MVS for a regular line oriented terminal. Would it be possible to get the same work for a remotely attached 3270? After quite some research into old IBM documents I found some information about the [LINEGRP](https://github.com/moshix/MVS38j.SYS1.MACLIB/blob/master/LINEGRP) macro and the related [LISTTA](https://github.com/moshix/MVS38j.SYS1.MACLIB/blob/master/LISTTA) macro that would be useful in this case. I also took a look in the source code for these macros which helped a bit to understand how to use it. Helpful people pointed me to the location for the source code. The result was this JCL file which was 95% identical to what Doug had come up with.
+The steps needed are
+ * Tailor a MCP program for TSO and TCAM. 
+ * Write a catalogued procedure for starting TSO
+
+But the essential macro LINEGRP is not very well described when it comes to newer termninals since the manual predates the 3270 terminals. This is needed to complete the first step.
+
+Since I was not very used to building software on IBM systems this seemed to be a daunting task. Luckily I happened to find a post in the H390-MVS group where Doug Wegscheid had described how he made TCAM & TSO work under MVS for a regular line oriented terminal. Would it be possible to get the same work for a remotely attached 3270?
+Other people chimed in in the discussion and pointed me to the source code for the MVS 3.8j system.
+
+[TSOMCP](https://github.com/moshix/MVS38j.SYS1.MACLIB/blob/master/TSOMCP)
+, [LINEGRP](https://github.com/moshix/MVS38j.SYS1.MACLIB/blob/master/LINEGRP) and [LISTTA](https://github.com/moshix/MVS38j.SYS1.MACLIB/blob/master/LISTTA) macros are the relevant macros for completing the first bullet above. The source code gave some additional insights how the parameter shold be set in a proper manner. Together with reading a lot of old manuals I and iterating a few times I finally came up with a JCL file that made it through without errors. The resulting JCL file which was 95% identical to what Doug had come up with but with the LINEGRP parameters changed and LISTTA macro added.
 
 ```
 //TCAMSTG1 JOB (MATTIS),TCAM.R3270,CLASS=A,MSGCLASS=A,MSGLEVEL=(1,1)
@@ -55,7 +66,7 @@ I happened to find a post in the H390-MVS group where Doug Wegscheid had describ
 //SYSLIB DD DISP=SHR,DSN=SYS1.TELCMLIB
 ```
  
-When this has been successfully processed by JES a new job to create a start procedure need to be run. This job defines a program TP that is linked to the TCU unit a 604.
+When this has been successfully processed by JES a new job to create a start procedure need to be run. This job defines a program TP that is linked to the TCU unit a 604. The start procedure was essentially identical to the one Doug has come up with with a different line specifying the 2703 unit at address 604.
 
 ```
 //TCAMPRCS JOB (MATTIS),TCAM.PROC,CLASS=A,MSGLEVEL=(1,1)
