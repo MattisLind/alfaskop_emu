@@ -4,6 +4,12 @@ The intention is to get the Alfaskop terminal up and running with the Hercules I
 
 Making it TN3270 compatible is a some what over-engineered solution. It creates a need to full application layer suppport for the 3270 BSC protocol so that the 3270 data stream can be sent over it. 
 
+But when reading the documentation for the [Hercules config file](http://www.hercules-390.org/hercconf.html) this line caught my eye:
+```
+( Preliminary 2703 BSC Support )
+Describes a BSC emulation line entry to either link 2 Hercules engines or a custom made program emulating a 2780, 3780 or 3x74, or a custom made program interfacing to a real BSC line.
+
+```
 Inside Herucules there are support for emulating both the older 2703 and the newer 3705. In the doumentation can be found that Hercules can be configured for BSC communication if we enable the virtual 2703 with LNCNTL=BSC.
 
 But did TCAM in MVS (OS/VS2 or predecessor OS/VS) support the 2703 to connect to are remotely attached 3270 terminal? The IBM document [OS/VS TCAM Concepts and Facilities](http://www.bitsavers.org/pdf/ibm/370/OS_VS/GC30-2042-0_OS_VS_TCAM_Concepts_and_Facilities_Nov74.pdf) gave  the answer:
@@ -141,6 +147,7 @@ Installation and Planning ](http://www.computinghistory.org.uk/downloads/10255)
  
  Links
  
+  * [Hercules IBM Main fram emulator](http://www.hercules-390.eu/)
   * [groups.io H390-MVS non-3270 TSO solution for bare MVS or TK3 (TK4 already has it...)](https://groups.io/g/H390-MVS/topic/non_3270_tso_solution_for/74007998?p=,,,20,0,0,0::recentpostdate%2Fsticky,,,20,2,0,74007998)
   * [Guide to installing TSO under MVT on Hercules](http://www.clueful.co.uk/mbeattie/hercules/tso.html)
   * [yahoo groups archieve of turnkey-mvs group: TTY TSI via 2703](https://turnkey-mvs.yahoogroups.narkive.com/McyCzPjS/tty-tso-via-2703)
