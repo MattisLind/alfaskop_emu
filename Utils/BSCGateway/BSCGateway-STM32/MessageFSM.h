@@ -66,6 +66,7 @@ class MessageFSM {
     void (* txDataCb)(unsigned char);
     void (* enterHuntStateCb)();
     void (* receivedMessageCb)(unsigned char, unsigned char *);
+    void messageDone();
   public:
     MessageFSM(void (*)(unsigned char), void (*)(unsigned char, unsigned char *), void (*)());
     void rxData (uint8_t data);

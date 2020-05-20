@@ -3,12 +3,10 @@
 #include <arpa/inet.h> 
 #include <unistd.h> 
 #include <string.h> 
-#define DEBUG
-#define HERCULES
 #include "../BSCGateway/BSCGateway-STM32/MessageFSM.h"
 
 /*
-  Compile using c++ herculesConnect.cpp ../BSCGateway/BSCGateway-STM32/MessageFSM.cpp -o herculesConnect 
+  Compile using c++ herculesConnect.cpp ../BSCGateway/BSCGateway-STM32/MessageFSM.cpp ../BSCGateway/BSCGateway-STM32/crc-16.c   -DHERCULES -DDEBUG  -o herculesConnect
 
  */
 
@@ -29,14 +27,10 @@ void txData (unsigned char data) {
 void receivedMessage (unsigned char msgType, unsigned char * msg) {
   MSG * m;
   m = (MSG *) msg;
-  if (msgType == ERROR_MESSAGE && !errorOverride) {
-    printf("%s\n", msg);
-    assert (0);
-  }
   printf ("msgType = %d\n", msgType);
   switch (msgType) {
   case ENQ_MESSAGE:
-    printf ("CU=%02 DV=%02XX\n",msg[0],msg[2]);
+    printf ("CU=%02X DV=%02X\n",msg[0],msg[2]);
     switch (msg[2]) {
     case 0x40:
       messageFSM.sendEOT();

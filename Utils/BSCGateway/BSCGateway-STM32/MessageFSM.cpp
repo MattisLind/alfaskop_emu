@@ -192,43 +192,8 @@ void MessageFSM::sendNAK(){
   #endif
 }
 
-void MessageFSM::rxData(uint8_t data) {
-  //#ifdef DEBUG
-  //printf ("Received %02X in state %d\n", data, rxState);
-  //#endif
+void MessageFSM::messageDone() {
   MSG msg;
-  if (data == SYN) {
-    return;
-  }
-  crc = calculateCrcChar (crc, data);
-  msgBuffer[msgBufferCnt++] = data;
-  if (rxState == 0) { 
-    switch (data) {
-    case EOT: 
-    case NAK:
-      rxState = 2;
-      break;
-    case DLE:  // Two byte sequences
-      rxState = 3;
-      break;
-    case SOH:
-      byteCounter=2;
-      rxState = 4;
-      crc = 0;
-      break;
-    case STX:
-      byteCounter=254;
-      rxState = 5;
-      crc = 0;
-      break;
-    default:  // Enquiry POLL / SELECTION
-      rxState = 7;
-      byteCounter=3; // 4 with this byte
-      break;
-    }   
-  } else if (rxState == 2) {
-    // Data shall be PAD.
-    if (data == PAD) {
       // We have all data  - Do a callback
       switch (msgBuffer[0]) {
       case EOT:
@@ -312,6 +277,57 @@ void MessageFSM::rxData(uint8_t data) {
 	msgBufferCnt=0;
 	break;
       }
+}
+
+void MessageFSM::rxData(uint8_t data) {
+  //#ifdef DEBUG
+  //printf ("Received %02X in state %d\n", data, rxState);
+  //#endif
+
+#ifndef HERCULES
+  if (data == SYN) {
+    return;
+  }
+#endif
+  crc = calculateCrcChar (crc, data);
+  msgBuffer[msgBufferCnt++] = data;
+  if (rxState == 0) { 
+    switch (data) {
+    case EOT: 
+    case NAK:
+#ifdef HERCULES  
+      messageDone();
+      rxState = 0;
+#else
+      rxState = 2;
+#endif
+      break;
+    case DLE:  // Two byte sequences
+      rxState = 3;
+      break;
+    case SOH:
+      byteCounter=2;
+      rxState = 4;
+      crc = 0;
+      break;
+    case STX:
+      byteCounter=254;
+      rxState = 5;
+      crc = 0;
+      break;
+#ifdef HERCULES
+    case PAD:
+      break;
+#endif
+    default:  // Enquiry POLL / SELECTION
+      rxState = 7;
+      byteCounter=3; // 4 with this byte
+      break;
+    }   
+  } else if (rxState == 2) {
+    // Data shall be PAD.
+    if (data == PAD) {
+      messageDone();
     } else {
       //Serial.println("Last byte was not a PAD - go back to hunt mode!");
       //printMsgBuffer();       
@@ -323,7 +339,12 @@ void MessageFSM::rxData(uint8_t data) {
     case 0x61: // ACK 1
     case 0x6b: // WACK
     case 0x7c: // RVI
+#ifdef HERCULES
+      messageDone();
+      rxState = 0;
+#else
       rxState = 2;
+#endif
       break;
     default:
       rxState = 0;
@@ -385,11 +406,21 @@ void MessageFSM::rxData(uint8_t data) {
       } else {
 	crcOk=false;
       }
+#ifdef HERCULES
+      messageDone();
+      rxState = 0;
+#else
       rxState = 2; // wait for the PAD
+#endif
     }
   } else if (rxState == 10) {
     if (data == ENQ) {
+#ifdef HERCULES
+      messageDone();
+      rxState = 0;
+#else
       rxState = 2; // There is a PAD to come
+#endif
     }
     else {
       rxState = 0;
