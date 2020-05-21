@@ -124,7 +124,120 @@ After a re-IPL of the system I could do a S TP to have TSOMCP started. If I then
 
 Most likely these errors comes from the fact that there are no response received from the terminals which are polled.
 
-Other relevant IBM manuals taht I browsed while researching this topic:
+
+## Testing with herculesIntegration test program
+
+So to verify how Hercules behaved I made a quick test program based on the BSC protocol handler I created earlier. It is called herculesIntegration and it just tries to respond as well as possible to the messages received from Hercules.
+
+The first insight is that Hercules doesn't send the SYN characaters at all. It might be so that the 2703 hardware ands the SYN characters so that they are not at all handled by the driver. But from a interfacing standpoint this could be a complications since the SYN characters provide framing.
+
+This is an example run of the herculesIntegration program and the debug output is not meant to be beauitful in any way.
+```
+Read data from line: 37
+Received 37 in state 0
+msgType = 0
+Got EOT
+Read data from line: 40
+Received 40 in state 0
+Read data from line: 40
+Received 40 in state 7
+Read data from line: FFFFFFC6
+Received C6 in state 7
+Read data from line: FFFFFFC6
+Received C6 in state 7
+Read data from line: 2D
+Received 2D in state 10
+msgType = 1
+POLL CU=40 DV=C6
+Sent 01 got back ret=1
+Sent 6C got back ret=1
+Sent D9 got back ret=1
+Sent 02 got back ret=1
+Sent 40 got back ret=1
+Sent C6 got back ret=1
+Sent 40 got back ret=1
+Sent C1 got back ret=1
+Sent 03 got back ret=1
+Sent 62 got back ret=1
+Sent 50 got back ret=1
+Read data from line: 10
+Received 10 in state 0
+Read data from line: 61
+Received 61 in state 3
+msgType = 5
+Got ACK1
+Sent 37 got back ret=1
+Read data from line: 37
+Received 37 in state 0
+msgType = 0
+Got EOT
+Read data from line: 40
+Received 40 in state 0
+Read data from line: 40
+Received 40 in state 7
+Read data from line: FFFFFFC7
+Received C7 in state 7
+Read data from line: FFFFFFC7
+Received C7 in state 7
+Read data from line: 2D
+Received 2D in state 10
+msgType = 1
+POLL CU=40 DV=C7
+Sent 01 got back ret=1
+Sent 6C got back ret=1
+Sent D9 got back ret=1
+Sent 02 got back ret=1
+Sent 40 got back ret=1
+Sent C7 got back ret=1
+Sent C2 got back ret=1
+Sent 40 got back ret=1
+Sent 03 got back ret=1
+Sent A3 got back ret=1
+Sent D4 got back ret=1
+Read data from line: 10
+Received 10 in state 0
+Read data from line: 61
+Received 61 in state 3
+msgType = 5
+Got ACK1
+Sent 37 got back ret=1
+Read data from line: 61
+Received 61 in state 0
+Read data from line: 61
+Received 61 in state 7
+Read data from line: 61
+Received 61 in state 7
+Read data from line: 61
+Received 61 in state 7
+Read data from line: 61
+Received 61 in state 10
+msgType = 11
+Got ERROR
+Read data from line: 61
+Received 61 in state 0
+Read data from line: 61
+Received 61 in state 7
+Read data from line: 61
+Received 61 in state 7
+Read data from line: 61
+Received 61 in state 7
+Read data from line: 61
+Received 61 in state 10
+msgType = 11
+Got ERROR
+```
+
+What can be seen is that all POLL messages start with a EOT to so to say reset the line. Thh EOT is the followed by the two control unit address bytes and two station identifer bytes. Four addresseing bytes in total. Lastly followed by a ENQ to signifiy the poll request.
+
+A proper anser to a poll message is either a simple EOT or a status message. The hercules responder was preprogrammed to respond slightly differently depending on what station was addressed. So the first station just respnded witha EOT and the others with a ststus message. As can be seen the status message is received by Hercules and processed by the TCAM and a ACK1 response is returned. To which the test program simply responds with en EOT to terminate the poll. TCAM will then poll the next station and continue with the others in a round robin fashion. When all stations are responding properly there is no error messages in the MVS log and on the console screen.
+
+### Hercules bug
+
+There seems to be a problem in Hercules in that when TCAM / TSO is sytopped by the Z TP command hercules seems to get into a spion where it just starts sending the last transmitted byte over and over again in a tight loop. The test program log file quickly wnet to almost 400 megabyte worth of logdata. Just disconnecting the socket and reconnecting again doesn't solve the problem. The only way is to bring down the operating system running and re-IPL it.
+
+Looking in the log above it can be seen that the last sent byte was the 61h as part of the ACK1 message from hercules. The response from the test program is a plain EOT and then there is continous bytes of 61h coming on the line.
+
+## Other relevant IBM manuals taht I browsed while researching this topic:
  * [TCAM Programmers Guide and Reference Manual Rel 20.1](http://bitsavers.informatik.uni-stuttgart.de/pdf/ibm/360/os/tcam/GC30-2024-1_OS_TCAM_Programmers_Guide_and_Reference_Manual_Rel_20.1_Sep71.pdf
 )
  * [OS/VS TCAM Concepts and Facilities](http://www.bitsavers.org/pdf/ibm/370/OS_VS/GC30-2042-0_OS_VS_TCAM_Concepts_and_Facilities_Nov74.pdf)
@@ -145,7 +258,7 @@ Installation and Planning ](http://www.computinghistory.org.uk/downloads/10255)
 * [OS/MFT and OS/MVT TCAM Logic Release 21.0](http://129.69.211.95/pdf/ibm/360/os/tcam/GY30-2029-3_OS_MFT_and_OS_MVT_TCAM_Logic_Release_21.0_Jul72.pdf)
  * [OS/VS1 Programmers Digest](http://www.bitsavers.org/pdf/ibm/370/OS_VS1/GC24-5091-3_OS_VS1_Rel_3_Programmers_Reference_Digest_Dec73.pdf)
  
- Links
+ ## Links
  
   * [Hercules IBM Main fram emulator](http://www.hercules-390.eu/)
   * [groups.io H390-MVS non-3270 TSO solution for bare MVS or TK3 (TK4 already has it...)](https://groups.io/g/H390-MVS/topic/non_3270_tso_solution_for/74007998?p=,,,20,0,0,0::recentpostdate%2Fsticky,,,20,2,0,74007998)
