@@ -241,7 +241,7 @@ There seems to be a problem in Hercules in that when TCAM / TSO is sytopped by t
 
 Looking in the log above it can be seen that the last sent byte was the 61h as part of the ACK1 message from hercules. The response from the test program is a plain EOT and then there is continous bytes of 61h coming on the line.
 
-## Other relevant IBM manuals taht I browsed while researching this topic:
+## Other relevant IBM manuals that I browsed while researching this topic:
  * [TCAM Programmers Guide and Reference Manual Rel 20.1](http://bitsavers.informatik.uni-stuttgart.de/pdf/ibm/360/os/tcam/GC30-2024-1_OS_TCAM_Programmers_Guide_and_Reference_Manual_Rel_20.1_Sep71.pdf
 )
  * [OS/VS TCAM Concepts and Facilities](http://www.bitsavers.org/pdf/ibm/370/OS_VS/GC30-2042-0_OS_VS_TCAM_Concepts_and_Facilities_Nov74.pdf)
@@ -261,8 +261,8 @@ Installation and Planning ](http://www.computinghistory.org.uk/downloads/10255)
  * [3270 Intro to Programming](http://bitsavers.trailing-edge.com/pdf/ibm/3270/GC27-6999-2_Intro_To_Programming_3270_Aug77.pdf)
 * [OS/MFT and OS/MVT TCAM Logic Release 21.0](http://129.69.211.95/pdf/ibm/360/os/tcam/GY30-2029-3_OS_MFT_and_OS_MVT_TCAM_Logic_Release_21.0_Jul72.pdf)
  * [OS/VS1 Programmers Digest](http://www.bitsavers.org/pdf/ibm/370/OS_VS1/GC24-5091-3_OS_VS1_Rel_3_Programmers_Reference_Digest_Dec73.pdf)
- * [2703 Transmission COntrol Component Secription](http://bitsavers.trailing-edge.com/pdf/ibm/2703/GA27-2703-1_2703_Transmission_Ctl_Component_Descr_May67.pdf)
- * [3274 COntrol Unit Description and Programmers Guide](http://bitsavers.trailing-edge.com/pdf/ibm/3274/GA23-0061-1_3274_Control_Unit_Description_and_Programmers_Guide_Jan84.pdf)
+ * [2703 Transmission Control Component Description](http://bitsavers.trailing-edge.com/pdf/ibm/2703/GA27-2703-1_2703_Transmission_Ctl_Component_Descr_May67.pdf)
+ * [3274 Control Unit Description and Programmers Guide](http://bitsavers.trailing-edge.com/pdf/ibm/3274/GA23-0061-1_3274_Control_Unit_Description_and_Programmers_Guide_Jan84.pdf)
  
  ## Links
  
