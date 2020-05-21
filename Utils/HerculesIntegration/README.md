@@ -129,7 +129,7 @@ Most likely these errors comes from the fact that there are no response received
 
 So to verify how Hercules behaved I made a quick test program based on the BSC protocol handler I created earlier. It is called herculesIntegration and it just tries to respond as well as possible to the messages received from Hercules.
 
-The first insight is that Hercules doesn't send the SYN characaters at all. It might be so that the 2703 hardware ands the SYN characters so that they are not at all handled by the driver. But from a interfacing standpoint this could be a complications since the SYN characters provide framing.
+
 
 This is an example run of the herculesIntegration program and the debug output is not meant to be beauitful in any way.
 ```
@@ -228,6 +228,8 @@ Got ERROR
 ```
 
 What can be seen is that all POLL messages start with a EOT to so to say reset the line. Thh EOT is the followed by the two control unit address bytes and two station identifer bytes. Four addresseing bytes in total. Lastly followed by a ENQ to signifiy the poll request.
+
+The first insight is that Hercules doesn't send the SYN characaters at all. It might be so that the 2703 hardware ands the SYN characters so that they are not at all handled by the driver. But from a interfacing standpoint this could be a complications since the SYN characters provide framing. According the various 3270 manuals it appears that the the first EOT is meant to be framed in its own message unit and no joint together with the following ENQ message. Meaning that before the EOT there shall be two SYN characters and it shall be followed by a PAD character. This would provide framing and help to differentiate it from the other message units. Otherwise it all ends up in a stream of characters that need to be parsed. So a suggestion is that hercules 2703 as an option provide inclusion of SYN and PAD characters so that the framing can be discerned from the data more easily.
 
 A proper anser to a poll message is either a simple EOT or a status message. The hercules responder was preprogrammed to respond slightly differently depending on what station was addressed. So the first station just respnded witha EOT and the others with a ststus message. As can be seen the status message is received by Hercules and processed by the TCAM and a ACK1 response is returned. To which the test program simply responds with en EOT to terminate the poll. TCAM will then poll the next station and continue with the others in a round robin fashion. When all stations are responding properly there is no error messages in the MVS log and on the console screen.
 
