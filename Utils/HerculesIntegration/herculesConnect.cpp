@@ -28,6 +28,7 @@ int ack;
 void receivedMessage (unsigned char msgType, unsigned char * msg) {
   MSG * m;
   m = (MSG *) msg;
+  unsigned char aid[0];
   printf ("msgType = %d\n", msgType);
   switch (msgType) {
   case ENQ_MESSAGE:
@@ -38,19 +39,29 @@ void receivedMessage (unsigned char msgType, unsigned char * msg) {
       messageFSM.sendEOT();
       break;
     case 0xc1:
-      messageFSM.sendStatusMessage(0x40,0xc1,0xc2,0x40);
+      //messageFSM.sendStatusMessage(0x40,0xc1,0xc2,0x40);
+      aid[0]=0x6c;
+      messageFSM.sendTextMessage(1,aid,false);
       break;
     case 0xc2:
-      messageFSM.sendStatusMessage(0x40,0xc2,0xc4,0x40);
+      //messageFSM.sendStatusMessage(0x40,0xc2,0xc4,0x40);
+      aid[0]=0x6e;
+      messageFSM.sendTextMessage(1,aid,false);
       break;
     case 0xc3:
-      messageFSM.sendStatusMessage(0x40,0xc3,0xc8,0x40);
+      //messageFSM.sendStatusMessage(0x40,0xc3,0xc8,0x40);
+      aid[0]=0x6b;
+      messageFSM.sendTextMessage(1,aid,false);
       break;
     case 0xc4:
-      messageFSM.sendStatusMessage(0x40,0xc4,0x40,0x50);
+      //messageFSM.sendStatusMessage(0x40,0xc4,0x40,0x50);
+      aid[0]=0x6d;
+      messageFSM.sendTextMessage(1,aid,false);
       break;
     case 0xc5:
-      messageFSM.sendStatusMessage(0x40,0xc5,0x40,0x60);
+      aid[0]=0xf0;
+      messageFSM.sendTestRequestMessage(1,aid,false);
+      //messageFSM.sendStatusMessage(0x40,0xc5,0x40,0x60);
       break;
     case 0xc6:
       messageFSM.sendStatusMessage(0x40,0xc6,0x40,0xc1);
@@ -92,6 +103,7 @@ void receivedMessage (unsigned char msgType, unsigned char * msg) {
     break;
   case TEXT_MESSAGE:
     printf ("Got TEXT\n");
+    printf ("Got crcOK = %d\n", m->textData.crcOk);
     if ((ack&1)==1) messageFSM.sendACK1();
     else messageFSM.sendACK0();
     ack++;
