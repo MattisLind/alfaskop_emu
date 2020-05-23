@@ -106,7 +106,7 @@ BSC3@6   IODEVICE                                               C03630000
 *
 ```
 
-After a re-IPL of the system I could do a S TP to have TSOMCP started. If I then connected a netcat instance to port 32701 (as specified in the Hercules config above) I received output "7@@@@-". This is BSC for EOT 40 40 40 40 ENQ and is essentially a specific POLL message to control unit 0 and terminal 0.
+After a re-IPL of the system I could do a **S TP** to have TSOMCP started. If I then connected a netcat instance to port 32701 (as specified in the Hercules config above) I received output "7@@@@-". This is BSC for EOT 40 40 40 40 ENQ and is essentially a specific POLL message to control unit 0 and terminal 0.
   
  At the same time message started poping up on the console terminal attached to the Hercules system.
  
@@ -234,6 +234,17 @@ The first insight is that Hercules doesn't send the SYN characaters at all. It m
 This would provide framing and help to differentiate it from the other message units. Otherwise it all ends up in a stream of characters that need to be parsed. So a suggestion is that Hercules 2703 emulations as an option provide inclusion of SYN and PAD characters so that the framing can be discerned from the data more easily. 
 
 A proper anser to a poll message is either a simple EOT or a status message. The hercules responder was preprogrammed to respond slightly differently depending on what station was addressed. So the first station just respnded witha EOT and the others with a ststus message. As can be seen the status message is received by Hercules and processed by the TCAM and a ACK1 response is returned. To which the test program simply responds with en EOT to terminate the poll. TCAM will then poll the next station and continue with the others in a round robin fashion. When all stations are responding properly there is no error messages in the MVS log and on the console screen.
+
+## A login prompt in the traces
+
+While working on the herculesIntgration test client I discovered that when there was a bug in the testprogra in that it failed to respond with an EOT to the ACK1 signal at one point in the flow, TCAM would send a message. *IKJ54017A TERMINAL ERROR, REENTER INPUT*. Of course it was coded in EBCDIC but some hand decoding revealed it. 
+
+That was quite interesting. Was there a way to send real data towards the system that could provoke some other output? I did further reading of the 3274 manuals and it showed that you could send some key presses in message back when the POLL was received. I opted for hardcoding the client to send PA1, PA2, and PA3 keys in response for every POLL received. Now I got another message, *IKJ54011I TSO NOT ACTIVE* it read. Googling this message gave a link to a page by Max where it simply said I failed to start TSO properly. 
+
+I had to do the **F TP,TS=START** command. This command gave the log message saying *IKJ019I TIME SHARING IS INITIALIZED* in the ordinary console log. That sounded promising and when I hand decoed the data received sure enough there were a *IKJ54012A ENTER LOGON -* in the traces of the hercules test client.
+
+To turn off time sharing the command is **F TP,TS=STOP** and the **Z TP** to stop the procedure
+
 
 ### Hercules bug
 
