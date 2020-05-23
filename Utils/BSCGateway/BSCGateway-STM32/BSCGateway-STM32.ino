@@ -1,11 +1,15 @@
 #include <SPI.h>
 #include "ebcdic.h"
 #include "lsbmsb.h"
+#define RTS PB11 // Input
+#define RFS PB1  // Output
+#define DTR PB10 // Input 
 
 SPIClass SPI_2(2); 
 
 HardwareTimer pwmtimer(1);
 const int pwmOutPin = PA8; // pin10
+
 
 void setup() {
   int period;
@@ -23,6 +27,9 @@ void setup() {
   SPI_2.beginSlave(); //Initialize the SPI_2 port.
   SPI_2.setBitOrder(MSBFIRST); // Set the SPI_2 bit order
   SPI_2.setDataMode(SPI_MODE0); //Set the  SPI_2 data mode 0
+  pinMode(RTS, INPUT);
+  pinMode(RFS, OUTPUT);
+  pinMode(DTR, INPUT);
 }
 
 
@@ -53,8 +60,16 @@ void messageReceivedCallback(unsigned char msgType, unsigned char * msg) {
      // Serialize and send messgae over serial port
 }
 
+void messageReceivedFromHerculesCallback(unsigned char msgType, unsigned char * msg) {
+     // Serialize and send messgae over serial port
+}
+
 void txDataCallback (unsigned char ch) {
      txBuffer.writeBuffer(ch);
+}
+
+void txToHercules (unsigned char ch) {
+     Serial.write(ch);
 }
 
 class SyncFSM syncFSM(receiveCallback);
@@ -65,6 +80,7 @@ void enterHuntStateCallback () {
 }
 
 class MessageFSM messageFSM(txDataCallback, messageReceivedCallback, enterHuntStateCallback);
+class MessageFSM herculesMessageFSM(txToHercules, messageReceivedFromHerculesCallback, NULL, true);
 
 void sendSerializedCharacter (char ch) {
      Serial.write(ch);
@@ -74,7 +90,6 @@ void processIncomingMessage (MSG * msg) {
      
 }
 
-class CommandSerializer commandSerializer(Serial, processIncomingMessage);
 
 void loop() {
 char ch;
@@ -90,6 +105,6 @@ if (spi_is_tx_empty(SPI2)){
     syncFSM.receivedData(spi_rx_reg(SPI2));  
   }
   if (Serial.available()>0) {
-     commandSerializer.processCharacter(Serial.read());
+     herculesMessageFSM.rxData(Serial.read());
   }
 }
