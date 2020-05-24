@@ -15,6 +15,8 @@
  
 #define BACKLOG  10      /* Passed to listen() */
 #define BUF_SIZE 4096    /* Buffer for  transfers */
+
+bool telnetNegotiaton;
  
 unsigned int transfer(int from, int to)
 {
@@ -84,10 +86,15 @@ void handle(int client, const char *remote_host, const char *remote_port)
       break;
     }
     if (FD_ISSET(client, &set)) {
-      disconnected = transfer(client, server);
+      // Here is where we take care of input from the TN3270 terminal client.
+      if (telnetNegotation) {
+	disconnected = processTelnetNegotation (client);
+      } else {
+	disconnected = process3270DataFromTerminal(client);
+      }
     }
     if (FD_ISSET(server, &set)) {
-      disconnected = transfer(server, client);
+      disconnected = processBSCDataFromHercules(server, client);
     }
   }
   close(server);
