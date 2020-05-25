@@ -284,11 +284,9 @@ void MessageFSM::rxData(uint8_t data) {
   printf ("Received %02X in state %d\n", data, rxState);
   #endif
 
-#ifndef HERCULES
   if (data == SYN) {
     return;
   }
-#endif
   crc = calculateCrcChar (crc, data);
   msgBuffer[msgBufferCnt++] = data;
   if (rxState == 0) { 

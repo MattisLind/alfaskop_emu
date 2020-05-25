@@ -1,8 +1,16 @@
 /* 
- *  A simple TCP proxy
- *  by Martin Broadhurst (www.martinbroadhurst.com)
+ *  A simple TN3270 to BSC ovr TCP hercules style gateway
+ *  by Mattis Lind
+ *
+ *  TCP proxy skeleton by Martin Broadhurst (www.martinbroadhurst.com)
  *  Usage: tcpproxy local_host local_port remote_host remote_port
  */
+
+/*
+  Compile using c++ 3274emu.cpp ../BSCGateway/BSCGateway-STM32/MessageFSM.cpp ../BSCGateway/BSCGateway-STM32/crc-16.c   -DHERCULES -DDEBUG  -o 3274emu
+
+ */
+
  
 #include <stdio.h>
 #include <string.h> /* memset() */
@@ -12,9 +20,13 @@
 #include <unistd.h>
 #include <netdb.h>
 #include <signal.h>
+#include "../BSCGateway/BSCGateway-STM32/MessageFSM.h"
  
 #define BACKLOG  10      /* Passed to listen() */
 #define BUF_SIZE 4096    /* Buffer for  transfers */
+
+int client;
+int server;
 
 char peer1_5[] = { /* Packet 24 */
 0xf5, 0x42, 0x11, 0x40, 0x40, 0x1d, 0x60, 0xc8,
@@ -435,10 +447,174 @@ bool testTelnetOptionsDone() {
 #define IAC 255
 
 
+int sock = 0;
+
+void txData (unsigned char);
+void receivedMessage(unsigned char, unsigned char *);
+void enterHuntState();
+
+class MessageFSM messageFSM(txData, receivedMessage, enterHuntState);
+
+void txData (unsigned char data) {
+  int ret = write( server , &data, 1); 
+  printf ("Sent %02X got back ret=%d\n", data, ret);
+}
+
+int ack;
+
+
+unsigned int writeTextToClient(unsigned char * msg, int length) {
+  unsigned char buf[BUF_SIZE];
+  size_t bytes_written;
+  unsigned int disconnected = 0;
+  int i;
+  printf ("Writing Text To client length=%d\n", length);
+  // We need to remove the  0x27 / ESC that is prepended to the actual data stream.
+  // Then copy in the data from he msg.
+  memcpy(buf, msg+1, length-1);
+  buf[length-1] = IAC;
+  buf[length] = 0xef; // End Of Record
+  bytes_written = write (client, buf, length+1);
+  printf("Buffer to write:");
+  for (i=0;i<length+1;i++) {
+    printf("%02X ", 0xff & buf[i]);
+  }
+  printf("\n");
+  printf ("bytes_written=%lu to client socket.\n", bytes_written);
+  if (bytes_written == -1) {
+    disconnected = 1;
+  }  
+  return disconnected;
+}
+
+unsigned char sendBuffer[BUF_SIZE];
+int bufferLength;
+
+int firstThingToDoCnt=5;
+
+void receivedMessage (unsigned char msgType, unsigned char * msg) {
+  MSG * m;
+  m = (MSG *) msg;
+  unsigned char aid[0];
+  printf ("msgType = %d\n", msgType);
+  switch (msgType) {
+  case ENQ_MESSAGE:
+    printf ("POLL CU=%02X DV=%02X\n",msg[0],msg[2]);
+    if (msg[0] == 0x40) {
+    switch (msg[2]) {
+    case 0x40:
+      if (firstThingToDoCnt) {
+	aid[0]=0x6D;
+	messageFSM.sendTextMessage(1,aid,false);
+	firstThingToDoCnt--;
+      } else {
+	if (bufferLength>0) {
+	  messageFSM.sendTextMessage(bufferLength, sendBuffer, false);
+	  bufferLength=0;
+	} else {
+	  messageFSM.sendEOT();
+	}
+      }
+      break;
+    case 0xc1:
+      messageFSM.sendEOT();
+      //
+      //messageFSM.sendStatusMessage(0x40,0xc1,0xc2,0x40);
+      //aid[0]=0x6c;
+      //messageFSM.sendTextMessage(1,aid,false);
+      break;
+    case 0xc2:
+      messageFSM.sendEOT();
+      //messageFSM.sendStatusMessage(0x40,0xc2,0xc4,0x40);
+      //aid[0]=0x6e;
+      //messageFSM.sendTextMessage(1,aid,false);
+      break;
+    case 0xc3:
+      messageFSM.sendEOT();
+      //messageFSM.sendStatusMessage(0x40,0xc3,0xc8,0x40);
+      //aid[0]=0x6b;
+      //messageFSM.sendTextMessage(1,aid,false);
+      break;
+    case 0xc4:
+      messageFSM.sendEOT();
+      //messageFSM.sendStatusMessage(0x40,0xc4,0x40,0x50);
+      //aid[0]=0x6d;
+      //messageFSM.sendTextMessage(1,aid,false);
+      break;
+    case 0xc5:
+      messageFSM.sendEOT();
+      //aid[0]=0xf0;
+      //messageFSM.sendTestRequestMessage(1,aid,false);
+      //messageFSM.sendStatusMessage(0x40,0xc5,0x40,0x60);
+      break;
+    case 0xc6:
+      messageFSM.sendEOT();
+      //messageFSM.sendStatusMessage(0x40,0xc6,0x40,0xc1);
+      break;
+    case 0xc7:
+      messageFSM.sendEOT();
+      //messageFSM.sendStatusMessage(0x40,0xc7,0xc2,0x40);
+      break;
+    default:
+      break;
+    }
+    } else {
+      // selection
+      messageFSM.sendACK0();
+      ack++;
+    }
+    break;
+  case EOT_MESSAGE:
+    printf ("Got EOT\n");
+    break;
+  case NAK_MESSAGE:
+    printf ("Got NAK\n");
+    break;
+  case ACK0_MESSAGE:
+    printf ("Got ACK0\n");
+    messageFSM.sendEOT();
+    break;
+  case ACK1_MESSAGE:
+    printf ("Got ACK1\n");
+    messageFSM.sendEOT();
+    break;
+  case WACK_MESSAGE:
+    printf ("Got WACK\n");
+    break;
+  case RVI_MESSAGE:
+    printf ("Got RVI\n");
+    break;
+  case STATUS_MESSAGE:
+    printf ("Got STATUS\n");
+    break;
+  case TEXT_MESSAGE:
+    printf ("Got TEXT\n");
+    printf ("Got crcOK = %d\n", m->textData.crcOk);
+    writeTextToClient(m->textData.msg, m->textData.length);
+    if ((ack&1)==1) messageFSM.sendACK1();
+    else messageFSM.sendACK0();
+    ack++;
+    break;
+  case TEST_MESSAGE:
+    printf ("Got TEST\n");
+    break;
+  case ERROR_MESSAGE:
+    printf ("Got ERROR\n");
+    break;
+  default:
+    break;
+  }
+}
+
+void enterHuntState () {
+}
+
+   
 
 void process3270Data(unsigned char ch) {
   if (testTelnetOptionsDone()) {
     // process TN3270 data!
+    sendBuffer[bufferLength++] = ch;
   } else {
     // We are not ready for procssing TN3270 data yet. No point in forwarding data
     printf("Not yet negotaited options done\n");
@@ -480,7 +656,19 @@ void endOfSubParam () {
 }
 
 unsigned int  processBSCDataFromHercules(int server, int client) {
+  int i;
+  unsigned char buf[BUF_SIZE];
   unsigned int disconnected = 0;
+  size_t bytes_read, bytes_written;
+  bytes_read = read(server, buf,BUF_SIZE);
+  if (bytes_read == 0) {
+    disconnected = 1; 
+  } else {
+    for (i=0; i<bytes_read; i++) {
+      printf ("read %02x : %c from BSC line\n", buf[i] & 0xff, buf[i] & 0xff);
+      messageFSM.rxData(buf[i]);
+    }
+  }
   return disconnected;
 }
 
@@ -491,7 +679,7 @@ unsigned int processDataFromTerminal (int client) {
   unsigned char buf[BUF_SIZE];
   const unsigned char terminalTypeRequest [] = {0x18, 0x01};
   int i;
-  unsigned int disconnected = 0;
+  unsigned int disconnected = 0; 
   size_t bytes_read, bytes_written;
   bytes_read = read(client, buf,BUF_SIZE);
   if (bytes_read == 0) {
@@ -543,8 +731,8 @@ unsigned int processDataFromTerminal (int client) {
 	  endOfSubParam();
 	  doTerminalTypeDone = true;
 	  printf ("Terminal param received: %s\n", subParamsBuf);
-	  write(client, peer1_5, sizeof (peer1_5));
-	  write(client, peer1_6, sizeof (peer1_6));
+	  //write(client, peer1_5, sizeof (peer1_5));
+	  //write(client, peer1_6, sizeof (peer1_6));
 	  subState = false;
 	  break;
 	}
@@ -564,8 +752,7 @@ unsigned int processDataFromTerminal (int client) {
 	case TERMTYPE:
 	  printf ("Received TERMTYPE\n");
 	  if (code == WILL) {
-	    sendTelnetSubnegotationParams(client, terminalTypeRequest, 2);
-	    
+	    sendTelnetSubnegotationParams(client, terminalTypeRequest, 2);	    
 	  }
 	  break;
 	case EOR:
@@ -648,7 +835,6 @@ unsigned int sendTelnetWont(int socket, unsigned char option) {
 void handle(int client, const char *remote_host, const char *remote_port)
 {
   struct addrinfo hints, *res;
-  int server = -1;
   unsigned int disconnected = 0;
   fd_set set;
   unsigned int max_sock;
@@ -673,13 +859,13 @@ void handle(int client, const char *remote_host, const char *remote_port)
   }
  
   /* Connect to the host */
-  /*
+  
   if (connect(server, res->ai_addr, res->ai_addrlen) == -1) {
     perror("connect");
     close(client);
     return;
   }
-  */
+  
 
   if (client > server) {
     max_sock = client;
@@ -780,7 +966,7 @@ int main(int argc, char **argv)
     socklen_t size = sizeof(struct sockaddr_in);
     struct sockaddr_in their_addr;
     int newsock = accept(sock, (struct sockaddr*)&their_addr, &size);
- 
+    client = newsock;
     if (newsock == -1) {
       perror("accept");
     }
