@@ -6,6 +6,8 @@ Mostly this is to learn more about av Hecules handles BSC and also learn some th
 
 ## Telnet negotiation
 
+The TN3270 client will start off the telnet session by negotiating a couple of parameters, Binary transmission, Use of EOR and terminal type. I recorded the startup phase when a a client is connecting to Hercules just to hav as a reference. This client sends one or two options at time. But it would work equally well to send all om them in one go as it appears. I assume though that the termtype subnegotiation where the client sends the terminal type string has to happen after the client has responded that it will do terminal type.
+
 |   From      |   Data   | Meaning |
 |-------------|----------|---------|
 |  Server     | FFFD18   |
@@ -18,3 +20,14 @@ Mostly this is to learn more about av Hecules handles BSC and also learn some th
 |  Server     | FFFD00FFFB00 |
 |  Client     | FFFB00 |
 |  Client     | FFFD00 |
+
+## BSC
+I mostly reused code from the herculesIntegration test project for creating the interface towards Hercules. Some code was needed to move data back and forth and to add certain things that was needed for the client to accept the data. A very simple BSC machine that sent correct type of ACK is in the code as well.
+
+After some debugging it actually started to work so well that I was able to log into the system and be greeted with a TSO prompt. I still have some ABENDs which are likely to be due to some bugs in the code. I noticed for example that TCAM is sending more than 660 bytes even though some documents speicfy that the maximum size of a packet is 254 bytes. Perhaps there is some kind of option when TCAM is built that specify the maximum message size.
+
+Login in progress with messages:
+![](https://github.com/MattisLind/alfaskop_emu/raw/master/pics/LoginInProgress.png)
+
+TSO greeting screen:
+![](https://github.com/MattisLind/alfaskop_emu/raw/master/pics/TSO.png)
