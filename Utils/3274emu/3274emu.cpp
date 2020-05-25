@@ -489,8 +489,8 @@ unsigned int writeTextToClient(unsigned char * msg, int length) {
 
 unsigned char sendBuffer[BUF_SIZE];
 int bufferLength;
-
-int firstThingToDoCnt=5;
+int dataToSend = 0;
+int firstThingToDoCnt=0;
 
 void receivedMessage (unsigned char msgType, unsigned char * msg) {
   MSG * m;
@@ -508,8 +508,9 @@ void receivedMessage (unsigned char msgType, unsigned char * msg) {
 	messageFSM.sendTextMessage(1,aid,false);
 	firstThingToDoCnt--;
       } else {
-	if (bufferLength>0) {
+	if (dataToSend==1) {
 	  messageFSM.sendTextMessage(bufferLength, sendBuffer, false);
+	  dataToSend=0;
 	  bufferLength=0;
 	} else {
 	  messageFSM.sendEOT();
@@ -612,9 +613,13 @@ void enterHuntState () {
    
 
 void process3270Data(unsigned char ch) {
+  int i;
   if (testTelnetOptionsDone()) {
     // process TN3270 data!
     sendBuffer[bufferLength++] = ch;
+    printf ("Stored ch=%02x into buffer. Now bufferLength=%d buffer is=", 0xff&ch, bufferLength);
+    for (i=0;i<bufferLength;i++) printf("%02x ", 0xff & sendBuffer[i]);
+    printf("\n");
   } else {
     // We are not ready for procssing TN3270 data yet. No point in forwarding data
     printf("Not yet negotaited options done\n");
@@ -642,6 +647,23 @@ unsigned int sendTelnetSubnegotationParams (int socket, const unsigned char * pa
 #define STATE_PROCESS_OPTION 2
 #define STATE_SUBPARAM_TYPE 3
 #define STATE_SUBPARAM_OPCODE 4
+
+const char *  printStateName (int state) {
+  switch (state) {
+  case STATE_NORMAL:
+    return "STATE_NORMAL";
+  case STATE_IAC_RECEIVED:
+    return "STATE_IAC_RECEIVED";
+  case STATE_PROCESS_OPTION:
+    return "STATE_PROCESS_OPTION";
+  case STATE_SUBPARAM_TYPE:
+    return "STATE_SUBPARAM_TYPE";
+  case STATE_SUBPARAM_OPCODE:
+    return "STATE_SUBPARAM_OPCODE";
+  default:
+    return "STATE_UNKNOWN";
+  }
+} 
 
 unsigned char subParamsBuf [BUF_SIZE];
 int subParamPtr = 0; 
@@ -686,7 +708,7 @@ unsigned int processDataFromTerminal (int client) {
     disconnected = 1;
   } else {
     for (i=0; i<bytes_read; i++) {
-      printf ("read %02x : %c from terminal\n", buf[i] & 0xff, buf[i] & 0xff);
+      printf ("read %02x : %c from terminal in state=%s substate=%s\n", buf[i] & 0xff, buf[i] & 0xff, printStateName(state), subState?"TRUE":"FALSE");
       switch (state) {
       case STATE_NORMAL:
 	if (buf[i] == IAC) {
@@ -704,6 +726,11 @@ unsigned int processDataFromTerminal (int client) {
       case STATE_IAC_RECEIVED:
 
 	switch (buf[i]) {
+	case 0xef:
+	  // EOR
+	  dataToSend=1;
+	  state = STATE_NORMAL;
+	  break;
 	case IAC:
 	  // We got another IAC which means that normal processing of a 255 byte should take place
 	  state = STATE_NORMAL;
@@ -726,14 +753,21 @@ unsigned int processDataFromTerminal (int client) {
 	  state = STATE_SUBPARAM_TYPE;
 	  break;
 	case SE:
-	  printf("Received SE\n");
+	  if (subState) {
+	    printf("Received SE\n");
+	    state = STATE_NORMAL;
+	    endOfSubParam();
+	    doTerminalTypeDone = true;
+	    printf ("Terminal param received: %s\n", subParamsBuf);
+	    //write(client, peer1_5, sizeof (peer1_5));
+	    //write(client, peer1_6, sizeof (peer1_6));
+	    subState = false;
+	  } else {
+	    state = STATE_NORMAL;
+	  }
+	  break;
+	default:
 	  state = STATE_NORMAL;
-	  endOfSubParam();
-	  doTerminalTypeDone = true;
-	  printf ("Terminal param received: %s\n", subParamsBuf);
-	  //write(client, peer1_5, sizeof (peer1_5));
-	  //write(client, peer1_6, sizeof (peer1_6));
-	  subState = false;
 	  break;
 	}
 	break;

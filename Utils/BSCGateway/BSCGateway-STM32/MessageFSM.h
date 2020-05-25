@@ -56,7 +56,7 @@ class MessageFSM {
   private:
     unsigned short crc;
     bool crcOk;
-    uint8_t msgBuffer [300];
+    uint8_t msgBuffer [1100];
     int msgBufferCnt;
     int rxState;
     int byteCounter;
