@@ -309,7 +309,7 @@ void MessageFSM::rxData(uint8_t data) {
       crc = 0;
       break;
     case STX:
-      byteCounter=1023;
+      byteCounter=4096;
       rxState = 5;
       crc = 0;
       break;
@@ -360,7 +360,7 @@ void MessageFSM::rxData(uint8_t data) {
   } else if (rxState == 5) {
     // Waiting for ETB or ETX to come
     if ((data == ETB) || (data == ETX)) {
-      length = 1023-byteCounter;
+      length = 4096-byteCounter;
       byteCounter=2;
       rxState = 9;
       if (data == ETB) {
@@ -369,7 +369,7 @@ void MessageFSM::rxData(uint8_t data) {
       else {
 	thereIsMoreComing = false;
       }
-    } else { // Here comes the data. Up to 1023 bytes of EBCDIC data
+    } else { // Here comes the data. Up to 4096 bytes of EBCDIC data
       if (byteCounter == 0) {
 	rxState = 0;
 	receivedMessageCb(ERROR_MESSAGE, (unsigned char *)  "Message to long");
@@ -388,7 +388,7 @@ void MessageFSM::rxData(uint8_t data) {
     // Check for STX then
     if (data == STX) {
       rxState = 5;
-      byteCounter=1023;
+      byteCounter=4096;
     } else { 
       rxState = 0;
       receivedMessageCb(ERROR_MESSAGE, (unsigned char *)  "State violation - going back to hunt mode when waiting for STX");
