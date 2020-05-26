@@ -459,7 +459,7 @@ class MessageFSM messageFSM(txData, receivedMessage, enterHuntState);
 
 void txData (unsigned char data) {
   int ret = write( server , &data, 1); 
-  printf ("Sent %02X got back ret=%d\n", data, ret);
+  fprintf(logfile, "Sent %02X got back ret=%d\n", data, ret);
 }
 
 int ack;
@@ -470,7 +470,7 @@ unsigned int writeTextToClient(unsigned char * msg, int length) {
   size_t bytes_written;
   unsigned int disconnected = 0;
   int i;
-  printf ("Writing Text To client length=%d\n", length);
+  fprintf(logfile, "Writing Text To client length=%d\n", length);
   // We need to remove the  0x27 / ESC that is prepended to the actual data stream.
   // Then copy in the data from he msg.
   memcpy(buf, msg+1, length-1);
@@ -482,7 +482,7 @@ unsigned int writeTextToClient(unsigned char * msg, int length) {
     fprintf(logfile, "%02X ", 0xff & buf[i]);
   }
   fprintf(logfile, "\n");
-  printf ("bytes_written=%lu to client socket.\n", bytes_written);
+  fprintf(logfile, "bytes_written=%lu to client socket.\n", bytes_written);
   if (bytes_written == -1) {
     disconnected = 1;
   }  
@@ -498,10 +498,11 @@ void receivedMessage (unsigned char msgType, unsigned char * msg) {
   MSG * m;
   m = (MSG *) msg;
   unsigned char aid[0];
-  printf ("msgType = %d\n", msgType);
+  fprintf(logfile, "msgType = %d\n", msgType);
   switch (msgType) {
   case ENQ_MESSAGE:
-    printf ("POLL CU=%02X DV=%02X\n",msg[0],msg[2]);
+    fprintf(logfile, "POLL CU=%02X DV=%02X\n",msg[0],msg[2]);
+    ack=1;
     if (msg[0] == 0x40) {
     switch (msg[2]) {
     case 0x40:
@@ -564,45 +565,45 @@ void receivedMessage (unsigned char msgType, unsigned char * msg) {
     } else {
       // selection
       messageFSM.sendACK0();
-      ack++;
+      ack=1;
     }
     break;
   case EOT_MESSAGE:
-    printf ("Got EOT\n");
+    fprintf(logfile, "Got EOT\n");
     break;
   case NAK_MESSAGE:
-    printf ("Got NAK\n");
+    fprintf(logfile, "Got NAK\n");
     break;
   case ACK0_MESSAGE:
-    printf ("Got ACK0\n");
+    fprintf(logfile, "Got ACK0\n");
     messageFSM.sendEOT();
     break;
   case ACK1_MESSAGE:
-    printf ("Got ACK1\n");
+    fprintf(logfile, "Got ACK1\n");
     messageFSM.sendEOT();
     break;
   case WACK_MESSAGE:
-    printf ("Got WACK\n");
+    fprintf(logfile, "Got WACK\n");
     break;
   case RVI_MESSAGE:
-    printf ("Got RVI\n");
+    fprintf(logfile, "Got RVI\n");
     break;
   case STATUS_MESSAGE:
-    printf ("Got STATUS\n");
+    fprintf(logfile, "Got STATUS\n");
     break;
   case TEXT_MESSAGE:
-    printf ("Got TEXT\n");
-    printf ("Got crcOK = %d\n", m->textData.crcOk);
+    fprintf(logfile, "Got TEXT\n");
+    fprintf(logfile, "Got crcOK = %d\n", m->textData.crcOk);
     writeTextToClient(m->textData.msg, m->textData.length);
     if ((ack&1)==1) messageFSM.sendACK1();
     else messageFSM.sendACK0();
     ack++;
     break;
   case TEST_MESSAGE:
-    printf ("Got TEST\n");
+    fprintf(logfile, "Got TEST\n");
     break;
   case ERROR_MESSAGE:
-    printf ("Got ERROR\n");
+    fprintf(logfile, "Got ERROR\n");
     break;
   default:
     break;
@@ -619,7 +620,7 @@ void process3270Data(unsigned char ch) {
   if (testTelnetOptionsDone()) {
     // process TN3270 data!
     sendBuffer[bufferLength++] = ch;
-    printf ("Stored ch=%02x into buffer. Now bufferLength=%d buffer is=", 0xff&ch, bufferLength);
+    fprintf(logfile, "Stored ch=%02x into buffer. Now bufferLength=%d buffer is=", 0xff&ch, bufferLength);
     for (i=0;i<bufferLength;i++) fprintf(logfile, "%02x ", 0xff & sendBuffer[i]);
     fprintf(logfile, "\n");
   } else {
@@ -671,7 +672,7 @@ unsigned char subParamsBuf [BUF_SIZE];
 int subParamPtr = 0; 
 
 void storeSubParam (unsigned char ch) {
-  printf ("storing %c at ptr=%d\n", ch, subParamPtr);
+  fprintf(logfile, "storing %c at ptr=%d\n", ch, subParamPtr);
   subParamsBuf[subParamPtr++] = ch;
 }
 
@@ -689,7 +690,7 @@ unsigned int  processBSCDataFromHercules(int server, int client) {
     disconnected = 1; 
   } else {
     for (i=0; i<bytes_read; i++) {
-      printf ("read %02x : %c from BSC line\n", buf[i] & 0xff, buf[i] & 0xff);
+      fprintf(logfile, "read %02x : %c from BSC line\n", buf[i] & 0xff, buf[i] & 0xff);
       messageFSM.rxData(buf[i]);
     }
   }
@@ -710,11 +711,11 @@ unsigned int processDataFromTerminal (int client) {
     disconnected = 1;
   } else {
     for (i=0; i<bytes_read; i++) {
-      printf ("read %02x : %c from terminal in state=%s substate=%s\n", buf[i] & 0xff, buf[i] & 0xff, printStateName(state), subState?"TRUE":"FALSE");
+      fprintf(logfile, "read %02x : %c from terminal in state=%s substate=%s\n", buf[i] & 0xff, buf[i] & 0xff, printStateName(state), subState?"TRUE":"FALSE");
       switch (state) {
       case STATE_NORMAL:
 	if (buf[i] == IAC) {
-	  printf ("IAC received\n");
+	  fprintf(logfile, "IAC received\n");
 	  state = STATE_IAC_RECEIVED;
 	} else {
 	  // Normal character - do normal processing according to 3270 Data stream
@@ -748,10 +749,10 @@ unsigned int processDataFromTerminal (int client) {
 	case WILL:
 	  state = STATE_PROCESS_OPTION;
 	  code = buf[i];
-	  printf ("received DONT, DO, WONT or WILL: %02x\n", code);
+	  fprintf(logfile, "received DONT, DO, WONT or WILL: %02x\n", code);
 	  break;
 	case SB:
-	  printf ("Received SB\n");
+	  fprintf(logfile, "Received SB\n");
 	  state = STATE_SUBPARAM_TYPE;
 	  break;
 	case SE:
@@ -760,7 +761,7 @@ unsigned int processDataFromTerminal (int client) {
 	    state = STATE_NORMAL;
 	    endOfSubParam();
 	    doTerminalTypeDone = true;
-	    printf ("Terminal param received: %s\n", subParamsBuf);
+	    fprintf(logfile, "Terminal param received: %s\n", subParamsBuf);
 	    //write(client, peer1_5, sizeof (peer1_5));
 	    //write(client, peer1_6, sizeof (peer1_6));
 	    subState = false;
@@ -774,11 +775,11 @@ unsigned int processDataFromTerminal (int client) {
 	}
 	break;
       case STATE_SUBPARAM_TYPE:
-	printf ("Received SUVPARAM TYPE = %02x\n", buf[i]);
+	fprintf(logfile, "Received SUVPARAM TYPE = %02x\n", buf[i]);
 	state = STATE_SUBPARAM_OPCODE;
 	break;
       case STATE_SUBPARAM_OPCODE:
-	printf ("Received SUBPARAM OPCODE = %02x\n", buf[i]);
+	fprintf(logfile, "Received SUBPARAM OPCODE = %02x\n", buf[i]);
 	state = STATE_NORMAL;
 	subState = true;
 	break;
@@ -786,13 +787,13 @@ unsigned int processDataFromTerminal (int client) {
 	state = STATE_NORMAL;
 	switch (buf[i]) {
 	case TERMTYPE:
-	  printf ("Received TERMTYPE\n");
+	  fprintf(logfile, "Received TERMTYPE\n");
 	  if (code == WILL) {
 	    sendTelnetSubnegotationParams(client, terminalTypeRequest, 2);	    
 	  }
 	  break;
 	case EOR:
-	  printf ("Received EOR\n");
+	  fprintf(logfile, "Received EOR\n");
 	  if (code == WILL) {
 	    willEORDone = true;
 	  } else if (code == DO) {
@@ -800,7 +801,7 @@ unsigned int processDataFromTerminal (int client) {
 	  }
 	  break;
 	case BINARY: 
-	  printf ("Recieved BINARY\n");
+	  fprintf(logfile, "Recieved BINARY\n");
 	  if (code == WILL) {
 	    willBinaryDone = true;
 	  } else if (code == DO) {

@@ -281,7 +281,7 @@ void MessageFSM::messageDone() {
 
 void MessageFSM::rxData(uint8_t data) {
   #ifdef DEBUG
-  printf ("Received %02X in state %d\n", data, rxState);
+  //printf ("Received %02X in state %d\n", data, rxState);
   #endif
 
   if (data == SYN) {
