@@ -398,7 +398,7 @@ void MessageFSM::rxData(uint8_t data) {
   } else if (rxState ==9) {
     // Two CRC digits to be received
     byteCounter--;
-    printf("crc=%04X\n", crc);
+    //printf("crc=%04X\n", crc);
     if (byteCounter == 0) {
       if (crc == 0) {
 	crcOk=true;

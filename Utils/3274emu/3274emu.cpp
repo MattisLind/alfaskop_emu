@@ -21,12 +21,14 @@
 #include <netdb.h>
 #include <signal.h>
 #include "../BSCGateway/BSCGateway-STM32/MessageFSM.h"
+
  
 #define BACKLOG  10      /* Passed to listen() */
 #define BUF_SIZE 4096    /* Buffer for  transfers */
 
 int client;
 int server;
+FILE * logfile;
 
 char peer1_5[] = { /* Packet 24 */
 0xf5, 0x42, 0x11, 0x40, 0x40, 0x1d, 0x60, 0xc8,
@@ -475,11 +477,11 @@ unsigned int writeTextToClient(unsigned char * msg, int length) {
   buf[length-1] = IAC;
   buf[length] = 0xef; // End Of Record
   bytes_written = write (client, buf, length+1);
-  printf("Buffer to write:");
+  fprintf(logfile, "Buffer to write:");
   for (i=0;i<length+1;i++) {
-    printf("%02X ", 0xff & buf[i]);
+    fprintf(logfile, "%02X ", 0xff & buf[i]);
   }
-  printf("\n");
+  fprintf(logfile, "\n");
   printf ("bytes_written=%lu to client socket.\n", bytes_written);
   if (bytes_written == -1) {
     disconnected = 1;
@@ -618,11 +620,11 @@ void process3270Data(unsigned char ch) {
     // process TN3270 data!
     sendBuffer[bufferLength++] = ch;
     printf ("Stored ch=%02x into buffer. Now bufferLength=%d buffer is=", 0xff&ch, bufferLength);
-    for (i=0;i<bufferLength;i++) printf("%02x ", 0xff & sendBuffer[i]);
-    printf("\n");
+    for (i=0;i<bufferLength;i++) fprintf(logfile, "%02x ", 0xff & sendBuffer[i]);
+    fprintf(logfile, "\n");
   } else {
     // We are not ready for procssing TN3270 data yet. No point in forwarding data
-    printf("Not yet negotaited options done\n");
+    fprintf(logfile, "Not yet negotaited options done\n");
   }
   
 }
@@ -754,7 +756,7 @@ unsigned int processDataFromTerminal (int client) {
 	  break;
 	case SE:
 	  if (subState) {
-	    printf("Received SE\n");
+	    fprintf(logfile, "Received SE\n");
 	    state = STATE_NORMAL;
 	    endOfSubParam();
 	    doTerminalTypeDone = true;
@@ -941,7 +943,6 @@ int main(int argc, char **argv)
   struct addrinfo hints, *res;
   int reuseaddr = 1; /* True */
   const char *local_host, *local_port, *remote_host, *remote_port;
-  
   /* Get the local and remote hosts and ports from the command line */
   if (argc < 5) {
     fprintf(stderr, "Usage: tcpproxy local_host local_port remote_host remote_port\n");
@@ -951,7 +952,16 @@ int main(int argc, char **argv)
   local_port = argv[2];
   remote_host = argv[3];
   remote_port = argv[4];
- 
+  
+  if (argc==6) {
+    // logfile
+    logfile = fopen(argv[5], "a");
+    if (logfile == NULL) {
+      fprintf(stderr, "Failed to open log file.\n");
+      exit(1);
+    }
+  }
+
   /* Get the address info */
   memset(&hints, 0, sizeof hints);
   hints.ai_family = AF_INET;
@@ -1005,7 +1015,7 @@ int main(int argc, char **argv)
       perror("accept");
     }
     else {
-      printf("Got a connection from %s on port %d\n",
+      fprintf(logfile, "Got a connection from %s on port %d\n",
 	     inet_ntoa(their_addr.sin_addr), htons(their_addr.sin_port));
       handle(newsock, remote_host, remote_port);
     }
