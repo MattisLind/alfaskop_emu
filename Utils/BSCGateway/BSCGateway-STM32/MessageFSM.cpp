@@ -69,9 +69,9 @@ void MessageFSM::sendStatusMessage(uint8_t CU, uint8_t DV,  uint8_t status, uint
   crc = calculateCrcChar (crc, sense);
   txDataCb(ETX);
   crc = calculateCrcChar (crc, ETX);
+  #ifndef HERCULES
   txDataCb(crc & 0xff);
   txDataCb((crc >> 8) & 0xff);
-  #ifndef HERCULES
   txDataCb(PAD);
   #endif
 }
@@ -101,9 +101,9 @@ void MessageFSM::sendTestRequestMessage(int messageLength, uint8_t * msg, bool t
     txDataCb(ETX);
     crc = calculateCrcChar (crc, ETX);
   }
+  #ifndef HERCULES
   txDataCb(crc & 0xff);
   txDataCb((crc >> 8) & 0xff);
-  #ifndef HERCULES
   txDataCb(PAD);
   #endif
 }
@@ -127,9 +127,9 @@ void MessageFSM::sendTextMessage(int messageLength, uint8_t * msg, bool thereIsM
     txDataCb(ETX);
     crc = calculateCrcChar (crc, ETX);
   }
+  #ifndef HERCULES
   txDataCb(crc & 0xff);
   txDataCb((crc >> 8) & 0xff);
-  #ifndef HERCULES
   txDataCb(PAD);
   #endif
 }
@@ -362,7 +362,12 @@ void MessageFSM::rxData(uint8_t data) {
     if ((data == ETB) || (data == ETX)) {
       length = 4096-byteCounter;
       byteCounter=2;
-      rxState = 9;
+#ifdef HERCULES
+      messageDone();
+      rxState = 0;
+#else
+      rxState = 9; 
+#endif
       if (data == ETB) {
 	thereIsMoreComing = true;
       }
@@ -405,12 +410,7 @@ void MessageFSM::rxData(uint8_t data) {
       } else {
 	crcOk=false;
       }
-#ifdef HERCULES
-      messageDone();
-      rxState = 0;
-#else
       rxState = 2; // wait for the PAD
-#endif
     }
   } else if (rxState == 10) {
     if (data == ENQ) {
