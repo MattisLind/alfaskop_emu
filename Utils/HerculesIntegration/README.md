@@ -274,6 +274,8 @@ Installation and Planning ](http://www.computinghistory.org.uk/downloads/10255)
  * [OS/VS1 Programmers Digest](http://www.bitsavers.org/pdf/ibm/370/OS_VS1/GC24-5091-3_OS_VS1_Rel_3_Programmers_Reference_Digest_Dec73.pdf)
  * [2703 Transmission Control Component Description](http://bitsavers.trailing-edge.com/pdf/ibm/2703/GA27-2703-1_2703_Transmission_Ctl_Component_Descr_May67.pdf)
  * [3274 Control Unit Description and Programmers Guide](http://bitsavers.trailing-edge.com/pdf/ibm/3274/GA23-0061-1_3274_Control_Unit_Description_and_Programmers_Guide_Jan84.pdf)
+ * [General Information Binary Synchronous Communication - Third edition](http://bitsavers.org/pdf/ibm/datacomm/GA27-3004-2_General_Information_Binary_Synchronous_Communications_Oct70.pdf)
+ * [General Information Binary Synchronous Communication - First edition](http://bitsavers.org/pdf/ibm/datacomm/A27-3004-0_bisyncGenDescr.pdf)
  
  ## Links
  
@@ -284,3 +286,4 @@ Installation and Planning ](http://www.computinghistory.org.uk/downloads/10255)
   * [yahoo groups archive of hercules-390: New Async 2703 TTY/2741 driver: request to include into Hercules](https://hercules-390.yahoogroups.narkive.com/B1RUA16u/new-async-2703-tty-2741-driver-request-to-include-into-hercules-mainline)
   * [Pages of Max H. Parke](http://www.lightlink.com/mhp/2703/)
   * [The 2703 BSCA Adapter works!](https://hercules-390.yahoogroups.narkive.com/sSHXTiLW/the-2703-bsca-adapter-works)
+  * [Thread on H390 groups.io discussing issues](https://hercules-390.groups.io/g/group/topic/bsca_driver_in_2703_emulation/74369780) 
