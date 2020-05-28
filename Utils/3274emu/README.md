@@ -27,7 +27,18 @@ I mostly reused code from the herculesIntegration test project for creating the 
 After some debugging it actually started to work so well that I was able to log into the system and be greeted with a TSO prompt. I still have some ABENDs which are likely to be due to some bugs in the code. I noticed for example that TCAM is sending more than 660 bytes even though some documents speicfy that the maximum size of a packet is 254 bytes. Perhaps there is some kind of option when TCAM is built that specify the maximum message size.
 
 Login in progress with messages:
-![](https://github.com/MattisLind/alfaskop_emu/raw/master/pics/LoginInProgress.png)
+![Login in progress](https://github.com/MattisLind/alfaskop_emu/raw/master/pics/LoginInProgress.png)
 
 TSO greeting screen:
-![](https://github.com/MattisLind/alfaskop_emu/raw/master/pics/TSO.png)
+![TSO greeting screen](https://github.com/MattisLind/alfaskop_emu/raw/master/pics/TSO.png)
+
+## Debuging...
+
+Yet more time spent on reading manuals and asking (stuipd) questions on Hercules mailing list. First issue that caused trouble was that the BSC implementation in 2703 and TCAM was not sending CRC and not anticipating it to be sent to it. I sort of know this but had disregaeded from the issus since I thought it worked the way it was. It wasn't. Disabling of CRC in both directions got me much further.
+
+Then I was able to log in, but as soon as I type commands on other lines the the top line of the screen they were misinterpreted by the system. Quite weird. Until I got back and read the 3274 manual again. It clearly stated tha the first text block sent back on the system should include the CU / DV address as the two top bytes. Included that in the response and all worked much, much better.
+
+![REVIEW start screen](https://github.com/MattisLind/alfaskop_emu/raw/master/pics/REVIEW-start.png)
+![REVIEW editing screen](https://github.com/MattisLind/alfaskop_emu/raw/master/pics/REVIEW-editing-COBOL.png)
+
+
