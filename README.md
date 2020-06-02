@@ -1,12 +1,26 @@
-# alfaskop_emu
+# Alfaskop project
 
 ![Alfaskop 4110](https://github.com/MattisLind/alfaskop_emu/raw/master/pics/Alfaskop_console_mode.png)
 
+This project aims to make a Alfaskop 4110 running towards the Hercules IBM emulator and run the Memo mail software by [Verimation](http://www.verimation.se/).
 
-This project aims to make a Alfaskop 4110 running towards the Hercules IBM emulator and run the MEMO SW.
+## Alfaskop
 
 The Alfaskop terminal was a big success for the early Swedish IT industry. In total 900 000 units were delivered world wide.
-More information about the Alfaskop Series 41, marketing material and technical documents can be found [here.](http://www.datormuseum.se/peripherals/terminals/alfaskop)
+More information about the Alfaskop Series 41, marketing material and technical documents can be found [here.](http://www.datormuseum.se/peripherals/terminals/alfaskop). The development of the Alfaskop series of terminals started on the late 1960ies. The first displays, 3100, emulated the IBM 2260 series of terminals. Later models 3500 and 3700 emulated the IBM 3275 and IBM 3277 terminals. S/41 (4100) series emulated te IBM 3278 and IBM 3279 terminals. The 4100 series evolved in into the S/91 seires, with similar capabilities as the S/41 but in modern hardware.
+
+## Memo mail
+
+!(Memo logo)[https://github.com/MattisLind/alfaskop_emu/raw/master/pics/memo_veri2_logo.gif]
+
+The Memo software was originally developed by Volvo IT in the late 1970ies. At its [peak in 1992 over 800](https://sv.wikipedia.org/wiki/Memo_Mail) of the largest coporations in the world used Memo Mail. Memo mail is still developed and maintaied by [Verimation AB](http://www.verimation.se/).
+
+## Hercules
+
+The Hercules project aims at emulating the IBM mainframes with its roots in the S/360 architecture. This architecture has seens extensive development since the mid 1960ies when it was itroduced. First by the 370 series and then onto today with the z-series.
+
+
+
 
 There are today not one single Alfaskop Series 41 terminal that is able to run and show what is was like. The root cause
 is that the system as a whole  is quite complex. The system 41 terminal of Display Unit (DU) requires a communication processor and a floppy drive (FD) to be able to run. It also has no software built in but loads this from the cluster.
