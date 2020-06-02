@@ -6,19 +6,24 @@ This project aims to make a Alfaskop 4110 running towards the Hercules IBM emula
 
 ## Alfaskop
 
-The Alfaskop terminal was a big success for the early Swedish IT industry. In total 900 000 units were delivered world wide.
+The Alfaskop terminal was a big success for the early Swedish IT industry. The product was developed originally developed by SRT, Standard Radion & Telefon which was an ITT owned company. Later the Alfaskop part was moved in to the partyly state owened Stansaab. Which then became DataSAAB. DataSAAB was bought by Ericesson to be part of thge EIS business unit. Later on when Ericcson moved concetrated resources on telecom the EIS unit was sold to Nokia. 
+
+In total 900 000 units were delivered world wide.
 More information about the Alfaskop Series 41, marketing material and technical documents can be found [here.](http://www.datormuseum.se/peripherals/terminals/alfaskop). The development of the Alfaskop series of terminals started on the late 1960ies. The first displays, 3100, emulated the IBM 2260 series of terminals. Later models 3500 and 3700 emulated the IBM 3275 and IBM 3277 terminals. S/41 (4100) series emulated te IBM 3278 and IBM 3279 terminals. The 4100 series evolved in into the S/91 seires, with similar capabilities as the S/41 but in modern hardware.
 
 ## Memo mail
-
-!(Memo logo)[https://github.com/MattisLind/alfaskop_emu/raw/master/pics/memo_veri2_logo.gif]
+![Memo logo](https://github.com/MattisLind/alfaskop_emu/raw/master/pics/memo_veri2_logo.gif)
 
 The Memo software was originally developed by Volvo IT in the late 1970ies. At its [peak in 1992 over 800](https://sv.wikipedia.org/wiki/Memo_Mail) of the largest coporations in the world used Memo Mail. Memo mail is still developed and maintaied by [Verimation AB](http://www.verimation.se/).
 
 ## Hercules
+![Memo logo](https://github.com/MattisLind/alfaskop_emu/raw/master/pics/Hercules.gif)
 
 The Hercules project aims at emulating the IBM mainframes with its roots in the S/360 architecture. This architecture has seens extensive development since the mid 1960ies when it was itroduced. First by the 370 series and then onto today with the z-series.
 
+## IBM
+![Memo logo](https://github.com/MattisLind/alfaskop_emu/raw/master/pics/IBM_logo.svg)
+International Business Machines. 
 
 
 
