@@ -14,7 +14,7 @@ More information about the Alfaskop Series 41, marketing material and technical 
 ## Memo mail
 ![Memo logo](https://github.com/MattisLind/alfaskop_emu/raw/master/pics/memo_veri2_logo.gif)
 
-The Memo software was originally developed by Volvo IT in the late 1970ies. At its [peak in 1992 over 800](https://sv.wikipedia.org/wiki/Memo_Mail) of the largest coporations in the world used Memo Mail. Memo mail is still developed and maintaied by [Verimation AB](http://www.verimation.se/).
+The Memo software was originally developed by Volvo IT in the late 1970ies. At its [peak in 1992 over 800](https://sv.wikipedia.org/wiki/Memo_Mail) of the largest coporations in the world used Memo Mail. Memo mail is still developed and maintaied by [Verimation AB](http://www.verimation.se/). A [text](https://www.diva-portal.org/smash/get/diva2:80406/FULLTEXT01.pdf) on Memo mail and other early mail systems developed.
 
 ## Hercules
 ![Memo logo](https://github.com/MattisLind/alfaskop_emu/raw/master/pics/Hercules.gif)
