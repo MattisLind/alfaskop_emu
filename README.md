@@ -21,15 +21,23 @@ The Memo software was originally developed by Volvo IT in the late 1970ies. At i
 
 The Hercules project aims at emulating the IBM mainframes with its roots in the S/360 architecture. This architecture has seens extensive development since the mid 1960ies when it was itroduced. First by the 370 series and then onto today with the z-series.
 
-## IBM
-![Memo logo](https://github.com/MattisLind/alfaskop_emu/raw/master/pics/IBM_logo.svg)
-International Business Machines. 
-
-
-
+## Why
 There are today not one single Alfaskop Series 41 terminal that is able to run and show what is was like. The root cause
 is that the system as a whole  is quite complex. The system 41 terminal of Display Unit (DU) requires a communication processor and a floppy drive (FD) to be able to run. It also has no software built in but loads this from the cluster.
+Interfacing towards the cluster is quite complex. It uses syncronoues communication and requires specialized hardware to communicate. All these factors jointly most likely made most of these units end up in the trash rather than saved.
 
+Since the system has had an important role in the Swedish IT industry it would be very intersting to show how this system could operate in reality. We wanted to preserve an operating system and demonstrate it in a as like way as possible.
+
+## Architecture
+![Memo logo](https://github.com/MattisLind/alfaskop_emu/raw/master/pics/NewArchitecture.jpg)
+
+The above picture show the overall system architecture. It involves tha full Alfaskop cluster with floppy unit and cluster controller together with the terminal itself. The cluster connects using synchronous BSC communication. A small STM32 microcontroller takes care of the BSC protocol. Handles the byte synchronization and the CRC generation and checking. The data is then sent over a ordinary asnynchronous serial line to the Raspberyy Pi serial port. Inside the Raspberry Pi the socat software takes the data from the serial ports and redirects it to the BSC/TCP port of Hercules. Inside Hercules there is an emulation for the IBM 2703 communications unit. The 2703 is controlled by the TCAM software of the MVS operating system. On top of TCAM the TSO, Time Sharing Option is running which allow users to log in to the system.
+
+## 3270 protocol
+
+The Alfaskop terminals were mostly used for emulating the IBM 3270 terminal series. Although other emulations were available. The software provided from DDHF is the 3270 BSC variant. The 3270 data stream is described in [this](http://bitsavers.trailing-edge.com/pdf/ibm/3270/GA23-0059-4_3270_Data_Stream_Programmers_Reference_Dec88.pdf) document. The [documentatation](http://bitsavers.org/pdf/ibm/3274/GA23-0061-1_3274_Control_Unit_Description_and_Programmers_Guide_Jan84.pdf) for the IBM 3274 Control Unit provide relevant information on how the communication towards the host takes place. The communicationprocessor could either be connected locally to the IBM main frame or remotely using a dial-up or leased line. In the host end there is a [2703](http://bitsavers.informatik.uni-stuttgart.de/pdf/ibm/2703/GA27-2703-1_2703_Transmission_Ctl_Component_Descr_May67.pdf) or [3704](http://bitsavers.informatik.uni-stuttgart.de/pdf/ibm/3704_3705/GC30-3004-5_3704_3705_Communications_Controller_Principles_of_Operation_May1979.pdf) or similar IBM communication unit that interfaces towards the IBM processor. The line normally used 9600 bps syncrounous BSC communication described in [this](http://bitsavers.trailing-edge.com/pdf/ibm/datacomm/GA27-3004-2_General_Information_Binary_Synchronous_Communications_Oct70.pdf) document.
+
+## Old
 
 The basic idea is to use MAME to emulate the CP and the FD. All technical documentation and schematics are available and is scanned.
 ![Alfaskop 4110](https://github.com/MattisLind/alfaskop_emu/raw/master/pics/Alfaskop_emu_architecure.png)
@@ -64,7 +72,5 @@ and provide it to use.
 ![Alfaskop in MAME](https://github.com/MattisLind/alfaskop_emu/raw/master/pics/SoftwareDisks.jpg)
  
 
-## 3270 protocol
 
-The Alfaskop terminals were mostly used for emulating the IBM 3270 terminal series. Although other emulations were available. The software provided from DDHF is the 3270 BSC variant. The 3270 data stream is described in [this](http://bitsavers.trailing-edge.com/pdf/ibm/3270/GA23-0059-4_3270_Data_Stream_Programmers_Reference_Dec88.pdf) document. The [documentatation](http://bitsavers.org/pdf/ibm/3274/GA23-0061-1_3274_Control_Unit_Description_and_Programmers_Guide_Jan84.pdf) for the IBM 3274 Control Unit provide relevant information on how the communication towards the host takes place. The communicationprocessor could either be connected locally to the IBM main frame or remotely using a dial-up or leased line. In the host end there is a [2703](http://bitsavers.informatik.uni-stuttgart.de/pdf/ibm/2703/GA27-2703-1_2703_Transmission_Ctl_Component_Descr_May67.pdf) or [3704](http://bitsavers.informatik.uni-stuttgart.de/pdf/ibm/3704_3705/GC30-3004-5_3704_3705_Communications_Controller_Principles_of_Operation_May1979.pdf) or similar IBM communication unit that interfaces towards the IBM processor. The line normally used 9600 bps syncrounous BSC communication described in [this](http://bitsavers.trailing-edge.com/pdf/ibm/datacomm/GA27-3004-2_General_Information_Binary_Synchronous_Communications_Oct70.pdf) document.
 
