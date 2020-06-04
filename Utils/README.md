@@ -5,7 +5,7 @@ This folder contains a number of small utilities used during the development.
 ## 3274emu
 This is a test to test out the BSC interfacing towards Hercules. It is a quick and dirty implementation of a IBM 3274 control unit. Instead of real 3270 terminals it accespts telnet sessions from TN3270 clients.
 
-## AlfaskopeCommander
+## AlfaskopCommander
 A tool to exercise the HDLC chip on the Ericsson TWIB card to send simple message to the terminal.
 
 ## BSCGateway
