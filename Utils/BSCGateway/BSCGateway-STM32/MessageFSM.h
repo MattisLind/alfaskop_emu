@@ -54,6 +54,7 @@ typedef union msg MSG;
 
 class MessageFSM {
   private:
+    bool herculesMode;
     unsigned short crc;
     bool crcOk;
     uint8_t msgBuffer [4098];
@@ -67,6 +68,7 @@ class MessageFSM {
     void (* receivedMessageCb)(unsigned char, unsigned char *);
     void messageDone();
   public:
+    MessageFSM(void (*)(unsigned char), void (*)(unsigned char, unsigned char *), void (*)(), bool);
     MessageFSM(void (*)(unsigned char), void (*)(unsigned char, unsigned char *), void (*)());
     void rxData (uint8_t data);
     void sendEOT();
