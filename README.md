@@ -2,36 +2,36 @@
 
 ![Alfaskop 4110](https://github.com/MattisLind/alfaskop_emu/raw/master/pics/Alfaskop_console_mode.png)
 
-This project aims to make a Alfaskop 4110 running towards the Hercules IBM emulator and run the Memo mail software by [Verimation](http://www.verimation.se/).
+This project aims to make a Alfaskop 4110 running towards the Hercules IBM mainframe emulator and run the Memo mail software by [Verimation](http://www.verimation.se/).
 
 ## Alfaskop
 
-The Alfaskop terminal was a big success for the early Swedish IT industry. The product was developed originally developed by SRT, Standard Radion & Telefon which was an ITT owned company. Later the Alfaskop part was moved in to the partyly state owened Stansaab. Which then became DataSAAB. DataSAAB was bought by Ericesson to be part of thge EIS business unit. Later on when Ericcson moved concetrated resources on telecom the EIS unit was sold to Nokia. 
+The Alfaskop terminal was a big success for the early Swedish IT industry. The product was originally developed by SRT, Standard Radio & Telefon AB which was an ITT owned company. Later the Alfaskop part was moved in to the partly state owned Stansaab. Which then became DataSAAB. DataSAAB was bought by Ericsson to be part of the EIS business unit. Later on when Ericsson concetrated resources on telecom the EIS unit was sold to Nokia. Eventually Nokia part became ICL and the terminal division ended up in terminal manufacturer Wyse Technologies. 
 
 In total 900 000 units were delivered world wide.
-More information about the Alfaskop Series 41, marketing material and technical documents can be found [here.](http://www.datormuseum.se/peripherals/terminals/alfaskop). The development of the Alfaskop series of terminals started on the late 1960ies. The first displays, 3100, emulated the IBM 2260 series of terminals. Later models 3500 and 3700 emulated the IBM 3275 and IBM 3277 terminals. S/41 (4100) series emulated te IBM 3278 and IBM 3279 terminals. The 4100 series evolved in into the S/91 seires, with similar capabilities as the S/41 but in modern hardware.
+More information about the Alfaskop Series 41, marketing material and technical documents can be found [here.](http://www.datormuseum.se/peripherals/terminals/alfaskop). The development of the Alfaskop series of terminals started in the late 1960ies. The first displays, 3100, emulated the IBM 2260 series of terminals. Later models 3500 and 3700 emulated the IBM 3275 and IBM 3277 terminals. S/41 (4100) series emulated te IBM 3278 and IBM 3279 terminals. The S/41 series evolved in into the S/91 seires, with similar capabilities as the S/41 but in more modern hardware.
 
 ## Memo mail
 ![Memo logo](https://github.com/MattisLind/alfaskop_emu/raw/master/pics/memo_veri2_logo.gif)
 
-The Memo software was originally developed by Volvo IT in the late 1970ies. At its [peak in 1992 over 800](https://sv.wikipedia.org/wiki/Memo_Mail) of the largest coporations in the world used Memo Mail. Memo mail is still developed and maintaied by [Verimation AB](http://www.verimation.se/). A [text](https://www.diva-portal.org/smash/get/diva2:80406/FULLTEXT01.pdf) on Memo mail and other early mail systems developed.
+The Memo software was originally developed by Volvo IT in the late 1970ies. At its [peak in 1992 over 800](https://sv.wikipedia.org/wiki/Memo_Mail) of the largest coporations in the world used Memo Mail. Memo mail is still developed and maintained by [Verimation AB](http://www.verimation.se/). A [text](https://www.diva-portal.org/smash/get/diva2:80406/FULLTEXT01.pdf) on Memo mail and other early mail systems developed.
 
 ## Hercules
 ![Memo logo](https://github.com/MattisLind/alfaskop_emu/raw/master/pics/Hercules.gif)
 
-The Hercules project aims at emulating the IBM mainframes with its roots in the S/360 architecture. This architecture has seens extensive development since the mid 1960ies when it was itroduced. First by the 370 series and then onto today with the z-series.
+The [Hercules](http://www.hercules-390.org/) project aims at emulating the IBM mainframes with its roots in the IBM S/360 architecture. This architecture has seens extensive development since the mid 1960ies when it was introduced. First by the S/370 series and then onto today with the z-series.
 
 ## Why
 There are today not one single Alfaskop Series 41 terminal that is able to run and show what is was like. The root cause
-is that the system as a whole  is quite complex. The system 41 terminal of Display Unit (DU) requires a communication processor and a floppy drive (FD) to be able to run. It also has no software built in but loads this from the cluster.
-Interfacing towards the cluster is quite complex. It uses syncronoues communication and requires specialized hardware to communicate. All these factors jointly most likely made most of these units end up in the trash rather than saved.
+is that the system as a whole was quite complex. The system 41 terminal of Display Unit (DU) requires a communication processor and a floppy drive (FD) to be able to run. It also has no software built in but loads this from the cluster.
+Interfacing towards the cluster is quite complex. It uses synchronous communication and requires specialized hardware to communicate. All these factors jointly most likely made most of these units end up in the trash rather than saved.
 
-Since the system has had an important role in the Swedish IT industry it would be very intersting to show how this system could operate in reality. We wanted to preserve an operating system and demonstrate it in a as like way as possible.
+Since the system has had an important role in the Swedish IT industry it would be very intersting to show how this system could operate in reality. We wanted to preserve an operating ALfaskop system and demonstrate it operating with as high fidelity as possible.
 
 ## Architecture
 ![Memo logo](https://github.com/MattisLind/alfaskop_emu/raw/master/pics/NewArchitecture.jpg)
 
-The above picture show the overall system architecture. It involves tha full Alfaskop cluster with floppy unit and cluster controller together with the terminal itself. The cluster connects using synchronous BSC communication. A small STM32 microcontroller takes care of the BSC protocol. Handles the byte synchronization and the CRC generation and checking. The data is then sent over a ordinary asnynchronous serial line to the Raspberyy Pi serial port. Inside the Raspberry Pi the socat software takes the data from the serial ports and redirects it to the BSC/TCP port of Hercules. Inside Hercules there is an emulation for the IBM 2703 communications unit. The 2703 is controlled by the TCAM software of the MVS operating system. On top of TCAM the TSO, Time Sharing Option is running which allow users to log in to the system.
+The above picture show the overall system architecture. It involves tha full Alfaskop cluster with floppy unit and cluster controller together with the terminal itself. The cluster connects using synchronous BSC communication. A small STM32 microcontroller takes care of the BSC protocol. It handles the byte synchronization and the CRC generation and checking. The data is then sent over a ordinary asnynchronous serial line to the Raspberyy Pi serial port. Inside the Raspberry Pi the socat software takes the data from the serial ports and redirects it to the BSC/TCP port of Hercules. Inside Hercules there is an emulation for the IBM 2703 communication unit. The 2703 is controlled by the TCAM software of the MVS operating system. On top of TCAM the TSO, Time Sharing Option, is running which allow users to log in to the system.
 
 ## 3270 Data Stream and IBM BSC protocol
 
@@ -40,17 +40,16 @@ The Alfaskop terminals were mostly used for emulating the IBM 3270 terminal seri
 ## Alfaskop software
 ![Alfaskop in MAME](https://github.com/MattisLind/alfaskop_emu/raw/master/pics/SoftwareDisks.jpg)
 
-The Alfaskop Series 41 was primarily used as a terminal with emulating various terminal types, like IBM 3278, UNIVAC UTS 400, DEC VT100 etc. The Alfaskop series of terminals were programmed in a special language, SPL. From the beginning this meant StanSAAB programming Language and was a modified variant of PL/1 programming language.
+The Alfaskop Series 41 was primarily used as a terminal with emulating various terminal types, like IBM 3278, UNIVAC UTS 400, DEC VT100 etc. The Alfaskop series of terminals were programmed in a special language, SPL. From the beginning this meant StanSAAB Programming Language and was a modified variant of PL/1 programming language.
 
-Later on other software was developed for the Alfaskop series 41, like Alfaword, which was a wordprocessing package. Another package was called Alfaform. There was also a port of the UCSD p-system to the System 41 series. Together with FD4120 floppy drive a complete personal computer was formed. The only software found this far is the 3278 terminal emulation software to be used in the clustered configuraration (4016).
+Later on other software was developed for the Alfaskop series 41, like Alfaword, which was a wordprocessing package. Another package was called Alfaform. There was also a port of the UCSD p-system to the System 41 series. Together with FD4120 floppy drive a complete personal computer was formed. The only software found this far is the 3278 terminal emulation software to be used in the clustered configuraration (4016). Unfortunately very little software for the Alfaskop system has been preserved. If you happen to have any software for the Alfaskop series, please get in contact with me. 
 
-The system software diskette 4016 has been found at Dansk Datahistorisk Förening. This disk has origninally been with SAS. People there will make an image dump of this disk
-and provide it to use.
+The system software diskette 4016 has been found at Dansk Datahistorisk Förening. This disk has origninally been with SAS. People at DDHF made an image dump of this disk and provided it to us.
 
 
 ## Old architecture idea
 
-In the beginning of this project we had no access to a CPR4101 neither a FD4120 unit. The initial idea was that  based on the software that was available and the scematics that a emulation these can be developed in the MAME framework. It turned out to be quite complicated and is still unfinished. The lack of specification turned out to be a major problem since large part of the interrupthandling was taking place in them. When we eventually was able to get our hands on the real units the focus shited to get the full system running and not emulating parts of the cluster. Thus this the old architecture that was envisioned.
+In the beginning of this project we had no access to a CPR4101 neither a FD4120 unit. The initial idea was that based on the software  and the scematics that was available an emulation of the floppy unit and cluster controller could be developed in the MAME framework. It turned out to be quite complicated and is still unfinished. The lack of specification of the programmable logic parts turned out to be a major problem since large part of the interrupt handling was taking place in them. When we eventually were able to get our hands on the real units the focus shited to get the full system running and not emulating parts of the cluster. Thus this the old architecture that was envisioned.
 
 The basic idea is to use MAME to emulate the CP and the FD. All technical documentation and schematics are available and is scanned.
 ![Alfaskop 4110](https://github.com/MattisLind/alfaskop_emu/raw/master/pics/Alfaskop_emu_architecure.png)
