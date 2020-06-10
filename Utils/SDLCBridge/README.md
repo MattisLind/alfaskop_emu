@@ -22,7 +22,7 @@ to achieve this and what changed is needed to the comm3705 module in Hercules.
 * [SDLC Concepts](http://bitsavers.informatik.uni-stuttgart.de/pdf/ibm/datacomm/GA27-3093-3_SDLC_Concepts_Jun86.pdf)
 
 ### Other
-* [Matt Burke's work on DSLw to interconnect SNA / SDLC](https://github.com/9track/dlsw)
+* [Matt Burke's work on DSLw to interconnect SNA / SDLC](https://www.9track.net/hercules/dlsw/)
 * [SNA / SDLC quick guide by Clif Anderson](https://www.cliffa1994.com/snasteps.htm)
 * [SDLC overview](https://www.euclideanspace.com/coms/protocol/sdlc/index.htm)
 * [VTAM/NCP Node Definition Example](http://ps-2.kev009.com/tl/techlib/manuals/adoclib/3270hcon/hconugd/definvta.htm)
