@@ -26,3 +26,4 @@ to achieve this and what changed is needed to the comm3705 module in Hercules.
 * [SNA / SDLC quick guide by Clif Anderson](https://www.cliffa1994.com/snasteps.htm)
 * [SDLC overview](https://www.euclideanspace.com/coms/protocol/sdlc/index.htm)
 * [VTAM/NCP Node Definition Example](http://ps-2.kev009.com/tl/techlib/manuals/adoclib/3270hcon/hconugd/definvta.htm)
+* [Course on SNA / VTAM](http://bitsavers.informatik.uni-stuttgart.de/pdf/ibm/sna/Kaptronix_SNA.pdf)
