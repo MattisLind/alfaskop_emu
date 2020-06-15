@@ -167,6 +167,27 @@ Unfortunately as soon as the connection from the TN3270 client is down VTAM will
 
 Next step would be to understand a bit more on how to communicate with the Informer 213. It does SDLC over regular V.24/ V.28 line. The intention is to code a small STM32F103 bluepill to do SDLC encoding / decoding.
 
+I had an exchange of with an [expert in SAN / SDLC / VTAM](http://www.lightlink.com/mhp/3705/) which gave these comments:
+
+> As for running SNA over SDLC, I don't think there's anything special - I believe the SNA data is sent in SDLC "I" frames.  I'd expect
+> that a SNRM followed by an ACTPU should get some sort of response out of the controller.  In writing the SDLC driver the only tricky
+> part I remember would be the proper setting of the P/F (poll/final) bit.  I don't remember the specific rules.  The exception to the
+> "everything is an I frame" rule would apply in the case of XID, which was used in the switched (dialup) case.  The IDNUM/IDBLK fields 
+> in the SDLC XID were used by NCP to generate a request-contact (REQCONT) request which was part of the VTAM dial protocol.
+
+> if you do send a SNRM make sure you get a UA in reply.  Then exchange a few RR (receiver ready) SDLC frames prior to attempting the ACTPU...
+
+> This starts to get at the heart of what the "boundary function" really means.  In the real world the NCP would not send the SNRM until
+> first having received the CONTACT request from VTAM.  When UA is received the link immediately enters normal response mode and normal
+> polling commences.  Meanwhile the receipt of the UA also causes NCP to send the CONTACTED request to VTAM which in turn eventually
+> sends ACTPU.  It is probably not an error to send the ACTPU right on the heels of the UA but that might tempt the timing bugs to make
+> an appearance   [in comm3705 at present, the CONTACTED is sent much sooner].
+
+> Another function not done in comm3705.c but might be added would be proper modem lead control (for DTR and DSR) conditioned on the 
+> ACTLINK and DACTLINK functions...
+
+So the basic idea is to do some rudimentary testing using the STM32 sending a SNRM message, waiting for the UA frame acknowledgment and thensend an ACTPU to activate the PU inside the terminal (i.e. the 3274).
+
 ## Links
 
 ### SNA
@@ -182,6 +203,9 @@ Next step would be to understand a bit more on how to communicate with the Infor
 ### SDLC
 * [SDLC General Information](http://bitsavers.informatik.uni-stuttgart.de/pdf/ibm/datacomm/GA27-3093-2_SDLC_General_Information_Mar79.pdf)
 * [SDLC Concepts](http://bitsavers.informatik.uni-stuttgart.de/pdf/ibm/datacomm/GA27-3093-3_SDLC_Concepts_Jun86.pdf)
+
+### 3274
+* [3274 Control Unit Description and Programmers Guide](http://bitsavers.trailing-edge.com/pdf/ibm/3274/GA23-0061-1_3274_Control_Unit_Description_and_Programmers_Guide_Jan84.pdf)
 
 ### Other
 * [Matt Burke's work on DSLw to interconnect SNA / SDLC](https://www.9track.net/hercules/dlsw/)
