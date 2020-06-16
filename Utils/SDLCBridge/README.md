@@ -9,6 +9,32 @@ to achieve this and what changed is needed to the comm3705 module in Hercules.
 ## VTAM configuration
 I use the  TK4- MVS dirstribuition as the basis for all experimentation. But the existing configuration of VTAM in TK4- is more complex than necessary, possibly to include a number of features avaiable in the comm3705 code of Hercules. First it defines remote 3705 nodes. Something that is not really necessary and secondly it also add a Switched SNA Major Node configuration. To have an as simple VTAM configuration I have been trying to create a config with one single channel attached local 3705 communictation controller and one single terminal attached (through a 3274 or similar).
 
+So the steps are:
+
+1. Edit the SYS1.VTAMLST(ATCCON01) member to reflect your config
+2. Edit the SYS1.VTAMLST(N07) member for the config of your NCP.
+3. Erase all members of SYS1.VTAMOBJ to that they will not interfere. These members will be rebuilt as soon as VTAM starts.
+4. Edit the SYS1.VTAMSRC(N07R) so that it matches SYS1.VTAMLST(N07). Make sure you have added a line for printing the assembly listing output.
+5. Submit the N07R job for execution. It will create the SYS1.VTAMOBJ(N07R) member in the process when assembling and linking. It also produces interesting output on your prnter. Check it.
+
+### ATCCON01
+
+This is my SYS1.VTAMLST(ATCCON01) 
+
+```
+***********************************************************************                  1
+*  STARTLIST   T K 4 -                                                *                  1
+***********************************************************************                  1
+ATSO,                              /* TSO application major node     */X                 1
+ASNASOL,                           /* SNA network solicitor          */X                 1
+AJRP,                              /* JRP (JES2 remote print)        */X                 1
+L3274,                             /* local non-SNA major node       */X                 1
+N07                                /* local  3705 NCP subarea  7     */                  1
+```
+It is possible to name the file something else than N07 of course. But it has to match with the SYS1.VTAMSRC member with an R on it.
+
+
+### N07
 The configuration is located in the SYS1.VTAMLST(N07) member.
 
 ```
@@ -54,6 +80,8 @@ N07L21   LU    VPACING=0,                                              +        
          
 ```
 It defines a 3705, attached to channel address 660. There is one line N07L2, with a PU (Physical Unit) called N07P2 (which is the 3274 itself) and one LU (Logical Unit) called N07L21. The names chosen is supposed to match existing configuration in SYS1.VTAMSRC(N07R). This file is read when VTAM is started and compiled into a binary file. This file is then placed in the SYS1.VTAMOBJ as member N07. It is very important to remove these binary caches when changing the text file.
+
+### N07R
 
 ```
          MACRO                                                                          10
@@ -131,7 +159,122 @@ $LUPOOL  RRTENT RMTP1=38,RMTP2=20                                               
          END   N07R  
 
 ```
-This file is actually a IBM S/370 Macro assembly program. As can been seen there are the definitions for N07L2 and N07P2 and N07L21 already there. So it was not necessary to assembler and link this file, which otherwise would have been needed.
+This file is actually a IBM S/370 Macro assembly program. As can been seen there are the definitions for N07L2 and N07P2 and N07L21 already there. 
+
+When the N07R member is assembled and linked module it give you interesting information as the macros in it is expanded which can be useful to have. So run the submit the N07R job but check that a line for outputing the assembly listing is included in the job. Add this line somewhere among the top JCL statments:
+
+> //ASM.SYSPRINT DD SYSOUT=A                                                               1
+
+This will print to the printer which handles class A printouts. An excerpt of the printout would look like this:
+
+```
+000000                               54 N07R     START
+                                     55          PRINT GEN
+                                     56          RRTTAB KEYLN=252,UNITN=15,BUFPD=28,NODEL=5,SUBAREA=7
+000000                               57+RRTHDRS  DS    0H
+000000 000A                          58+         DC    AL2(RRTHDRE-RRTHDRS) RRTHDRLN  HEADER SIZE
+000002 00FC                          59+         DC    AL2(252)         +2 RRTKEYLN (TSOMCP UNITSZ?)
+000004 0F                            60+         DC    AL1(15)          +4 RRTUNITN (DCBUNTCT)
+000005 00                            61+         DC    AL1(0)           +5 RRTUNITR
+000006 00                            62+         DC    AL1(0)           +6 RRTKEYLR
+000007 1C                            63+         DC    AL1(28)          +7 RRTBUFPD
+000008 00                            64+         DC    AL1(0)           +8 RRTXTPD
+000009 05                            65+         DC    AL1(5)           +9 RRTNODEL #BITS IN SUBAREA
+00000A                               66+RRTHDRE  DS    0H
+                                     67 N07      RRTENT RMTP1=0,RMTP2=20
+00000A D5F0F74040404040              68+         DC    CL8'N07'
+000012 3800                          69+         DC    AL2(14336+0)
+000014 00                            70+         DC    XL1'0'
+000015 20                            71+         DC    XL1'20'
+                                     72 N07L1    RRTENT RMTP1=B8,RMTP2=20
+000016 D5F0F7D3F1404040              73+         DC    CL8'N07L1'
+00001E 3801                          74+         DC    AL2(14336+1)
+000020 B8                            75+         DC    XL1'B8'
+000021 20                            76+         DC    XL1'20'
+                                     77 N07L2    RRTENT RMTP1=B8,RMTP2=20
+000022 D5F0F7D3F2404040              78+         DC    CL8'N07L2'
+00002A 3802                          79+         DC    AL2(14336+2)
+00002C B8                            80+         DC    XL1'B8'
+00002D 20                            81+         DC    XL1'20'
+                                     82 N07L3    RRTENT RMTP1=B8,RMTP2=20
+00002E D5F0F7D3F3404040              83+         DC    CL8'N07L3'
+000036 3803                          84+         DC    AL2(14336+3)
+000038 B8                            85+         DC    XL1'B8'
+000039 20                            86+         DC    XL1'20'
+                                     87 N07P1    RRTENT RMTP1=78,RMTP2=20
+00003A D5F0F7D7F1404040              88+         DC    CL8'N07P1'
+000042 3804                          89+         DC    AL2(14336+4)
+000044 78                            90+         DC    XL1'78'
+000045 20                            91+         DC    XL1'20'
+                                     92 N07L11   RRTENT RMTP1=38,RMTP2=20
+000046 D5F0F7D3F1F14040              93+         DC    CL8'N07L11'
+00004E 3805                          94+         DC    AL2(14336+5)
+000050 38                            95+         DC    XL1'38'
+000051 20                            96+         DC    XL1'20'
+                                     97 N07L12   RRTENT RMTP1=38,RMTP2=20
+000052 D5F0F7D3F1F24040              98+         DC    CL8'N07L12'
+00005A 3806                          99+         DC    AL2(14336+6)
+00005C 38                           100+         DC    XL1'38'
+00005D 20                           101+         DC    XL1'20'
+                                    102 N07L13   RRTENT RMTP1=38,RMTP2=20
+00005E D5F0F7D3F1F34040             103+         DC    CL8'N07L13'
+000066 3807                         104+         DC    AL2(14336+7)
+000068 38                           105+         DC    XL1'38'
+000069 20                           106+         DC    XL1'20'
+                                    107 N07P2    RRTENT RMTP1=78,RMTP2=20
+00006A D5F0F7D7F2404040             108+         DC    CL8'N07P2'
+000072 3808                         109+         DC    AL2(14336+8)
+000074 78                           110+         DC    XL1'78'
+000075 20                           111+         DC    XL1'20'
+                                    112 N07L21   RRTENT RMTP1=38,RMTP2=20
+000076 D5F0F7D3F2F14040             113+         DC    CL8'N07L21'
+00007E 3809                         114+         DC    AL2(14336+9)
+000080 38                           115+         DC    XL1'38'
+000081 20                           116+         DC    XL1'20'
+                                    117 N07P3    RRTENT RMTP1=78,RMTP2=20
+000082 D5F0F7D7F3404040             118+         DC    CL8'N07P3'
+00008A 380A                         119+         DC    AL2(14336+10)
+00008C 78                           120+         DC    XL1'78'
+00008D 20                           121+         DC    XL1'20'
+                                    122 N07L31   RRTENT RMTP1=38,RMTP2=20
+00008E D5F0F7D3F3F14040             123+         DC    CL8'N07L31'
+000096 380B                         124+         DC    AL2(14336+11)
+000098 38                           125+         DC    XL1'38'
+000099 20                           126+         DC    XL1'20'
+                                    127 N07LN08  RRTENT RMTP1=B8,RMTP2=20
+00009A D5F0F7D3D5F0F840             128+         DC    CL8'N07LN08'
+0000A2 380C                         129+         DC    AL2(14336+12)
+0000A4 B8                           130+         DC    XL1'B8'
+0000A5 20                           131+         DC    XL1'20'
+                                    132 N07PN08  RRTENT RMTP1=78,RMTP2=20
+0000A6 D5F0F7D7D5F0F840             133+         DC    CL8'N07PN08'
+0000AE 380D                         134+         DC    AL2(14336+13)
+0000B0 78                           135+         DC    XL1'78'
+0000B1 20                           136+         DC    XL1'20'
+                                    137 $LUPOOL  RRTENT RMTP1=38,RMTP2=20
+0000B2 5BD3E4D7D6D6D340             138+         DC    CL8'$LUPOOL'
+0000BA 380E                         139+         DC    AL2(14336+14)
+0000BC 38                           140+         DC    XL1'38'
+0000BD 20                           141+         DC    XL1'20'
+                                    142          RRTEND
+0000BE FF                           143+         DC     X'FF'
+0000BF 0000000000000000             144+         DC     XL11'0'
+000000                              145          END   N07R
+```
+This is the RRT table and it show address information for the system.
+
+What to to look for is the information on lines 69, 74, 109 and 114. 
+N07 which is the 3705 itself is at subarea 8 address 0.
+> 000012 3800                          69+         DC    AL2(14336+0)
+N07L1 is at subarea 7 address 1.
+> 00001E 3801                          74+         DC    AL2(14336+1)
+N07P2 is at subarea 7 address 8.
+> 000072 3808                         109+         DC    AL2(14336+8)
+N07L21 is at subarea 7 address 9.
+> 00007E 3809                         114+         DC    AL2(14336+9)
+
+Please note that we have already decided that MAXSUBA=31 which means that 5 bits are used for subarea and the remaining 11 bits is the node address. So for example the address 3808 is in binary 0011 1000 0000 1000 or regrouped as 00111 and 00000001000 which is then 7 and 8, which is the address of the LU.
+
 
 During startup I now see messages:
 
