@@ -265,12 +265,19 @@ This is the RRT table and it show address information for the system.
 
 What to to look for is the information on lines 69, 74, 109 and 114. 
 N07 which is the 3705 itself is at subarea 8 address 0.
+
 > 000012 3800                          69+         DC    AL2(14336+0)
+
 N07L1 is at subarea 7 address 1.
+
 > 00001E 3801                          74+         DC    AL2(14336+1)
+
 N07P2 is at subarea 7 address 8.
+
 > 000072 3808                         109+         DC    AL2(14336+8)
+
 N07L21 is at subarea 7 address 9.
+
 > 00007E 3809                         114+         DC    AL2(14336+9)
 
 Please note that we have already decided that MAXSUBA=31 which means that 5 bits are used for subarea and the remaining 11 bits is the node address. So for example the address 3808 is in binary 0011 1000 0000 1000 or regrouped as 00111 and 00000001000 which is then 7 and 8, which is the address of the LU.
