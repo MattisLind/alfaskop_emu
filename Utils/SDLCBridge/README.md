@@ -315,6 +315,42 @@ V NET,ACT,ID=N07L21,LOGON=SNASOL,LOGMODE=MHP3278E
 ```
 Unfortunately as soon as the connection from the TN3270 client is down VTAM will detect some kind of fault and the same command need to be re-issued to be able to login. This also need further investigation.
 
+This patch from Max Parke resolves the problem with disconnecting the TN3270.
+
+> Here are two suggestions, should clean up some of the crashes and other weird stuff ...
+
+> At the top of make_sna_requests4(), place a return statement (right after the local variables defs).  Do the same in 
+> make_sna_requests5().   The '4' function is really not useful in the non-dial case.  Likewise '5' sends INOP which seems to
+> cause the error messages at logoff time...
+
+> In an ideal world the sending of INOP would not be done during a "normal" disconnect, but should still be there in the case
+> where it was originally intended - not sure offhand what the proper conditions were...
+```
+diff --git a/comm3705.c b/comm3705.c
+index 7b9450e..60a3921 100644
+--- a/comm3705.c
++++ b/comm3705.c
+@@ -1745,6 +1745,7 @@ static void make_sna_requests4 (COMMADPT *ca, int flag, BYTE pu_type) {
+     int     ru_size;
+     U32     stids;
+     void    *eleptr;
++    return;
+     eleptr = get_bufpool(&ca->freeq);
+     if (!eleptr)  {
+         WRMSG(HHC01020, "E", SSID_TO_LCSS(ca->dev->ssid), ca->dev->devnum, "SNA request4");
+@@ -1813,6 +1814,7 @@ static void make_sna_requests5 (COMMADPT *ca) {
+     BYTE    *ru_ptr;
+     int     ru_size;
+     void    *eleptr;
++    return;
+     eleptr = get_bufpool(&ca->freeq);
+     if (!eleptr)  {
+         WRMSG(HHC01020, "E", SSID_TO_LCSS(ca->dev->ssid), ca->dev->devnum, "SNA request5");
+```
+
+
+
+
 ## SDLC
 
 Next step would be to understand a bit more on how to communicate with the Informer 213. It does SDLC over regular V.24/ V.28 line. The intention is to code a small STM32F103 bluepill to do SDLC encoding / decoding.
