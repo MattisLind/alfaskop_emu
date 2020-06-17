@@ -222,8 +222,10 @@ void initBSC () {
 
 
 char rxBuf[255];
-char txBuf[18] = {0xFF,0x37, 0xFF, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x32, 0x32, 0x40, 0x40, 0x40, 0x40, 0x2D, 0xFF};
-int txLen=18;
+char * txBuf;
+char txBufPoll[5]= {0x40, 0x40, 0x40, 0x40, 0x2D};
+char txBufStatus[9] = {0x01, 0x6C, 0xD9, 0x02, 0x40, 0x40, 0x40, 0x70, 0x03};
+int txLen;
 int txCnt=0, rxCnt=0;
 int txState=0, rxDone=0, txDone=1;
 int cmdState = 0;
@@ -246,44 +248,7 @@ void loop() {
   int tmp, tmp2;
   int i;
   int data;
-  /*if (txDone == 3) {
-    if ((((uint32_t) micros()) - oldTimerRTSValue) > 400) {
-      txDone=0;  
-      // We have sent all bytes. Now we want to stop the transmitter and set RTS low. But not until all the CRC bytes
-      // has been sent. Do we need to do special handling for this?
-      // What if we just stop it directly?
-      //delay_us(120);
-      writeControlRegister(0, 0b00000101);  // Next write is to WR5 
-      writeControlRegister(0, 0b01101011);  // 8 bits Tx Enable CCITT-CRC RTS OFF Tx CRC enable 
-    }        
-  }
-  if (txDone == 2) {
-    if ((((uint32_t) micros()) - oldTimerValue) > 120) {
-      txDone=1;  
-      // We have sent all bytes. Now we want to stop the transmitter and set RTS low. But not until all the CRC bytes
-      // has been sent. Do we need to do special handling for this?
-      // What if we just stop it directly?
-      //delay_us(120);
-      writeControlRegister(0, 0b00000101);  // Next write is to WR5 
-      writeControlRegister(0, 0b01100001);  // 8 bits Tx Enable CCITT-CRC RTS OFF Tx CRC enable 
-    }
-  }
-  if (rxDone == 1) {
-    // print out the string and receive enable receiver again
-    Serial1.println();
-    Serial1.print("RECEIVED FRAME: ");
-    for(i=0; i < rxCnt; i++) {
-      printTwoDigitHex(rxBuf[i]);
-      Serial1.write(' ');
-    }
-    Serial1.println();
-    rxDone = 0;
-    rxCnt=0;
-    Serial1.print("ALFASKOP COMMANDER> " );
-  }
-  */
   tmp = readStatusRegister(1);
-  //printTwoDigitHex(tmp); 
   if (tmp & 0x01) {
     data = readDataRegister(1);
     printTwoDigitHex(data);
@@ -295,13 +260,13 @@ void loop() {
     }
   }
   if (tmp & 0x04) {
-    if (txDone == 0) {
+    if (txDone > 0) {
       if (txCnt < txLen) {
         writeDataRegister(1, txBuf[txCnt]);
         // Reset the EOM by issuing a RESET Tx Underrun / EOM Latch to force CRC generation
         txCnt++;
       } else {
-        txDone = 1; 
+        txDone = 0; 
         writeControlRegister(1, 5, 0b11100110);  // Next write is to WR5 - Disable Tx   
       }
     } 
@@ -325,10 +290,26 @@ void loop() {
           case 'P':  // send poll
             Serial1.write(tmp);
             Serial1.println();
-            if (txDone == 0) {
+            txBuf = txBufPoll;
+            txLen = 5;
+            if (txDone > 0) {
               Serial1.println("SENDING IN PROGRESS");
             } else {
-              txDone = 0;  
+              txDone = 2;  
+              txCnt=0;   
+              writeControlRegister(1, 5, 0b11101110);  // Next write is to WR5 - Enable Tx                        
+            } 
+            Serial1.print("IBM BSC COMMANDER> " );
+            break;
+          case 'S':
+            Serial1.write(tmp);
+            Serial1.println();
+            txLen = 9;
+            txBuf = txBufStatus;
+            if (txDone > 0) {
+              Serial1.println("SENDING IN PROGRESS");
+            } else {
+              txDone = 1;  
               txCnt=0;   
               writeControlRegister(1, 5, 0b11101110);  // Next write is to WR5 - Enable Tx                        
             } 
