@@ -73,7 +73,7 @@ void txDataCallback (unsigned char ch) {
 }
 
 void txToHercules (unsigned char ch) {
-     Serial.write(ch);
+     Serial1.write(ch);
 }
 
 class SyncFSM syncFSM(receiveCallback);
@@ -99,7 +99,7 @@ if (spi_is_tx_empty(SPI2)){
   if (spi_is_rx_nonempty(SPI2)) {
     syncFSM.receivedData(spi_rx_reg(SPI2));  
   }
-  if (Serial.available()>0) {
-     herculesMessageFSM.rxData(Serial.read());
+  if (Serial1.available()>0) {
+     herculesMessageFSM.rxData(Serial1.read());
   }
 }

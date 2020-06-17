@@ -33,17 +33,3 @@ unsigned short calculateCrcChar (unsigned short crc, unsigned char data_p) {
     }
   return crc;
 }
-
-unsigned short crc16(unsigned char *data_p, unsigned short length, unsigned short crc, unsigned short POLY)
-{
-
-
-
-  if (length == 0)
-    return (~crc);
-
-  do { crc = calculateCrcChar(crc, (*data_p) & 0xff ); data_p++; } while (--length);
-
-
-      return (crc);
-}

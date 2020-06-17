@@ -57,7 +57,7 @@ class MessageFSM {
     bool herculesMode;
     unsigned short crc;
     bool crcOk;
-    uint8_t msgBuffer [4098];
+    uint8_t msgBuffer [4096];
     int msgBufferCnt;
     int rxState;
     int byteCounter;
