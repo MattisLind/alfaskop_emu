@@ -313,7 +313,7 @@ But the same command can be given on the console and then the terminal will be a
 ```
 V NET,ACT,ID=N07L21,LOGON=SNASOL,LOGMODE=MHP3278E
 ```
-Unfortunately as soon as the connection from the TN3270 client is down VTAM will detect some kind of fault and the same command need to be re-issued to be able to login. This also need further investigation.
+Unfortunately as soon as the connection from the TN3270 client is down VTAM will detect some kind of fault and the same command need to be re-issued to be able to login. ~~This also need further investigation.~~
 
 This patch from Max Parke resolves the problem with disconnecting the TN3270.
 
