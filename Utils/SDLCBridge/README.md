@@ -276,7 +276,7 @@ N07L1 is at subarea 7 address 1.
 ```
 N07P2 is at subarea 7 address 8.
 ```
-00072 3808                         109+         DC    AL2(14336+8)
+000072 3808                         109+         DC    AL2(14336+8)
 ```
 N07L21 is at subarea 7 address 9.
 ```
