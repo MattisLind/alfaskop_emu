@@ -532,6 +532,9 @@ This is a trace from MVS startup to shutdown including a logon and then issuing 
 * [SDLC General Information](http://bitsavers.informatik.uni-stuttgart.de/pdf/ibm/datacomm/GA27-3093-2_SDLC_General_Information_Mar79.pdf)
 * [SDLC Concepts](http://bitsavers.informatik.uni-stuttgart.de/pdf/ibm/datacomm/GA27-3093-3_SDLC_Concepts_Jun86.pdf)
 
+### NCP
+* [IBM 3705 Communicatons COntroller Network Control Program Generation and Utilities, Guide and Reference Manual](http://bitsavers.org/pdf/ibm/3704_3705/GC30-3000_3705_NCPGEN_Apr72.pdf)
+
 ### 3274
 * [3274 Control Unit Description and Programmers Guide](http://bitsavers.trailing-edge.com/pdf/ibm/3274/GA23-0061-1_3274_Control_Unit_Description_and_Programmers_Guide_Jan84.pdf)
 
