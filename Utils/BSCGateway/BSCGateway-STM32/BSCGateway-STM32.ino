@@ -1,6 +1,10 @@
 #include <SPI.h>
 #include "ebcdic.h"
 #include "lsbmsb.h"
+#include "RingBuffer.h"
+#include "SyncFSM.h"
+#include "MessageFSM.h"
+
 #define RTS PB11 // Input
 #define RFS PB1  // Output
 #define DTR PB10 // Input 
@@ -81,15 +85,6 @@ void enterHuntStateCallback () {
 
 class MessageFSM messageFSM(txDataCallback, messageReceivedCallback, enterHuntStateCallback);
 class MessageFSM herculesMessageFSM(txToHercules, messageReceivedFromHerculesCallback, NULL, true);
-
-void sendSerializedCharacter (char ch) {
-     Serial.write(ch);
-}
-
-void processIncomingMessage (MSG * msg) {
-     
-}
-
 
 void loop() {
 char ch;
