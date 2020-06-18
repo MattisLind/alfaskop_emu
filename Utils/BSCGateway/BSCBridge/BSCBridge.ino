@@ -38,7 +38,7 @@ void setup() {
   int maxduty;
   // put your setup code here, to run once:
   pwmtimer.pause();
-  period =13; // PWM period in useconds, freq 300 Hz
+  period = 104; // PWM period in useconds, freq 300 Hz
   maxduty = pwmtimer.setPeriod(period);
   pinMode(pwmOutPin, PWM);
   pwmtimer.refresh();
@@ -96,7 +96,7 @@ void printBufferInEBCDIC (const unsigned char  * buf, int length) {
         Serial.print(" ");
       } else {
         if (isprint(buf[j])) {
-          Serial.print(buf[j])
+          Serial.print(buf[j]);
           Serial.print(' ');  
         } else {
           Serial.print(". ");
@@ -266,6 +266,8 @@ void messageReceivedFromHerculesCallback(unsigned char msgType, unsigned char * 
       messageFSM.sendTestRequestMessage(((MSG *) msg)->testData.length, ((MSG *) msg)->testData.msg, ((MSG *) msg)->testData.thereIsMoreComing);
       break;               
     case ERROR_MESSAGE:
+      printMillis();
+      Serial.print("Received an ERROR from Hercules");
       break;                                
   }
 }
