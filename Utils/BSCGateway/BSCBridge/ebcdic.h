@@ -1,3 +1,6 @@
+#ifndef _EBCDIC_H_
+#define _EBCDIC_H_
+
 #define NUL 0x00
 #define SOH 0x01
 #define STX 0x02
@@ -50,3 +53,9 @@
 #define PAD 0xff
 
 #define isLinkControlChar(ch) ((ch==STX) || (ch==ETX) || (ch==DLE) || (ch==ETB) || (ch==ENQ) || (ch==SYN) || (ch==IUS)) 
+
+char ASCIItoEBCDIC(const unsigned char);
+char EBCDICtoASCII(const unsigned char);
+
+
+#endif _EBCDIC_H_
