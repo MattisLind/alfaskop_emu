@@ -55,12 +55,71 @@ void setup() {
 }
 
 
+void printMillis() {
+  unsigned long time = millis();
+  if (time < 10L) Serial.print('0');
+  if (time < 100L) Serial.print('0');
+  if (time < 1000L) Serial.print('0');
+  if (time < 10000L) Serial.print('0');
+  if (time < 100000L) Serial.print('0');
+  if (time < 1000000L) Serial.print('0');
+  if (time < 10000000L) Serial.print('0');
+  if (time < 100000000L) Serial.print('0');
+  if (time < 1000000000L) Serial.print('0');
+  if (time < 10000000000L) Serial.print('0');
+  Serial.print(time);
+  Serial.print(' ');
+}
+
 void printTwoDigitHex (int data) {
   if (data < 16) {
     Serial.print('0');
   } 
   Serial.print(data, HEX);
 }
+
+void printBufferInEBCDIC (const unsigned char  * buf, int length) {
+  int i, j;
+  for (i=0;i<length;i+=16) {
+    printMillis();
+    Serial.print(' ');
+    for (j=i; j < (i+16); j++) {
+      if (j>=length) {
+        Serial.print("   ");
+      } else {
+        printTwoDigitHex (buf[j]);
+      }
+    }
+    Serial.print("  ");
+    for (j=i; j < (i+16); j++) {
+      if (j>=length) {
+        Serial.print(" ");
+      } else {
+        if (isprint(buf[j])) {
+          Serial.print(buf[j])
+          Serial.print(' ');  
+        } else {
+          Serial.print(". ");
+        }
+      }
+    }
+    Serial.print("  ");
+    for (j=i; j < (i+16); j++) {
+      if (j>=length) {
+        Serial.print(' ');
+      } else {
+        if (isprint(EBCDICtoASCII(buf[j]))) {
+          Serial.print(EBCDICtoASCII(buf[j]));
+          Serial.print(' ');
+        } else {
+          Serial.print(". ");
+        }
+      }
+    }
+    Serial.println();
+  }
+}
+
 
 void printEightHexDigits (uint32 data) {
   printTwoDigitHex((data >> 24) & 0xff);  
@@ -82,10 +141,12 @@ void messageReceivedCallback(unsigned char msgType, unsigned char * msg) {
   // Dispatch message coming from terminal based on msgType and let the hercules facing take on.
   switch (msgType) {
     case EOT_MESSAGE:
+      printMillis();
       Serial.println("Received EOT from Cluster controller");
       herculesMessageFSM.sendEOT();
       break;
     case ENQ_MESSAGE:
+      printMillis();
       Serial.print("Received ENQ for CU=");
       Serial.print(((MSG *) msg)->enqData.CU, HEX);
       Serial.print(" DV=");
@@ -94,26 +155,32 @@ void messageReceivedCallback(unsigned char msgType, unsigned char * msg) {
       herculesMessageFSM.sendENQ(((MSG *) msg)->enqData.CU, ((MSG *) (msg))->enqData.DV ); 
       break;
     case NAK_MESSAGE:
+      printMillis();
       Serial.print("Received NAK from Cluster controller");
       herculesMessageFSM.sendNAK();
       break;
     case ACK0_MESSAGE:
+      printMillis();
       Serial.print("Received ACK0 from Cluster controller");
       herculesMessageFSM.sendACK0();
       break;
     case ACK1_MESSAGE:
+      printMillis();
       Serial.print("Received ACK1 from Cluster controller");
       herculesMessageFSM.sendACK1();
       break;
     case WACK_MESSAGE:
+      printMillis();
       Serial.print("Received WACK from Cluster controller");
       herculesMessageFSM.sendWACK();
       break;
     case RVI_MESSAGE:
+      printMillis();
       Serial.print("Received RVI from Cluster controller");
       herculesMessageFSM.sendRVI();
       break;               
     case STATUS_MESSAGE:
+      printMillis();
       Serial.print("Received STATUS for CU=");
       Serial.print(((MSG *) msg)->statusData.CU, HEX);
       Serial.print(" DV=");
@@ -122,10 +189,12 @@ void messageReceivedCallback(unsigned char msgType, unsigned char * msg) {
       herculesMessageFSM.sendStatusMessage(((MSG *) msg)->statusData.CU, ((MSG *) msg)->statusData.DV, ((MSG *) msg)->statusData.status, ((MSG *) msg)->statusData.sense);
       break;               
     case TEXT_MESSAGE:
+      printMillis();
       Serial.print("Received TEXT from Cluster controller");
       herculesMessageFSM.sendTextMessage(((MSG *) msg)->textData.length, ((MSG *) msg)->textData.msg, ((MSG *) msg)->textData.thereIsMoreComing);
       break;               
     case TEST_MESSAGE:
+      printMillis();
       Serial.print("Received TEST from Cluster controller");
       herculesMessageFSM.sendTestRequestMessage(((MSG *) msg)->testData.length, ((MSG *) msg)->testData.msg, ((MSG *) msg)->testData.thereIsMoreComing);
       break;               
@@ -139,10 +208,12 @@ void messageReceivedFromHerculesCallback(unsigned char msgType, unsigned char * 
   // Dispatch message coming from terminal based on msgType and let the hercules facing take on.
   switch (msgType) {
     case EOT_MESSAGE:
+      printMillis();
       Serial.println("Received EOT from Hercules"); 
       messageFSM.sendEOT();
       break;
     case ENQ_MESSAGE:
+      printMillis();
       Serial.print("Received ENQ for CU=");
       Serial.print(((MSG *) msg)->enqData.CU, HEX);
       Serial.print(" DV=");
@@ -151,26 +222,32 @@ void messageReceivedFromHerculesCallback(unsigned char msgType, unsigned char * 
       messageFSM.sendENQ(((MSG *) msg)->enqData.CU, ((MSG *) (msg))->enqData.DV ); 
       break;
     case NAK_MESSAGE:
+      printMillis();
       Serial.print("Received NAK from Hercules");    
       messageFSM.sendNAK();
       break;
     case ACK0_MESSAGE:
+      printMillis();
       Serial.print("Received ACK0 from Hercules");
       messageFSM.sendACK0();
       break;
     case ACK1_MESSAGE:
+      printMillis();
       Serial.print("Received ACK1 from Hercules");
       messageFSM.sendACK1();
       break;
     case WACK_MESSAGE:
+      printMillis();
       Serial.print("Received WACK from Hercules");
       messageFSM.sendWACK();
       break;
     case RVI_MESSAGE:
+      printMillis();
       Serial.print("Received RVI from Hercules");
       messageFSM.sendRVI();
       break;               
     case STATUS_MESSAGE:
+      printMillis();
       Serial.print("Received STATUS for CU=");
       Serial.print(((MSG *) msg)->statusData.CU, HEX);
       Serial.print(" DV=");
@@ -179,10 +256,12 @@ void messageReceivedFromHerculesCallback(unsigned char msgType, unsigned char * 
       messageFSM.sendStatusMessage(((MSG *) msg)->statusData.CU, ((MSG *) msg)->statusData.DV, ((MSG *) msg)->statusData.status, ((MSG *) msg)->statusData.sense);
       break;               
     case TEXT_MESSAGE:
+      printMillis();
       Serial.print("Received TEXT from Hercules");
       messageFSM.sendTextMessage(((MSG *) msg)->textData.length, ((MSG *) msg)->textData.msg, ((MSG *) msg)->textData.thereIsMoreComing);
       break;               
     case TEST_MESSAGE:
+      printMillis();
       Serial.print("Received TEST from Hercules");
       messageFSM.sendTestRequestMessage(((MSG *) msg)->testData.length, ((MSG *) msg)->testData.msg, ((MSG *) msg)->testData.thereIsMoreComing);
       break;               
@@ -196,7 +275,11 @@ void txDataCallback (unsigned char ch) {
 }
 
 void txToHercules (unsigned char ch) {
-     Serial1.write(ch);
+  printMillis();
+  Serial.print("Sending to Hercules : ");
+  printTwoDigitHex(ch);
+  Serial.println();
+  Serial1.write(ch); 
 }
 
 class SyncFSM syncFSM(receiveCallback);
@@ -222,6 +305,11 @@ if (spi_is_tx_empty(SPI2)){
     syncFSM.receivedData(spi_rx_reg(SPI2));  
   }
   if (Serial1.available()>0) {
-     herculesMessageFSM.rxData(Serial1.read());
+     ch = Serial1.read();
+     printMillis();
+     Serial.print("Reciving from Hercules : ");
+     printTwoDigitHex(ch);
+     Serial.println();
+     herculesMessageFSM.rxData(ch);
   }
 }
