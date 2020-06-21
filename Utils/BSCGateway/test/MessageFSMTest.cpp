@@ -2,12 +2,12 @@
 
   Test program for MessageFSM 
 
-  Compile using : c++ MessageFSMTest.cpp ../BSCGateway-STM32/MessageFSM.cpp -DDEBUG 
+  Compile using : c++ MessageFSMTest.cpp ../BSCBridge/MessageFSM.cpp ../BSCBridge/crc-16.cpp   -DDEBUG -o  MessageFSMTest
 
  */
 
 #include <stdio.h>
-#include "../BSCGateway-STM32/MessageFSM.h"
+#include "../BSCBridge/MessageFSM.h"
 #include <assert.h>
 #include <string.h>
 
@@ -69,11 +69,9 @@ void receivedMessage (unsigned char msgType, unsigned char * msg) {
     testCase = 6;
     break;
   case 6:
-    assert (msgType == ENQ_MESSAGE);
-    assert (msg[0] == 0x40);
-    assert (msg[1] == 0x40);
-    assert (msg[2] == 0x41);
-    assert (msg[3] == 0x41);
+    assert (msgType == POLL_MESSAGE);
+    assert (m->enqData.CU == 0x40);
+    assert (m->enqData.DV == 0x41);
     testCase = 7;
     break;
   case 7:
@@ -101,6 +99,10 @@ void receivedMessage (unsigned char msgType, unsigned char * msg) {
     assert ((strncmp ((char *) m->testData.msg,testRequestString ,m->testData.length) == 0));
     testCase = 10;
     break;
+  case 10:
+    assert (msgType == ENQ_MESSAGE);
+    assert (msg == NULL);
+    testCase = 11;    
   }
 }
 
@@ -152,13 +154,15 @@ int main () {
   assert (testCase == 6);
   assert (huntState == 1);
   printf("Test passed -  sending and receiving RVI\n");  
-  // Testing sending and receiving ENQ
+  // Testing sending and receiving Poll / Select Message
   huntState = 0;
   testCase = 6;
-  messageFSM.sendENQ(0x40,0x41);
+  messageFSM.setTextMode(false);
+  messageFSM.sendPollSelect(0x40,0x41);
   assert (testCase == 7);
   assert (huntState == 1);
-  printf("Test passed -  sending and receiving ENQ\n");
+  messageFSM.setTextMode(true);
+  printf("Test passed -  sending and receiving Poll / Select\n");
   // Testing sending and receiving Status Message
   huntState = 0;
   testCase = 7;
@@ -180,6 +184,14 @@ int main () {
   assert (testCase == 10);
   assert (huntState == 1);
   printf("Test passed -  sending and receiving Text Message\n");
+  // Testing sending and receiving ENQ Message
+  huntState = 0;
+  testCase = 10;
+  messageFSM.setTextMode(true);
+  messageFSM.sendENQ();
+  assert (testCase == 11);
+  assert (huntState == 1);
+  printf("Test passed -  sending and receiving ENQ\n");
 
 }
 

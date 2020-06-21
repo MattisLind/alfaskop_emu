@@ -58,4 +58,4 @@ char ASCIItoEBCDIC(const unsigned char);
 char EBCDICtoASCII(const unsigned char);
 
 
-#endif _EBCDIC_H_
+#endif 

@@ -41,7 +41,18 @@ void MessageFSM::sendEOT(){
     txDataCb(PAD);
   }
 }
-void MessageFSM::sendENQ(uint8_t CU, uint8_t DV){
+void MessageFSM::sendENQ(){
+  if (!herculesMode) {
+    txDataCb(SYN);
+    txDataCb(SYN);
+  } 
+  txDataCb(ENQ);
+  if (!herculesMode) {
+    txDataCb(PAD);
+  }
+}
+
+void MessageFSM::sendPollSelect(uint8_t CU, uint8_t DV){
   if (!herculesMode) {
     txDataCb(SYN);
     txDataCb(SYN);
@@ -55,6 +66,7 @@ void MessageFSM::sendENQ(uint8_t CU, uint8_t DV){
     txDataCb(PAD);
   }
 }
+
 void MessageFSM::sendStatusMessage(uint8_t CU, uint8_t DV,  uint8_t status, uint8_t sense) {
   int crc=0;
   if (!herculesMode) {
@@ -200,7 +212,12 @@ void MessageFSM::sendNAK(){
     txDataCb(PAD);
   }
 }
-#
+
+void MessageFSM::setTextMode(bool mode) {
+  textMode=mode; 
+}
+
+
 void MessageFSM::messageDone() {
   MSG msg;
       // We have all data  - Do a callback
@@ -214,6 +231,10 @@ void MessageFSM::messageDone() {
 	receivedMessageCb(NAK_MESSAGE, NULL);
 	enterHuntStateCb();
 	msgBufferCnt=0;
+	break;
+      case ENQ:
+	receivedMessageCb(ENQ_MESSAGE, NULL);
+	enterHuntStateCb();
 	break;
       case DLE:
 	switch (msgBuffer[1]) {
@@ -281,7 +302,9 @@ void MessageFSM::messageDone() {
 	msgBufferCnt=0;
 	break;
       default:  // Selection and POLL ENQ
-	receivedMessageCb(ENQ_MESSAGE, msgBuffer);
+	msg.enqData.CU = msgBuffer[0];
+	msg.enqData.DV = msgBuffer[2];
+	receivedMessageCb(POLL_MESSAGE, (uint8_t *) &msg);
 	enterHuntStateCb();
 	msgBufferCnt=0;
 	break;
@@ -322,11 +345,23 @@ void MessageFSM::rxData(uint8_t data) {
       rxState = 5;
       crc = 0;
       break;
+    case ENQ:
+      if (textMode) {
+	if (herculesMode) {  
+	  messageDone();
+	  rxState = 0;
+	} else {
+	  rxState = 2;
+	}
+      }
+      break;
     case PAD:
       break;
     default:  // Enquiry POLL / SELECTION
-      rxState = 7;
-      byteCounter=3; // 4 with this byte
+      if (!textMode) {
+	rxState = 7;
+	byteCounter=3; // 4 with this byte
+      }
       break;
     }   
   } else if (rxState == 2) {

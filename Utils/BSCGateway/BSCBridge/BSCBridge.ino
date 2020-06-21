@@ -208,18 +208,29 @@ void messageReceivedCallback(unsigned char msgType, unsigned char * msg) {
       printMillis();
       Serial.println("Received EOT from Cluster controller");
 #endif      
+      herculesMessageFSM.setTextMode(false);	
+      messageFSM.setTextMode(false);	
       herculesMessageFSM.sendEOT();
       break;
     case ENQ_MESSAGE:
+#ifdef DEBUG1    
+      printMillis();
+      Serial.println("Received ENQ from Cluster controller");
+#endif      
+      herculesMessageFSM.sendENQ();
+      break;
+    case POLL_MESSAGE:
 #ifdef DEBUG1        
       printMillis();
-      Serial.print("Received ENQ for CU=");
+      Serial.print("Received POLL/SELECT for CU=");
       Serial.print(((MSG *) msg)->enqData.CU, HEX);
       Serial.print(" DV=");
       Serial.print(((MSG *) (msg))->enqData.DV, HEX);
       Serial.println( " from Cluster controller");
-#endif      
-      herculesMessageFSM.sendENQ(((MSG *) msg)->enqData.CU, ((MSG *) (msg))->enqData.DV ); 
+#endif
+      herculesMessageFSM.setTextMode(true);	
+      messageFSM.setTextMode(true);	      
+      herculesMessageFSM.sendPollSelect(((MSG *) msg)->enqData.CU, ((MSG *) (msg))->enqData.DV ); 
       break;
     case NAK_MESSAGE:
 #ifdef DEBUG1    
@@ -300,19 +311,30 @@ void messageReceivedFromHerculesCallback(unsigned char msgType, unsigned char * 
 #ifdef DEBUG1    
       printMillis();
       Serial.println("Received EOT from Hercules"); 
-#endif      
+#endif
+      herculesMessageFSM.setTextMode(false);	
+      messageFSM.setTextMode(false);	      
       messageFSM.sendEOT();
       break;
     case ENQ_MESSAGE:
 #ifdef DEBUG1    
       printMillis();
-      Serial.print("Received ENQ for CU=");
+      Serial.println("Received ENQ from Hercules"); 
+#endif
+      messageFSM.sendENQ();
+      break;
+    case POLL_MESSAGE:
+#ifdef DEBUG1    
+      printMillis();
+      Serial.print("Received POLL/SELECT for CU=");
       Serial.print(((MSG *) msg)->enqData.CU, HEX);
       Serial.print(" DV=");
       Serial.print(((MSG *) (msg))->enqData.DV, HEX);
       Serial.println( " from Hercules");
-#endif          
-      messageFSM.sendENQ(((MSG *) msg)->enqData.CU, ((MSG *) (msg))->enqData.DV );
+#endif 
+      herculesMessageFSM.setTextMode(true);	
+      messageFSM.setTextMode(true);	               
+      messageFSM.sendPollSelect(((MSG *) msg)->enqData.CU, ((MSG *) (msg))->enqData.DV );
 #ifdef DEBUG4       
       Serial.println("After sendENQ");
 #endif      

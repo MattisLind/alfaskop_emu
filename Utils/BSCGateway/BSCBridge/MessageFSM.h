@@ -18,7 +18,7 @@
 #define TEXT_MESSAGE 9
 #define TEST_MESSAGE 10
 #define ERROR_MESSAGE 11
-
+#define POLL_MESSAGE 12
 
 union msg {
   struct ENQData {
@@ -54,6 +54,7 @@ typedef union msg MSG;
 
 class MessageFSM {
   private:
+    bool textMode;
     bool herculesMode;
     unsigned short crc;
     bool crcOk;
@@ -72,7 +73,8 @@ class MessageFSM {
     MessageFSM(void (*)(unsigned char), void (*)(unsigned char, unsigned char *), void (*)());
     void rxData (uint8_t data);
     void sendEOT();
-    void sendENQ(uint8_t CU, uint8_t DV);
+    void sendPollSelect(uint8_t CU, uint8_t DV);
+    void sendENQ();
     void sendStatusMessage(uint8_t CU, uint8_t DV,  uint8_t status, uint8_t sense);
     void sendTestRequestMessage(int messageLength, uint8_t * msg, bool thereIsMoreComing);
     void sendTextMessage(int messageLength, uint8_t * msg, bool thereIsMoreComing);
@@ -81,4 +83,5 @@ class MessageFSM {
     void sendWACK();
     void sendRVI();
     void sendNAK();
+    void setTextMode(bool);
 };
