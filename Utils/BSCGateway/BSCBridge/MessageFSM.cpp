@@ -221,94 +221,94 @@ void MessageFSM::setTextMode(bool mode) {
 void MessageFSM::messageDone() {
   MSG msg;
       // We have all data  - Do a callback
-      switch (msgBuffer[0]) {
-      case EOT:
-	receivedMessageCb(EOT_MESSAGE, NULL);
-	enterHuntStateCb();
-	msgBufferCnt=0;
-	break;
-      case NAK:
-	receivedMessageCb(NAK_MESSAGE, NULL);
-	enterHuntStateCb();
-	msgBufferCnt=0;
-	break;
-      case ENQ:
-	receivedMessageCb(ENQ_MESSAGE, NULL);
-	enterHuntStateCb();
-	break;
-      case DLE:
-	switch (msgBuffer[1]) {
-	case 0x70: // ACK 0
-	  receivedMessageCb(ACK0_MESSAGE, NULL);
+  switch (msgBuffer[0]) {
+  case EOT:
+	  receivedMessageCb(EOT_MESSAGE, NULL);
 	  enterHuntStateCb();
 	  msgBufferCnt=0;
 	  break;
-	case 0x61: // ACK 1
-	  receivedMessageCb(ACK1_MESSAGE, NULL);
+  case NAK:
+	  receivedMessageCb(NAK_MESSAGE, NULL);
 	  enterHuntStateCb();
 	  msgBufferCnt=0;
 	  break;
-	case 0x6b: // WACK
-	  receivedMessageCb(WACK_MESSAGE, NULL);
+  case ENQ:
+	  receivedMessageCb(ENQ_MESSAGE, NULL);
 	  enterHuntStateCb();
-	  msgBufferCnt=0;
 	  break;
-	case 0x7c: // RVI
-	  receivedMessageCb(RVI_MESSAGE, NULL);
-	  enterHuntStateCb();
-	  msgBufferCnt=0;
-	  break;
-	}
-	break;
-      case SOH:
-	if (msgBuffer[1] == 0x6c) {
-	  switch (msgBuffer[2]) {
-	  case 0xd9:
-	    msg.statusData.CU = msgBuffer[4];
-	    msg.statusData.DV = msgBuffer[5];
-	    msg.statusData.status = msgBuffer[6];
-	    msg.statusData.sense = msgBuffer[7];
-	    msg.statusData.crcOk = crcOk;
-	    receivedMessageCb(STATUS_MESSAGE, (uint8_t *) &msg);
+  case DLE:
+	  switch (msgBuffer[1]) {
+	  case 0x70: // ACK 0
+	    receivedMessageCb(ACK0_MESSAGE, NULL);
 	    enterHuntStateCb();
 	    msgBufferCnt=0;
-	    break;  // Status Message                
-	  case 0x61:
-	    msg.testData.length = length; 
-	    msg.testData.msg = msgBuffer+4;
-	    msg.testData.thereIsMoreComing = thereIsMoreComing;
-	    msg.testData.crcOk = crcOk;
-	    receivedMessageCb(TEST_MESSAGE, (uint8_t *) &msg);
+	    break;
+	  case 0x61: // ACK 1
+	    receivedMessageCb(ACK1_MESSAGE, NULL);
 	    enterHuntStateCb();
 	    msgBufferCnt=0;
-	    break;  // Test request message
-	  default:
-	    //Serial.println("Error SOH with wrong header code");
-	    //printMsgBuffer();
+	    break;
+	  case 0x6b: // WACK
+	    receivedMessageCb(WACK_MESSAGE, NULL);
+	    enterHuntStateCb();
+	    msgBufferCnt=0;
+	    break;
+	  case 0x7c: // RVI
+	    receivedMessageCb(RVI_MESSAGE, NULL);
+	    enterHuntStateCb();
+	    msgBufferCnt=0;
 	    break;
 	  }
-	} else {
+	  break;
+  case SOH:
+	  if (msgBuffer[1] == 0x6c) {
+	    switch (msgBuffer[2]) {
+	    case 0xd9:
+	      msg.statusData.CU = msgBuffer[4];
+	      msg.statusData.DV = msgBuffer[5];
+	      msg.statusData.status = msgBuffer[6];
+	      msg.statusData.sense = msgBuffer[7];
+	      msg.statusData.crcOk = crcOk;
+	      receivedMessageCb(STATUS_MESSAGE, (uint8_t *) &msg);
+	      enterHuntStateCb();
+	      msgBufferCnt=0;
+	      break;  // Status Message                
+	    case 0x61:
+	      msg.testData.length = length; 
+	      msg.testData.msg = msgBuffer+4;
+	      msg.testData.thereIsMoreComing = thereIsMoreComing;
+	      msg.testData.crcOk = crcOk;
+	      receivedMessageCb(TEST_MESSAGE, (uint8_t *) &msg);
+	      enterHuntStateCb();
+	      msgBufferCnt=0;
+	      break;  // Test request message
+	    default:
 	  //Serial.println("Error SOH with wrong header code");
 	  //printMsgBuffer();
-	}
-	break;
-      case STX:
-	msg.textData.length = length; 
-	msg.textData.msg = msgBuffer+1;
-	msg.textData.thereIsMoreComing = thereIsMoreComing;
-	msg.textData.crcOk = crcOk;
-	receivedMessageCb(TEXT_MESSAGE, (uint8_t *) &msg);
-	enterHuntStateCb();
-	msgBufferCnt=0;
-	break;
-      default:  // Selection and POLL ENQ
-	msg.enqData.CU = msgBuffer[0];
-	msg.enqData.DV = msgBuffer[2];
-	receivedMessageCb(POLL_MESSAGE, (uint8_t *) &msg);
-	enterHuntStateCb();
-	msgBufferCnt=0;
-	break;
-      }
+	      break;
+	    }
+	  } else {
+	  //Serial.println("Error SOH with wrong header code");
+	  //printMsgBuffer();
+	  }
+	  break;
+  case STX:
+	  msg.textData.length = length; 
+	  msg.textData.msg = msgBuffer+1;
+	  msg.textData.thereIsMoreComing = thereIsMoreComing;
+	  msg.textData.crcOk = crcOk;
+	  receivedMessageCb(TEXT_MESSAGE, (uint8_t *) &msg);
+	  enterHuntStateCb();
+	  msgBufferCnt=0;
+	  break;
+  default:  // Selection and POLL ENQ
+	  msg.enqData.CU = msgBuffer[0];
+	  msg.enqData.DV = msgBuffer[2];
+	  receivedMessageCb(POLL_MESSAGE, (uint8_t *) &msg);
+	  enterHuntStateCb();
+	  msgBufferCnt=0;
+	  break;
+  }
 }
 
 void MessageFSM::rxData(uint8_t data) {
@@ -326,10 +326,10 @@ void MessageFSM::rxData(uint8_t data) {
     case EOT: 
     case NAK:
       if (herculesMode) {  
-	messageDone();
-	rxState = 0;
+	      messageDone();
+	      rxState = 0;
       } else {
-	rxState = 2;
+	      rxState = 2;
       }
       break;
     case DLE:  // Two byte sequences
@@ -347,20 +347,20 @@ void MessageFSM::rxData(uint8_t data) {
       break;
     case ENQ:
       if (textMode) {
-	if (herculesMode) {  
-	  messageDone();
-	  rxState = 0;
-	} else {
-	  rxState = 2;
-	}
+	      if (herculesMode) {  
+	        messageDone();
+	        rxState = 0;
+	      } else {
+	        rxState = 2;
+	      }
       }
       break;
     case PAD:
       break;
     default:  // Enquiry POLL / SELECTION
       if (!textMode) {
-	rxState = 7;
-	byteCounter=3; // 4 with this byte
+	      rxState = 7;
+	      byteCounter=3; // 4 with this byte
       }
       break;
     }   
@@ -379,12 +379,12 @@ void MessageFSM::rxData(uint8_t data) {
     case 0x61: // ACK 1
     case 0x6b: // WACK
     case 0x7c: // RVI
-if (herculesMode) {
-      messageDone();
-      rxState = 0;
-} else {
-      rxState = 2;
-}
+      if (herculesMode) {
+        messageDone();
+        rxState = 0;
+      } else {
+        rxState = 2;
+      }
       break;
     default:
       rxState = 0;
@@ -405,23 +405,23 @@ if (herculesMode) {
       length = 4096-byteCounter;
       byteCounter=2;
       if (herculesMode) {
-	messageDone();
-	rxState = 0;
+	      messageDone();
+	      rxState = 0;
       } else {
-	rxState = 9; 
+	      rxState = 9; 
       }
       if (data == ETB) {
-	thereIsMoreComing = true;
+	      thereIsMoreComing = true;
       }
       else {
-	thereIsMoreComing = false;
+	      thereIsMoreComing = false;
       }
     } else { // Here comes the data. Up to 4096 bytes of EBCDIC data
       if (byteCounter == 0) {
-	rxState = 0;
-	receivedMessageCb(ERROR_MESSAGE, (unsigned char *)  "Message to long");
-	enterHuntStateCb();
-	msgBufferCnt=0;
+	      rxState = 0;
+	      receivedMessageCb(ERROR_MESSAGE, (unsigned char *)  "Message to long");
+	      enterHuntStateCb();
+	      msgBufferCnt=0;
       }
       byteCounter--;
     }
@@ -429,8 +429,7 @@ if (herculesMode) {
     byteCounter--;
     if (byteCounter == 0) {
       rxState = 10; // Get the ENQ
-    }
-    
+    }    
   } else if (rxState == 8) {
     // Check for STX then
     if (data == STX) {
@@ -448,19 +447,19 @@ if (herculesMode) {
     //printf("crc=%04X\n", crc);
     if (byteCounter == 0) {
       if (crc == 0) {
-	crcOk=true;
+	      crcOk=true;
       } else {
-	crcOk=false;
+	      crcOk=false;
       }
       rxState = 2; // wait for the PAD
     }
   } else if (rxState == 10) {
     if (data == ENQ) {
       if (herculesMode) {
-      messageDone();
-      rxState = 0;
+        messageDone();
+        rxState = 0;
       } else {
-	rxState = 2; // There is a PAD to come
+	      rxState = 2; // There is a PAD to come
       }
     }
     else {
