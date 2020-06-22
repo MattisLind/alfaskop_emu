@@ -1,12 +1,11 @@
 /*
  * Set board to Generic STM32F103C form STM32duino.com Variant STM32F103C8, Upload method STLink, 72 MHz
- *
+ * 
  */
 
 
 #include <SPI.h>
 #include "ebcdic.h"
-#include "lsbmsb.h" 
 #include "RingBuffer.h"
 #define DEBUG_LEVEL 4 
 #define RTS PB11 // Input
@@ -32,21 +31,46 @@
 #endif
 
 
-#ifdef DEBUG1 
+#ifdef DEBUG1
+#undef BAUD 
 #define BAUD 1000
 #endif
 
 #ifdef DEBUG2
+#undef BAUD 
 #define BAUD 10000
 #endif
 
 #ifdef DEBUG3
+#undef BAUD 
 #define BAUD 20000
 #endif
 
 #ifdef DEBUG4
+#undef BAUD 
 #define BAUD 30000
 #endif
+
+
+#ifdef DEBUG1
+void printMillis() {
+  unsigned long time = millis();
+  if (time < 10L) Serial.print('0');
+  if (time < 100L) Serial.print('0');
+  if (time < 1000L) Serial.print('0');
+  if (time < 10000L) Serial.print('0');
+  if (time < 100000L) Serial.print('0');
+  if (time < 1000000L) Serial.print('0');
+  if (time < 10000000L) Serial.print('0');
+  if (time < 100000000L) Serial.print('0');
+  if (time < 1000000000L) Serial.print('0');
+  if (time < 10000000000L) Serial.print('0');
+  Serial.print(time);
+  Serial.print(' ');
+}
+
+
+
 
 SPIClass SPI_2(2); 
 
@@ -88,22 +112,6 @@ void setup() {
   txBuffer.initBuffer();
 }
 
-#ifdef DEBUG1
-void printMillis() {
-  unsigned long time = millis();
-  if (time < 10L) Serial.print('0');
-  if (time < 100L) Serial.print('0');
-  if (time < 1000L) Serial.print('0');
-  if (time < 10000L) Serial.print('0');
-  if (time < 100000L) Serial.print('0');
-  if (time < 1000000L) Serial.print('0');
-  if (time < 10000000L) Serial.print('0');
-  if (time < 100000000L) Serial.print('0');
-  if (time < 1000000000L) Serial.print('0');
-  if (time < 10000000000L) Serial.print('0');
-  Serial.print(time);
-  Serial.print(' ');
-}
 
 void printTwoDigitHex (int data) {
   if (data < 16) {
@@ -189,12 +197,12 @@ int oneCounter=0;
 int txHDLCState=HDLC_STATE_IDLE;
 
 static inline void shiftInZero() {
-  out << 1; bitCounter++;  // insert extra zero bit.  
+  out <<= 1; bitCounter++;  // insert extra zero bit.  
   if (bitCounter == 8) { txBuffer.writeBuffer(out); bitCounter = 0; }
 }
 
 static inline void shiftInOne() {
-  out << 1; out |= 1; bitCounter++;
+  out <<= 1; out |= 1; bitCounter++;
   if (bitCounter == 8) { txBuffer.writeBuffer(out); bitCounter = 0; }
 }
 
@@ -206,17 +214,16 @@ void endHDLCProcessing() {
   if (bitCounter == 0) {
     txBuffer.writeBuffer(0x7E);  // Send the flag directly if the bitcounter is indicateing no residual bits.    
   } else {
-      shiftInZero();
-      shiftInOne();
-      shiftInOne();
-      shiftInOne();
-      shiftInOne();
-      shiftInOne();
-      shiftInOne();
-      shiftInZero();
-      for (; bitCounter<8;bitCounter++) { out << 1; out |= 1; }
-      txBuffer.writeBuffer(out)
-    }
+    shiftInZero();
+    shiftInOne();
+    shiftInOne();
+    shiftInOne();
+    shiftInOne();
+    shiftInOne();
+    shiftInOne();
+    shiftInZero();
+    for (; bitCounter<8;bitCounter++) { out <<= 1; out |= 1; }
+    txBuffer.writeBuffer(out);   
   }
 }
   
@@ -331,7 +338,7 @@ int txMode = 0;  // There are two modes. Either it receives data from the Serial
 // by processHDLCForSending method.
 // Following this it calls endHDLCProcessing method which handles and any residual bits.
 int serialFrameState = 0;
-unsigned char checkSum = 0;
+unsigned char checksum = 0;
 
 void processFramedSerialData(unsigned char ch) {
   if (serialFrameState == 0) { // Normal state no ESC has been received
@@ -356,7 +363,7 @@ void processFramedSerialData(unsigned char ch) {
       case 0xfd: // Sent packet was rejected - resend outboud packet
         break;
       case 0xef: // EOR 
-        if (chsum == 0) {
+        if (checksum == 0) {
          // great the checksum is fine. 
           Serial1.write(0xff);
           Serial1.write(0xfe);
@@ -370,7 +377,7 @@ void processFramedSerialData(unsigned char ch) {
         }
         break;
       default:  // Invalid ESC sequence
-        break
+        break;
     }
   }
   
@@ -381,7 +388,7 @@ void processFramedSerialData(unsigned char ch) {
 
 
 void loop() {
-char ch;
+unsigned char ch;
 if (txMode) {  
   if (spi_is_tx_empty(SPI2)){
     if (txBuffer.isBufferEmpty()) {
