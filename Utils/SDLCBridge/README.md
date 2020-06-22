@@ -307,7 +307,58 @@ PARM NOREPLYU                                                                   
 CMD V NET,ACT,ID=N07L21,LOGON=SNASOL,LOGMODE=MHP3278E
 ```
 
-This should in theory run the SNA solicitor on terminal N07L21 in 3278 mode defined by MHP3278E. But it doesn't work. Apparently some extra step is needed to activate this. Need further investigation.
+This should in theory run the SNA solicitor on terminal N07L21 in 3278 mode defined by MHP3278E. But it doesn't work. ~~~Apparently some extra step is needed to activate this. Need further investigation.
+
+It turned out that there were a completely different file that did the job during startup, SYS1.PARMLIB(STARTSTD).
+```
+***********************************************************************                  1
+*                                                                     *                  1
+* Name: SYS1.PARMLIB(STARTSTD)                                        *                  1
+*                                                                     *                  1
+* Desc: Full TK4- startup script                                      *                  1
+*                                                                     *                  1
+***********************************************************************                  1
+PARM NOECHO                                                                              1
+PARM NOREPLYU                                                                            1
+CMD $CA,ALL                                                                              1
+CMD V 480,ONLINE                                                                         1
+CMD MN JOBNAMES,T                                                                        1
+CMD MN SESS,T                                                                            1
+CMD S DYNAMASK                                                                           1
+WAIT 2                                                                                   1
+CMD S NET                                                                                1
+CMD S TP                                                                                 1
+CMD S MF1.MF1                                                                            1
+CMD $SA,ALL                                                                              1
+CMD $TA,I=3600,'$SI1-I4'                                                                 1
+CMD $TOSC1,D=J                                                                           1
+CMD $TOSC2,D=J                                                                           1
+CMD $TOSC3,D=T                                                                           1
+CMD $TOSC4,D=T                                                                           1
+CMD $SRDR1                                                                               1
+CMD $SPRT1                                                                               1
+CMD $SPRT2                                                                               1
+CMD $SPRT3                                                                               1
+CMD $SLINE1                                                                              1
+CMD $SLINE2                                                                              1
+CMD $SLINE3                                                                              1
+CMD $SLINE4                                                                              1
+CMD $SPUNCH1                                                                             1
+WAIT 2                                                                                   1
+CMD F TP,TS=START                                                                        1
+WAIT 2                                                                                   1
+CMD S SNASOL                                                                             1
+CMD S JRP                                                                                1
+WAIT 20                                                                                  1
+CMD V NET,ACT,ID=N07L21,LOGON=SNASOL,LOGMODE=MHP3278E                                    1
+WAIT 5                                                                                   1
+CMD F TP,LOAD=T07,T07                                                                    1
+WAIT 2                                                                                   1
+CMD S INISDSTD                                                                           1
+COM SE 'MVS038J MVS 3.8j TK4- system initialization complete',BRDCST                     1
+
+```
+Changing the ID to N07201 solved the problem. Also removed the startup for nodes that were not present.
 
 But the same command can be given on the console and then the terminal will be activated and it will be possible to login.
 ```
