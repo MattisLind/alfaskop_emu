@@ -307,7 +307,7 @@ PARM NOREPLYU                                                                   
 CMD V NET,ACT,ID=N07L21,LOGON=SNASOL,LOGMODE=MHP3278E
 ```
 
-This should in theory run the SNA solicitor on terminal N07L21 in 3278 mode defined by MHP3278E. But it doesn't work. ~~~Apparently some extra step is needed to activate this. Need further investigation.
+This should in theory run the SNA solicitor on terminal N07L21 in 3278 mode defined by MHP3278E. But it doesn't work. ~~Apparently some extra step is needed to activate this. Need further investigation.~~
 
 It turned out that there were a completely different file that did the job during startup, SYS1.PARMLIB(STARTSTD).
 ```
