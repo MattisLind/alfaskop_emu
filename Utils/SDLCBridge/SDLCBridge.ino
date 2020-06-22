@@ -165,10 +165,14 @@ void printEightHexDigits (uint32 data) {
 
 #endif
 
+
+#define HDLC_STATE_IDLE      0
+#define HDLC_STATE_FLAG_SENT 1
+
 unsigned char out;
 int bitCounter=0;
 int oneCounter=0;
-
+int txHDLCState=HDLC_STATE_IDLE;
 
 
 // This method will end the frame. Since the fram might contain a number of bits that is not divisable by eight we need to handle 
@@ -202,9 +206,15 @@ void endHDLCProcessing() {
 }
   
   
+static inline void shiftInZero() {
+  out << 1; bitCounter++;  // insert extra zero bit.  
+  if (bitCounter == 8) { txBuffer.writeBuffer(out); bitCounter = 0; }
+}
 
-#define HDLC_STATE_IDLE      0
-#define HDLC_STATE_FLAG_SENT 1
+static inline void shiftInOne() {
+  out << 1; out |= 1; bitCounter++;
+  if (bitCounter == 8) { txBuffer.writeBuffer(out); bitCounter = 0; }
+}
 
 // Process a character at a time. Processed data is moved onto the txBuffer for sending. 
 // In IDLE state when a character is received a FLAG is pused into the buffer before processing the character. State is set to SENT_FLAG
@@ -217,7 +227,19 @@ void endHDLCProcessing() {
 // At every shift the bitCounter is checked. If the bitCounter is 8 then it is reset to 0 and the data is moved to the txBuffer.
 
 void processHDLCforSending(unsigned char ch) {
-
+  if (txHDLCState == HDLC_STATE_IDLE) {
+    txBuffer.writeBuffer(0x7E); // Send the starting flaga as the first thing to do.
+    txHDLCState=HDLC_STATE_FLAG_SENT;
+  } 
+  // Process each bit of the input character.
+  if (0b10000000 & ch) {
+    if (oneCounter == 5) {
+      shiftInZero(); 
+      shiftInOne();
+    }
+  } else {
+    shiftInZero();
+  }
 }
 
 // Process each character.
