@@ -164,7 +164,21 @@ void printEightHexDigits (uint32 data) {
 }
 
 #endif
+unsigned short txCrc=0;
 
+unsigned short calculateCrcChar (unsigned short crc, unsigned char data_p) {
+  unsigned char i;
+  unsigned int data;
+  for (i=0, data=(unsigned int)0xff & data_p;
+       i < 8; 
+       i++, data >>= 1)
+    {
+      if ((crc & 0x0001) ^ (data & 0x0001))
+	crc = (crc >> 1) ^ 0x8408;
+      else  crc >>= 1;
+    }
+  return crc;
+}
 
 #define HDLC_STATE_IDLE      0
 #define HDLC_STATE_FLAG_SENT 1
@@ -174,38 +188,6 @@ int bitCounter=0;
 int oneCounter=0;
 int txHDLCState=HDLC_STATE_IDLE;
 
-
-// This method will end the frame. Since the fram might contain a number of bits that is not divisable by eight we need to handle 
-// this. We also need to shift on thge closing frame. If there are uneven, non eight divisable framelength the reamaining bits
-// will be filled by one to indicate idle line.
-
-void endHDLCProcessing() {
-  if (bitCounter == 0) {
-    txBuffer.writeBuffer(0x7E);  // Send the flag directly if the bitcounter is indicateing no residual bits.    
-  } else {
-      out << 1; bitCounter++;  // We process the flag one by one and then handle the idle bits.
-      if (bitCounter == 8) { txBuffer.writeBuffer(out); bitCounter = 0; }
-      out << 1; out |= 1; bitCounter++;
-      if (bitCounter == 8) { txBuffer.writeBuffer(out); bitCounter = 0; }
-      out << 1; out |= 1; bitCounter++;
-      if (bitCounter == 8) { txBuffer.writeBuffer(out); bitCounter = 0; }
-      out << 1; out |= 1; bitCounter++;
-      if (bitCounter == 8) { txBuffer.writeBuffer(out); bitCounter = 0; }
-      out << 1; out |= 1; bitCounter++;
-      if (bitCounter == 8) { txBuffer.writeBuffer(out); bitCounter = 0; }
-      out << 1; out |= 1; bitCounter++;
-      if (bitCounter == 8) { txBuffer.writeBuffer(out); bitCounter = 0; }
-      out << 1; out |= 1; bitCounter++;
-      if (bitCounter == 8) { txBuffer.writeBuffer(out); bitCounter = 0; }
-      out << 1; bitCounter++;
-      if (bitCounter == 8) { txBuffer.writeBuffer(out); bitCounter = 0; } 
-      for (; bitCounter<8;bitCounter++) { out << 1; out |= 1; }
-      txBuffer.writeBuffer(out)
-    }
-  }
-}
-  
-  
 static inline void shiftInZero() {
   out << 1; bitCounter++;  // insert extra zero bit.  
   if (bitCounter == 8) { txBuffer.writeBuffer(out); bitCounter = 0; }
@@ -215,6 +197,31 @@ static inline void shiftInOne() {
   out << 1; out |= 1; bitCounter++;
   if (bitCounter == 8) { txBuffer.writeBuffer(out); bitCounter = 0; }
 }
+
+// This method will end the frame. Since the fram might contain a number of bits that is not divisable by eight we need to handle 
+// this. We also need to shift on thge closing frame. If there are uneven, non eight divisable framelength the reamaining bits
+// will be filled by one to indicate idle line.
+
+void endHDLCProcessing() {
+  if (bitCounter == 0) {
+    txBuffer.writeBuffer(0x7E);  // Send the flag directly if the bitcounter is indicateing no residual bits.    
+  } else {
+      shiftInZero();
+      shiftInOne();
+      shiftInOne();
+      shiftInOne();
+      shiftInOne();
+      shiftInOne();
+      shiftInOne();
+      shiftInZero();
+      for (; bitCounter<8;bitCounter++) { out << 1; out |= 1; }
+      txBuffer.writeBuffer(out)
+    }
+  }
+}
+  
+  
+
 
 // Process a character at a time. Processed data is moved onto the txBuffer for sending. 
 // In IDLE state when a character is received a FLAG is pused into the buffer before processing the character. State is set to SENT_FLAG
@@ -236,11 +243,79 @@ void processHDLCforSending(unsigned char ch) {
     if (oneCounter == 5) {
       shiftInZero(); 
       shiftInOne();
+      oneCounter=0;
+    }
+  } else {
+    shiftInZero();
+  }
+  if (0b010000000 & ch) {
+    if (oneCounter == 5) {
+      shiftInZero(); 
+      shiftInOne();
+      oneCounter=0;
+    }
+  } else {
+    shiftInZero();
+  }
+  if (0b00100000 & ch) {
+    if (oneCounter == 5) {
+      shiftInZero(); 
+      shiftInOne();
+      oneCounter=0;
+    }
+  } else {
+    shiftInZero();
+  }
+  if (0b00010000 & ch) {
+    if (oneCounter == 5) {
+      shiftInZero(); 
+      shiftInOne();
+      oneCounter=0;
+    }
+  } else {
+    shiftInZero();
+  }
+  if (0b00001000 & ch) {
+    if (oneCounter == 5) {
+      shiftInZero(); 
+      shiftInOne();
+      oneCounter=0;
+    }
+  } else {
+    shiftInZero();
+  }
+  if (0b00000100 & ch) {
+    if (oneCounter == 5) {
+      shiftInZero(); 
+      shiftInOne();
+      oneCounter=0;
+    }
+  } else {
+    shiftInZero();
+  }
+  if (0b00000010 & ch) {
+    if (oneCounter == 5) {
+      shiftInZero(); 
+      shiftInOne();
+      oneCounter=0;
+    }
+  } else {
+    shiftInZero();
+  }
+  if (0b00000001 & ch) {
+    if (oneCounter == 5) {
+      shiftInZero(); 
+      shiftInOne();
+      oneCounter=0;
     }
   } else {
     shiftInZero();
   }
 }
+
+int txMode = 0;  // There are two modes. Either it receives data from the Serial port, via the buffer or
+                 // it transmits data that has been stored previosly in the ringBuffer on SPI interface.
+
 
 // Process each character.
 // The 0xff is the escape character.
@@ -262,26 +337,47 @@ void processFramedSerialData(unsigned char ch) {
   if (serialFrameState == 0) { // Normal state no ESC has been received
     if (ch == 0xff) {         // Received ESC
       serialFrameState = 1;
+    } else {
+      checksum += ch; 
+      calculateCrcChar(txCrc, ch); // Calculate the CRC for each character
+      processHDLCforSending(ch);   // throw it to HDLC processing
     }
   } else if (serialFrameState == 1) {
     switch (ch) {
       case 0xff: // Just add the 0xff to the data stream
+        checksum += ch; // We do checksum on all characters up to but not including the EOR which is 0xff 0xef.
+        checksum += ch;
+        calculateCrcChar(txCrc, ch);  // Calculate the CRC for each character
+        processHDLCforSending(ch);    // throw it to HDLC processing
+        txMode = 1;
         break;
       case 0xfe: // Sent packet was accepted - remove outbound packet
         break;
       case 0xfd: // Sent packet was rejected - resend outboud packet
         break;
       case 0xef: // EOR 
+        if (chsum == 0) {
+         // great the checksum is fine. 
+          Serial1.write(0xff);
+          Serial1.write(0xfe);
+          processHDLCforSending(txCrc >> 8);  // MSB of CRC word
+          processHDLCforSending(txCrc);       // LSB of CRC word 
+          endHDLCProcessing();                // Handle non modulo 8 bits and send flags.
+        } else {
+          // Not so great. Reject it.
+          Serial1.write(0xff);
+          Serial1.write(0xfd);        
+        }
         break;
       default:  // Invalid ESC sequence
         break
     }
   }
+  
 }
 
 
-int txMode = 0;  // There are two modes. Either it receives data from the Serial port, via the buffer or
-                 // it transmits data that has been stored previosly in the ringBuffer on SPI interface.
+
 
 
 void loop() {
@@ -289,6 +385,7 @@ char ch;
 if (txMode) {  
   if (spi_is_tx_empty(SPI2)){
     if (txBuffer.isBufferEmpty()) {
+      txMode = 0;
       spi_tx_reg(SPI2, 0xff);  
     } else {
       ch = txBuffer.readBuffer();
