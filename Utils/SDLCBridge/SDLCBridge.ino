@@ -165,18 +165,111 @@ void printEightHexDigits (uint32 data) {
 
 #endif
 
+unsigned char out;
+int bitCounter=0;
+int oneCounter=0;
 
 
 
+// This method will end the frame. Since the fram might contain a number of bits that is not divisable by eight we need to handle 
+// this. We also need to shift on thge closing frame. If there are uneven, non eight divisable framelength the reamaining bits
+// will be filled by one to indicate idle line.
+
+void endHDLCProcessing() {
+  if (bitCounter == 0) {
+    txBuffer.writeBuffer(0x7E);  // Send the flag directly if the bitcounter is indicateing no residual bits.    
+  } else {
+      out << 1; bitCounter++;  // We process the flag one by one and then handle the idle bits.
+      if (bitCounter == 8) { txBuffer.writeBuffer(out); bitCounter = 0; }
+      out << 1; out |= 1; bitCounter++;
+      if (bitCounter == 8) { txBuffer.writeBuffer(out); bitCounter = 0; }
+      out << 1; out |= 1; bitCounter++;
+      if (bitCounter == 8) { txBuffer.writeBuffer(out); bitCounter = 0; }
+      out << 1; out |= 1; bitCounter++;
+      if (bitCounter == 8) { txBuffer.writeBuffer(out); bitCounter = 0; }
+      out << 1; out |= 1; bitCounter++;
+      if (bitCounter == 8) { txBuffer.writeBuffer(out); bitCounter = 0; }
+      out << 1; out |= 1; bitCounter++;
+      if (bitCounter == 8) { txBuffer.writeBuffer(out); bitCounter = 0; }
+      out << 1; out |= 1; bitCounter++;
+      if (bitCounter == 8) { txBuffer.writeBuffer(out); bitCounter = 0; }
+      out << 1; bitCounter++;
+      if (bitCounter == 8) { txBuffer.writeBuffer(out); bitCounter = 0; } 
+      for (; bitCounter<8;bitCounter++) { out << 1; out |= 1; }
+      txBuffer.writeBuffer(out)
+    }
+  }
+}
+  
+  
+
+#define HDLC_STATE_IDLE      0
+#define HDLC_STATE_FLAG_SENT 1
+
+// Process a character at a time. Processed data is moved onto the txBuffer for sending. 
+// In IDLE state when a character is received a FLAG is pused into the buffer before processing the character. State is set to SENT_FLAG
+// A chacter is processed from MSB to LSB bits.
+// Bits are shifted into the out variable.
+// If a bit is a 1 the oneCounter is incremented. If the oneCounter is 5 an extra 0 is shifted in as well before the 1.
+// The onecounter is reset to 0.
+// If a bit is 0 the out variable is shifted one left only.
+// For each bit shifted in the bitCounter is incremented. 
+// At every shift the bitCounter is checked. If the bitCounter is 8 then it is reset to 0 and the data is moved to the txBuffer.
+
+void processHDLCforSending(unsigned char ch) {
+
+}
+
+// Process each character.
+// The 0xff is the escape character.
+// 0xff 0xef is the end of record (EOR) delimiter
+// The checksum is accumulated for all bytes up to the EOR marker. 
+// The byte prior to the EOR is checksum.
+// An proper packet is accepted by writing a 0xff 0xfe in return
+// A reject is sent by a 0xff 0xfd
+// An 0xff 0xff is the 0xff character
+// All bytes execpt for ESC and Checksum is then processed by processHDLCForSending method.
+// Every byte is also processed bye the CRC routine to accumulate the CRC digits.
+// When a EOR has been seen the the two CRC sigits that has been accumulated during the fram will be sent for processing 
+// by processHDLCForSending method.
+// Following this it calls endHDLCProcessing method which handles and any residual bits.
+int serialFrameState = 0;
+unsigned char checkSum = 0;
+
+void processFramedSerialData(unsigned char ch) {
+  if (serialFrameState == 0) { // Normal state no ESC has been received
+    if (ch == 0xff) {         // Received ESC
+      serialFrameState = 1;
+    }
+  } else if (serialFrameState == 1) {
+    switch (ch) {
+      case 0xff: // Just add the 0xff to the data stream
+        break;
+      case 0xfe: // Sent packet was accepted - remove outbound packet
+        break;
+      case 0xfd: // Sent packet was rejected - resend outboud packet
+        break;
+      case 0xef: // EOR 
+        break;
+      default:  // Invalid ESC sequence
+        break
+    }
+  }
+}
+
+
+int txMode = 0;  // There are two modes. Either it receives data from the Serial port, via the buffer or
+                 // it transmits data that has been stored previosly in the ringBuffer on SPI interface.
 
 
 void loop() {
 char ch;
-if (spi_is_tx_empty(SPI2)){
+if (txMode) {  
+  if (spi_is_tx_empty(SPI2)){
     if (txBuffer.isBufferEmpty()) {
       spi_tx_reg(SPI2, 0xff);  
     } else {
-      ch = translationArray[txBuffer.readBuffer()];
+      ch = txBuffer.readBuffer();
 #ifdef DEBUG3
       printMillis();
       Serial.print("Sending SPI: ");
@@ -186,6 +279,7 @@ if (spi_is_tx_empty(SPI2)){
       spi_tx_reg(SPI2, ch);  
     }    
   }
+}
            
   if (spi_is_rx_nonempty(SPI2)) {
     ch = spi_rx_reg(SPI2);
@@ -198,18 +292,22 @@ if (spi_is_tx_empty(SPI2)){
     } 
 #endif    
   }
-  if (Serial1.available()>0) {
-     ch = Serial1.read();
-#ifdef DEBUG3     
-     printMillis();
-     Serial.print("Reciving from Hercules : ");
-     printTwoDigitHex(ch);
-     Serial.println();
-#endif     
-#ifdef DEBUG3     
-     Serial.println("After rxData");
-#endif     
-  }
+  
+  if (!txMode) {
+    if (Serial1.available()>0) {
+       ch = Serial1.read();
+  #ifdef DEBUG3     
+       printMillis();
+       Serial.print("Reciving from Hercules : ");
+       printTwoDigitHex(ch);
+       Serial.println();
+  #endif   
+       processFramedSerialData(ch);
+  #ifdef DEBUG3     
+       Serial.println("After rxData");
+  #endif     
+    }
+  }  
   if (!rxBuffer.isBufferEmpty()) {
       ch = rxBuffer.readBuffer();
 #ifdef DEBUG3      
