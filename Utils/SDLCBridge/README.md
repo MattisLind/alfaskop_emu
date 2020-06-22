@@ -552,6 +552,20 @@ This is a trace from MVS startup to shutdown including a logon and then issuing 
 21:58:02 HHC01062D 0:0660 COMM: RD: 1F00 0800 3800 0004 0004 EB8000 12     DACTPU
 ```
 
+## SDLC implementation in STM32 Blue pill.
+
+The general idea is to receive frames over serial line. 
+
+There is an End Of Record (EOR) in the data received which indicate when to insert CRC bytes and generate closing flag. Just as little safty measure there is a simple checksum in the serial protcols. The byte just before the EOR is the checksum byte and should be the sum of bytes received until then. When everything is OK the sum should be zero when the EOR is received. If not zeros a REJECT is sent back. A REJECT is 0xff 0xfd. If the frame is OK then 0xff 0xfe is sent back when the frame has been sent. A timeout is needed on the sending side as well. It has to be related to the actual sending speed. An data 0xff has to be escaped with double 0xff to work.
+
+Data is then formatted into HDLC and moved into a sending buffer. The SPI routine checks is there are possible to send a byte from the buffer. Whenever it SPI interface is empty a new byte is read from the buffer and written to the SPI interface. When the sending buffer is empty the SPI will continue to send 0xff to indicate IDLE condition. 
+
+As data is received and de-escaped it is handled by the hdlc formatting routine. It takes has several states. In state IDLE when receiving a character it will start the frame by sending a flag. Then it will transfer to state FLAG SENT. In FLAG SENT all bytes are processed bit by bit, from MSB to LSB. If the bit is a zero the output data byte will be shifted one step left, thus shufting in a 0. If the bit is a one there is a counter that counts the number of ones that has been sent already. If this counter is five then a zero bit is inserted prior to shifting in the one bit. The counter is reset to zero at this time.
+
+There is also a bit counter that counts from 0 to 8. It counts each bit shifted in into the one byte output buffer. When 8 bits has been shifted in, including extra zeroes that has been inserted, it will transfer the byte to the output buffer queue for sending. The bit counter will then be reset to zero again.  
+
+When all data has been sent there might be a number of residual bits that has not yet been sent in the output buffer byte depening on how many extra zeroes that has been inserted. If this is the case the flag byte will be shifted in rather than just sent directly. To fill up to 8 full bits idle one bits will be shifted in after the flag byte prior to moving it to the output sending buffer.
+
 ## Links
 
 ### SNA
@@ -569,7 +583,7 @@ This is a trace from MVS startup to shutdown including a logon and then issuing 
 * [SDLC Concepts](http://bitsavers.informatik.uni-stuttgart.de/pdf/ibm/datacomm/GA27-3093-3_SDLC_Concepts_Jun86.pdf)
 
 ### NCP
-* [IBM 3705 Communicatons COntroller Network Control Program Generation and Utilities, Guide and Reference Manual](http://bitsavers.org/pdf/ibm/3704_3705/GC30-3000_3705_NCPGEN_Apr72.pdf)
+* [IBM 3705 Communicatons Controller Network Control Program Generation and Utilities, Guide and Reference Manual](http://bitsavers.org/pdf/ibm/3704_3705/GC30-3000_3705_NCPGEN_Apr72.pdf)
 
 ### 3274
 * [3274 Control Unit Description and Programmers Guide](http://bitsavers.trailing-edge.com/pdf/ibm/3274/GA23-0061-1_3274_Control_Unit_Description_and_Programmers_Guide_Jan84.pdf)
