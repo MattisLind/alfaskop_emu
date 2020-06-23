@@ -178,26 +178,22 @@ void loop();
 class DebugConsoleSerial Serial;
 class DebugHardwareSerial Serial1;
 
-char test1[] = {0x01, 0x02, 0xfd, 0xff, 0xef};
+char test1[] = {0x01, 0x02, 0xff, 0xef};
+char test2[] = {0xfc, 0x02, 0xff, 0xef};
+char test3[] = {0x01, 0xff, 0xef};
 
 #include "../../SDLCBridge/SDLCBridge.ino"
 
 int main (int argc, char ** argv) {
 
   setup();
-  Serial1.setReadBuffer(5, test1);
+  Serial1.setReadBuffer(4, test2);
   loop();
-  printf ("checksum=%02X txMode=%d serialFramState=%d txCrc=%04X\n", checksum, txMode, serialFrameState, txCrc);
   loop();
-  printf ("checksum=%02X txMode=%d serialFramState=%d txCrc=%04X\n", checksum, txMode, serialFrameState, txCrc);
   loop();
-  printf ("checksum=%02X txMode=%d serialFramState=%d txCrc=%04X\n", checksum, txMode, serialFrameState, txCrc);
   loop();
-  printf ("checksum=%02X txMode=%d serialFramState=%d txCrc=%04X\n", checksum, txMode, serialFrameState, txCrc);
   loop();
-  printf ("checksum=%02X txMode=%d serialFramState=%d txCrc=%04X\n", checksum, txMode, serialFrameState, txCrc);
   loop();
-  printf ("checksum=%02X txMode=%d serialFramState=%d txCrc=%04X\n", checksum, txMode, serialFrameState, txCrc);
   loop();
   loop();
   loop();

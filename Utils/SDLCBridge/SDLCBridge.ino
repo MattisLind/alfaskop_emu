@@ -177,11 +177,6 @@ unsigned short txCrc=0;
 unsigned short calculateCrcChar (unsigned short crc, unsigned char data_p) {
   unsigned char i;
   unsigned int data;
-  Serial.print("CRC:");
-  Serial.print(crc, HEX);
-  Serial.print("Data:");
-  Serial.print(data_p, HEX);
-  Serial.println();
   for (i=0, data=(unsigned int)0xff & data_p;
        i < 8; 
        i++, data >>= 1)
@@ -204,12 +199,12 @@ int txHDLCState=HDLC_STATE_IDLE;
 static inline void shiftInZero() {
   oneCounter=0;
   out <<= 1; bitCounter++;  // insert  zero bit.  
-  if (bitCounter == 8) { Serial.print(out, HEX); txBuffer.writeBuffer(out); bitCounter = 0; }
+  if (bitCounter == 8) { printf("OUT %02X\n", out); txBuffer.writeBuffer(out); bitCounter = 0; }
 }
 
 static inline void shiftInOne() {
-  out <<= 1; out |= 1; bitCounter++;
-  if (bitCounter == 8) { Serial.print(out, HEX);txBuffer.writeBuffer(out); bitCounter = 0; }
+  out <<= 1; out |= 1; bitCounter++; oneCounter++;
+  if (bitCounter == 8) { printf("OUT %02X\n", out); txBuffer.writeBuffer(out); bitCounter = 0; }
 }
 
 // This method will end the frame. Since the fram might contain a number of bits that is not divisable by eight we need to handle 
@@ -247,6 +242,7 @@ void endHDLCProcessing() {
 // At every shift the bitCounter is checked. If the bitCounter is 8 then it is reset to 0 and the data is moved to the txBuffer.
 
 void processHDLCforSending(unsigned char ch) {
+  printf ("Entry %02X\n", ch & 0xff);
   if (txHDLCState == HDLC_STATE_IDLE) {
     txBuffer.writeBuffer(0x7E); // Send the starting flaga as the first thing to do.
     txHDLCState=HDLC_STATE_FLAG_SENT;
@@ -262,7 +258,7 @@ void processHDLCforSending(unsigned char ch) {
     shiftInZero();
   }
   printf("out=%02X bitCounter=%d oneCounter=%d\n", out, bitCounter, oneCounter);
-  if (0b010000000 & ch) {
+  if (0b01000000 & ch) {
     if (oneCounter == 5) {
       shiftInZero(); 
       oneCounter=0;
@@ -332,6 +328,7 @@ void processHDLCforSending(unsigned char ch) {
     shiftInZero();
   }
   printf("out=%02X bitCounter=%d oneCounter=%d\n", out, bitCounter, oneCounter);
+  printf("EXIT\n");
 }
 
 int txMode = 0;  // There are two modes. Either it receives data from the Serial port, via the buffer or
@@ -352,43 +349,27 @@ int txMode = 0;  // There are two modes. Either it receives data from the Serial
 // by processHDLCForSending method.
 // Following this it calls endHDLCProcessing method which handles and any residual bits.
 int serialFrameState = 0;
-unsigned char checksum = 0;
 
 void processFramedSerialData(unsigned char ch) {
   if (serialFrameState == 0) { // Normal state no ESC has been received
     if (ch == 0xff) {         // Received ESC
       serialFrameState = 1;
     } else {
-      checksum += ch; 
-      calculateCrcChar(txCrc, ch); // Calculate the CRC for each character
+      txCrc = calculateCrcChar(txCrc, ch); // Calculate the CRC for each character
       processHDLCforSending(ch);   // throw it to HDLC processing
     }
   } else if (serialFrameState == 1) {
     switch (ch) {
       case 0xff: // Just add the 0xff to the data stream
-        checksum += ch; // We do checksum on all characters up to but not including the EOR which is 0xff 0xef.
-        checksum += ch;
-        calculateCrcChar(txCrc, ch);  // Calculate the CRC for each character
+        txCrc = calculateCrcChar(txCrc, ch);  // Calculate the CRC for each character
         processHDLCforSending(ch);    // throw it to HDLC processing
         break;
-      case 0xfe: // Sent packet was accepted - remove outbound packet
-        break;
-      case 0xfd: // Sent packet was rejected - resend outboud packet
-        break;
       case 0xef: // EOR 
-        if (checksum == 0) {
-         // great the checksum is fine. 
-          Serial1.write(0xff);
-          Serial1.write(0xfe);
-          processHDLCforSending(txCrc >> 8);  // MSB of CRC word
-          processHDLCforSending(txCrc);       // LSB of CRC word 
-          endHDLCProcessing();                // Handle non modulo 8 bits and send flags.
-          txMode = 1;
-        } else {
-          // Not so great. Reject it.
-          Serial1.write(0xff);
-          Serial1.write(0xfd);        
-        }
+        printf (" CRC %02X  %02X\n", 0xff & (txCrc >> 8), 0xff & txCrc);
+        processHDLCforSending(0xff & (txCrc >> 8));  // MSB of CRC word
+        processHDLCforSending(0xff & txCrc);       // LSB of CRC word 
+        endHDLCProcessing();                // Handle non modulo 8 bits and send flags.
+        txMode = 1;
         break;
       default:  // Invalid ESC sequence
         break;
