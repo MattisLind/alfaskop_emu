@@ -37,42 +37,43 @@ public:
 };
 
 
-class Serial {
 
+
+class DebugConsoleSerial {
 public:
-  Serial ();
-  int available ();
   void begin (int);
-  void print(char * str);
   void print(char);
-  void print(const char * str);
-  void print(char, int);
-  void print(short, int);
-  void print(long, int);
+  void print(const char *);
   void print(int, int);
   void println();
-  void println(char * str);
   void println(const char * str);
-  void write (char);
-  int  read();
 };
 
 
-Serial::Serial() {};
-int Serial::available() {return false;};
-void Serial::begin(int speed) {};
-void Serial::print(char * str) {};
-void Serial::print(char ch) {};
-void Serial::print(const char * str) {};
-void Serial::print(char, int) {};
-void Serial::print(short, int) {};
-void Serial::print(long, int) {};
-void Serial::print(int, int) {};
-void Serial::println() {};
-void Serial::println(char * str) {};
-void Serial::println(const char * str) {};
-void Serial::write(char ch) {};
-int Serial::read() { return 0; };
+// DebugConsoleSerial::DebugConsoleSerial() {};
+void DebugConsoleSerial::begin(int speed) {}
+void DebugConsoleSerial::print(char ch) {}
+void DebugConsoleSerial::print(const char * str) {}
+void DebugConsoleSerial::print(int, int) {}
+void DebugConsoleSerial::println() {}
+void DebugConsoleSerial::println(const char * str) {}
+
+
+class DebugHardwareSerial {
+public:
+  int available ();
+  void begin (int);
+  void write (char);
+  int  read();
+
+};
+
+//DebugHardwareSerial::DebugHardwareSerial() {};
+int DebugHardwareSerial::available() {return false;};
+void DebugHardwareSerial::begin(int speed) {};
+void DebugHardwareSerial::write(char ch) {};
+int DebugHardwareSerial::read() { return 0; };
+
 
 
 HardwareTimer::HardwareTimer(int timerId) {
@@ -125,8 +126,8 @@ bool spi_is_tx_empty(spi_dev *) {
 void setup();
 void loop();
 
-class Serial Serial;
-class Serial Serial1;
+class DebugConsoleSerial Serial;
+class DebugHardwareSerial Serial1;
 
 int main (int argc, char ** argv) {
 
