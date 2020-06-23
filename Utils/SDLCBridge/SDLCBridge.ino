@@ -65,7 +65,7 @@ void printMillis() {
   if (time < 100000000L) Serial.print('0');
   if (time < 1000000000L) Serial.print('0');
   if (time < 10000000000L) Serial.print('0');
-  Serial.print(time);
+  Serial.print(time, DEC);
   Serial.print(' ');
 }
 
@@ -177,6 +177,11 @@ unsigned short txCrc=0;
 unsigned short calculateCrcChar (unsigned short crc, unsigned char data_p) {
   unsigned char i;
   unsigned int data;
+  Serial.print("CRC:");
+  Serial.print(crc, HEX);
+  Serial.print("Data:");
+  Serial.print(data_p, HEX);
+  Serial.println();
   for (i=0, data=(unsigned int)0xff & data_p;
        i < 8; 
        i++, data >>= 1)
@@ -197,13 +202,14 @@ int oneCounter=0;
 int txHDLCState=HDLC_STATE_IDLE;
 
 static inline void shiftInZero() {
-  out <<= 1; bitCounter++;  // insert extra zero bit.  
-  if (bitCounter == 8) { txBuffer.writeBuffer(out); bitCounter = 0; }
+  oneCounter=0;
+  out <<= 1; bitCounter++;  // insert  zero bit.  
+  if (bitCounter == 8) { Serial.print(out, HEX); txBuffer.writeBuffer(out); bitCounter = 0; }
 }
 
 static inline void shiftInOne() {
   out <<= 1; out |= 1; bitCounter++;
-  if (bitCounter == 8) { txBuffer.writeBuffer(out); bitCounter = 0; }
+  if (bitCounter == 8) { Serial.print(out, HEX);txBuffer.writeBuffer(out); bitCounter = 0; }
 }
 
 // This method will end the frame. Since the fram might contain a number of bits that is not divisable by eight we need to handle 
@@ -249,75 +255,83 @@ void processHDLCforSending(unsigned char ch) {
   if (0b10000000 & ch) {
     if (oneCounter == 5) {
       shiftInZero(); 
-      shiftInOne();
       oneCounter=0;
     }
+    shiftInOne();
   } else {
     shiftInZero();
   }
+  printf("out=%02X bitCounter=%d oneCounter=%d\n", out, bitCounter, oneCounter);
   if (0b010000000 & ch) {
     if (oneCounter == 5) {
       shiftInZero(); 
-      shiftInOne();
       oneCounter=0;
     }
+    shiftInOne();
   } else {
     shiftInZero();
   }
+  printf("out=%02X bitCounter=%d oneCounter=%d\n", out, bitCounter, oneCounter);
   if (0b00100000 & ch) {
     if (oneCounter == 5) {
       shiftInZero(); 
-      shiftInOne();
       oneCounter=0;
     }
+    shiftInOne();     
   } else {
     shiftInZero();
   }
+  printf("out=%02X bitCounter=%d oneCounter=%d\n", out, bitCounter, oneCounter);
   if (0b00010000 & ch) {
     if (oneCounter == 5) {
       shiftInZero(); 
-      shiftInOne();
       oneCounter=0;
     }
+    shiftInOne();      
   } else {
     shiftInZero();
   }
+  printf("out=%02X bitCounter=%d oneCounter=%d\n", out, bitCounter, oneCounter);
   if (0b00001000 & ch) {
     if (oneCounter == 5) {
       shiftInZero(); 
-      shiftInOne();
       oneCounter=0;
     }
+    shiftInOne();
   } else {
     shiftInZero();
   }
+  printf("out=%02X bitCounter=%d oneCounter=%d\n", out, bitCounter, oneCounter);
   if (0b00000100 & ch) {
     if (oneCounter == 5) {
       shiftInZero(); 
-      shiftInOne();
-      oneCounter=0;
+      oneCounter=0;	
     }
+    shiftInOne();
   } else {
     shiftInZero();
   }
+  printf("out=%02X bitCounter=%d oneCounter=%d\n", out, bitCounter, oneCounter);
   if (0b00000010 & ch) {
     if (oneCounter == 5) {
-      shiftInZero(); 
-      shiftInOne();
-      oneCounter=0;
+      shiftInZero();      
+      oneCounter=0;		
     }
+    shiftInOne();
   } else {
     shiftInZero();
   }
+  printf("out=%02X bitCounter=%d oneCounter=%d\n", out, bitCounter, oneCounter);
   if (0b00000001 & ch) {
     if (oneCounter == 5) {
       shiftInZero(); 
-      shiftInOne();
       oneCounter=0;
     }
+    shiftInOne();
   } else {
     shiftInZero();
   }
+  printf("out=%02X bitCounter=%d oneCounter=%d\n", out, bitCounter, oneCounter);
 }
 
 int txMode = 0;  // There are two modes. Either it receives data from the Serial port, via the buffer or
@@ -356,7 +370,6 @@ void processFramedSerialData(unsigned char ch) {
         checksum += ch;
         calculateCrcChar(txCrc, ch);  // Calculate the CRC for each character
         processHDLCforSending(ch);    // throw it to HDLC processing
-        txMode = 1;
         break;
       case 0xfe: // Sent packet was accepted - remove outbound packet
         break;
@@ -370,6 +383,7 @@ void processFramedSerialData(unsigned char ch) {
           processHDLCforSending(txCrc >> 8);  // MSB of CRC word
           processHDLCforSending(txCrc);       // LSB of CRC word 
           endHDLCProcessing();                // Handle non modulo 8 bits and send flags.
+          txMode = 1;
         } else {
           // Not so great. Reject it.
           Serial1.write(0xff);

@@ -13,6 +13,8 @@
 #include <string.h>
 #include "SPI.h"
 #include <ctype.h>
+#include <stdlib.h>
+#include <sys/time.h>
 
 
 #define PB11 5
@@ -20,9 +22,20 @@
 #define PB10 7
 #define INPUT 1
 #define OUTPUT 2
+#define PA8 1
+#define DEC 0
+#define HEX 2
+#define PWM 2
+
+
 
 unsigned long millis() {
-  return 0L;
+  struct timeval  tv;
+  gettimeofday(&tv, NULL);
+
+  long time_in_mill =  (tv.tv_sec) * 1000 + (tv.tv_usec) / 1000 ; // convert tv_sec & tv_usec to millisecond
+  // printf("millis() called returning %lU\n", time_in_mill);
+  return time_in_mill;
 }
 
 class HardwareTimer {
@@ -45,6 +58,7 @@ public:
   void print(char);
   void print(const char *);
   void print(int, int);
+  //void print(unsigned long);
   void println();
   void println(const char * str);
 };
@@ -52,27 +66,65 @@ public:
 
 // DebugConsoleSerial::DebugConsoleSerial() {};
 void DebugConsoleSerial::begin(int speed) {}
-void DebugConsoleSerial::print(char ch) {}
-void DebugConsoleSerial::print(const char * str) {}
-void DebugConsoleSerial::print(int, int) {}
-void DebugConsoleSerial::println() {}
-void DebugConsoleSerial::println(const char * str) {}
+void DebugConsoleSerial::print(char ch) {
+  putchar(ch);
+}
+/*
+void DebugConsoleSerial::print(unsigned long number) {
+  printf("%lU", number);
+  }*/
+void DebugConsoleSerial::print(const char * str) {
+  puts(str);
+}
+void DebugConsoleSerial::print(int number, int type) {
+  char buf[32];
+  switch (type) {
+  case HEX:
+    printf("%X",number);
+    break;
+  case DEC:
+    printf("%d",number);
+    break;
+  }
+}
+void DebugConsoleSerial::println() {
+  putchar('\n');
+}
+void DebugConsoleSerial::println(const char * str) {
+  puts(str);
+  putchar('\n');
+}
 
 
 class DebugHardwareSerial {
+  char * readBuffer;
+  int readBufferLength;
+  int readPtr;
 public:
   int available ();
   void begin (int);
   void write (char);
   int  read();
-
+  void setReadBuffer(int, char *);
 };
 
 //DebugHardwareSerial::DebugHardwareSerial() {};
-int DebugHardwareSerial::available() {return false;};
+int DebugHardwareSerial::available() { 
+  printf ("Calling available() \n");
+  return readBufferLength-readPtr;  
+};
 void DebugHardwareSerial::begin(int speed) {};
-void DebugHardwareSerial::write(char ch) {};
-int DebugHardwareSerial::read() { return 0; };
+void DebugHardwareSerial::write(char ch) {
+  printf("Wrote %02X\n", ch&0xff);
+};
+int DebugHardwareSerial::read() { 
+  printf("Calling read() \n");
+  return readBuffer[readPtr++]; 
+};
+void  DebugHardwareSerial::setReadBuffer(int length, char * buffer) {  
+  readBuffer = buffer;
+  readBufferLength = length;
+};
 
 
 
@@ -99,10 +151,6 @@ void SPIClass::setDataMode (int dataMode) {
 SPIClass::SPIClass(int id) {
 }
 
-#define PA8 1
-#define DEC 0
-#define HEX 2
-#define PWM 2
 
 void pinMode(int, int) {
 };
@@ -111,7 +159,8 @@ void pwmWrite (int, int) {
 }
 
 
-void spi_tx_reg(spi_dev *, int) {
+void spi_tx_reg(spi_dev *, int ch) {
+  printf("SPI tx %02X\n", ch & 0xff);
 }
 uint16_t spi_rx_reg(spi_dev *) {
   return 0;
@@ -129,17 +178,38 @@ void loop();
 class DebugConsoleSerial Serial;
 class DebugHardwareSerial Serial1;
 
+char test1[] = {0x01, 0x02, 0xfd, 0xff, 0xef};
+
+#include "../../SDLCBridge/SDLCBridge.ino"
+
 int main (int argc, char ** argv) {
 
   setup();
-  do {
-    loop();
-  }
-  while (1);
+  Serial1.setReadBuffer(5, test1);
+  loop();
+  printf ("checksum=%02X txMode=%d serialFramState=%d txCrc=%04X\n", checksum, txMode, serialFrameState, txCrc);
+  loop();
+  printf ("checksum=%02X txMode=%d serialFramState=%d txCrc=%04X\n", checksum, txMode, serialFrameState, txCrc);
+  loop();
+  printf ("checksum=%02X txMode=%d serialFramState=%d txCrc=%04X\n", checksum, txMode, serialFrameState, txCrc);
+  loop();
+  printf ("checksum=%02X txMode=%d serialFramState=%d txCrc=%04X\n", checksum, txMode, serialFrameState, txCrc);
+  loop();
+  printf ("checksum=%02X txMode=%d serialFramState=%d txCrc=%04X\n", checksum, txMode, serialFrameState, txCrc);
+  loop();
+  printf ("checksum=%02X txMode=%d serialFramState=%d txCrc=%04X\n", checksum, txMode, serialFrameState, txCrc);
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
 }
 
 
-#include "../../SDLCBridge/SDLCBridge.ino"
+
 
 
 
