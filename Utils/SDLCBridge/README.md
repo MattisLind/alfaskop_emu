@@ -1,8 +1,8 @@
 # SDLC bridge
 
 This is an attemmpt to interface a Informer 213, a portable 3178 compatible terminal with integrated 3274 comatible cluster controller, to the Hercules mainframe emulator.
-This terminal needs a SDLC compatible interface. This project also discusses how to create the relevnat configuration in the MVS / VTAM environment
-to achieve this and what changed is needed to the comm3705 module in Hercules.
+This terminal needs a SDLC compatible interface. This project also discusses how to create the relevant configuration in the MVS / VTAM environment
+to achieve this and what changes is needed to the comm3705 module in Hercules.
 
 ![Informer 213](https://i.imgur.com/M9zcy7E.png)
 
@@ -11,12 +11,12 @@ I use the  TK4- MVS dirstribuition as the basis for all experimentation. But the
 
 So the steps are:
 
-1. Edit the SYS1.VTAMLST(ATCCON01) member to reflect your config
+1. Edit the SYS1.VTAMLST(ATCCON01) member to reflect your config.
 2. Edit the SYS1.VTAMLST(N07) member for the config of your NCP.
 3. Erase all members of SYS1.VTAMOBJ to that they will not interfere. These members will be rebuilt as soon as VTAM starts.
 4. Edit the SYS1.VTAMSRC(N07R) so that it matches SYS1.VTAMLST(N07). Make sure you have added a line for printing the assembly listing output.
-5. Submit the N07R job for execution. It will create the SYS1.VTAMOBJ(N07R) member in the process when assembling and linking. It also produces interesting output on your prnter. Check it.
-6. Edit the member SYS1.PARMLIB(STARTSTD) toi reflect the configuration. Remove non present terminals and add the terminal you want. For example N07L21. Remove unused NCP devices.
+5. Submit the N07R job for execution. It will create the SYS1.VTAMOBJ(N07R) member in the process when assembling and linking. It also produces interesting output on your prnter. Check it. It tells plenty of things how the gen decided to configure the system, addresses of nodes etc.
+6. Edit the member SYS1.PARMLIB(STARTSTD) to reflect the configuration. Remove non present terminals and add the terminal you want. For example N07L21. Remove unused NCP devices.
 
 ### ATCCON01
 
@@ -80,7 +80,7 @@ N07L21   LU    VPACING=0,                                              +        
          GENEND                                                                         10
          
 ```
-It defines a 3705, attached to channel address 660. There is one line N07L2, with a PU (Physical Unit) called N07P2 (which is the 3274 itself) and one LU (Logical Unit) called N07L21. The names chosen is supposed to match existing configuration in SYS1.VTAMSRC(N07R). This file is read when VTAM is started and compiled into a binary file. This file is then placed in the SYS1.VTAMOBJ as member N07. It is very important to remove these binary caches when changing the text file.
+It defines a 3705, attached to channel address 660. There is one line N07L2, with a PU (Physical Unit) called N07P2 (which is the 3274 itself) and one LU (Logical Unit) called N07L21. The names chosen is supposed to match existing configuration in SYS1.VTAMSRC(N07R). This file N07 is read when VTAM is started and compiled into a binary file. This file is then placed in the SYS1.VTAMOBJ as member N07. It is very important to remove these binary caches when changing the text file.
 
 ### N07R
 
@@ -294,7 +294,7 @@ During startup I now see messages:
 11:13:19 10.13.19 STC   98  IST061I  VARY FAILED- ID= T3278S11 UNKNOWN TO VTAM
 ```
 
-This due to the member SYS1.PARMLIB(SNAACT) is not correct. It has to have a VARY command the activate the terminal, N07L21.
+~~This due to the member SYS1.PARMLIB(SNAACT) is not correct.~~ This is due to SYS1.PARMLIB(STARTSTD) is not correct. It has to have a VARY command the activate the terminal, N07L21.
 ```
 ***********************************************************************                  1
 *                                                                     *                  1
@@ -403,30 +403,6 @@ index 7b9450e..60a3921 100644
 
 
 
-## SDLC
-
-Next step would be to understand a bit more on how to communicate with the Informer 213. It does SDLC over regular V.24/ V.28 line. The intention is to code a small STM32F103 bluepill to do SDLC encoding / decoding.
-
-I had an exchange of with an [expert in SAN / SDLC / VTAM](http://www.lightlink.com/mhp/3705/) which gave these comments:
-
-> As for running SNA over SDLC, I don't think there's anything special - I believe the SNA data is sent in SDLC "I" frames.  I'd expect
-> that a SNRM followed by an ACTPU should get some sort of response out of the controller.  In writing the SDLC driver the only tricky
-> part I remember would be the proper setting of the P/F (poll/final) bit.  I don't remember the specific rules.  The exception to the
-> "everything is an I frame" rule would apply in the case of XID, which was used in the switched (dialup) case.  The IDNUM/IDBLK fields 
-> in the SDLC XID were used by NCP to generate a request-contact (REQCONT) request which was part of the VTAM dial protocol.
-
-> if you do send a SNRM make sure you get a UA in reply.  Then exchange a few RR (receiver ready) SDLC frames prior to attempting the ACTPU...
-
-> This starts to get at the heart of what the "boundary function" really means.  In the real world the NCP would not send the SNRM until
-> first having received the CONTACT request from VTAM.  When UA is received the link immediately enters normal response mode and normal
-> polling commences.  Meanwhile the receipt of the UA also causes NCP to send the CONTACTED request to VTAM which in turn eventually
-> sends ACTPU.  It is probably not an error to send the ACTPU right on the heels of the UA but that might tempt the timing bugs to make
-> an appearance   [in comm3705 at present, the CONTACTED is sent much sooner].
-
-> Another function not done in comm3705.c but might be added would be proper modem lead control (for DTR and DSR) conditioned on the 
-> ACTLINK and DACTLINK functions...
-
-So the basic idea is to do some rudimentary testing using the STM32 sending a SNRM message, waiting for the UA frame acknowledgment and thensend an ACTPU to activate the PU inside the terminal (i.e. the 3274).
 
 ## SNA message trace
 This is a trace from MVS startup to shutdown including a logon and then issuing a shutdown command from the terminal.
@@ -604,12 +580,35 @@ This is a trace from MVS startup to shutdown including a logon and then issuing 
 21:58:02 HHC01062D 0:0660 COMM: RD: 1F00 0800 3800 0004 0004 EB8000 12     DACTPU
 ```
 
-## SDLC implementation in STM32 Blue pill.
+## SDLC
+
+Next step would be to understand a bit more on how to communicate with the Informer 213. It does SDLC over regular V.24/ V.28 line. The intention is to code a small STM32F103 bluepill to do SDLC encoding / decoding.
+
+I had an exchange of with an [expert in SAN / SDLC / VTAM](http://www.lightlink.com/mhp/3705/) which gave these comments:
+
+> As for running SNA over SDLC, I don't think there's anything special - I believe the SNA data is sent in SDLC "I" frames.  I'd expect
+> that a SNRM followed by an ACTPU should get some sort of response out of the controller.  In writing the SDLC driver the only tricky
+> part I remember would be the proper setting of the P/F (poll/final) bit.  I don't remember the specific rules.  The exception to the
+> "everything is an I frame" rule would apply in the case of XID, which was used in the switched (dialup) case.  The IDNUM/IDBLK fields 
+> in the SDLC XID were used by NCP to generate a request-contact (REQCONT) request which was part of the VTAM dial protocol.
+
+> if you do send a SNRM make sure you get a UA in reply.  Then exchange a few RR (receiver ready) SDLC frames prior to attempting the ACTPU...
+
+> This starts to get at the heart of what the "boundary function" really means.  In the real world the NCP would not send the SNRM until
+> first having received the CONTACT request from VTAM.  When UA is received the link immediately enters normal response mode and normal
+> polling commences.  Meanwhile the receipt of the UA also causes NCP to send the CONTACTED request to VTAM which in turn eventually
+> sends ACTPU.  It is probably not an error to send the ACTPU right on the heels of the UA but that might tempt the timing bugs to make
+> an appearance   [in comm3705 at present, the CONTACTED is sent much sooner].
+
+> Another function not done in comm3705.c but might be added would be proper modem lead control (for DTR and DSR) conditioned on the 
+> ACTLINK and DACTLINK functions...
+
+So the basic idea is to do some rudimentary testing using the STM32 sending a SNRM message, waiting for the UA frame acknowledgment and thensend an ACTPU to activate the PU inside the terminal (i.e. the 3274).
 
 
-### Tx
+### SDLC implementation in STM32 Blue pill - Tx
 
-The general idea is to receive frames over serial line. 
+The general idea is to receive frames over serial line from Hercules. 
 
 There is an End Of Record (EOR) in the data received which indicate when to insert CRC bytes and generate closing flag. Just as little safty measure there is a simple checksum in the serial protcols. ~~The byte just before the EOR is the checksum byte and should be the sum of bytes received until then. When everything is OK the sum should be zero when the EOR is received. If not zeros a REJECT is sent back. A REJECT is 0xff 0xfd. If the frame is OK then 0xff 0xfe is sent back when the frame has been sent. A timeout is needed on the sending side as well. It has to be related to the actual sending speed.~~ It turns out that including the escape in the checksum process will not work since you might end up with 0xff as the checksum and then you need to escape it which will then affect the checksum... An data 0xff has to be escaped with double 0xff to work.
 
@@ -621,14 +620,14 @@ There is also a bit counter that counts from 0 to 8. It counts each bit shifted 
 
 When all data has been sent there might be a number of residual bits that has not yet been sent in the output buffer byte depening on how many extra zeroes that has been inserted. If this is the case the flag byte will be shifted in rather than just sent directly. To fill up to 8 full bits idle one bits will be shifted in after the flag byte prior to moving it to the output sending buffer.
 
-### Rx
+### SDLC implementation in STM32 Blue pill - Rx
 
 Since receiving is a time critical task bytes has to be received from the SPI interface immediately and put into a buffer. All SDLC processing code will read byte by byte from the buffer rather than from the SPI device to minimize the risk for overrun. To further improve this DMA can be used to transfer the data without involving the CPU at all. Will be invesigated in the future.
 
-The DDLC processor has two states, IDLE and ACTIVE. IDLE when it is waiting for receving the flag and ACTIVE when receiving data. As with transmit each byte is scanned from LSB to MSB. If a bit is a one then oneCounter is incremented. If oneCounter is 6 and the current bit is 0 then we have a flag. Then we switch states, either from IDLE to ACTIVE or from ACTIVE to IDLE. If ACTIVE state and oneCounter is 7 then we have an abort. The current frame shall be discarded and state goes to IDLE.
-In ACTIVE state and oneCounter is 5 and current bit is 0 means that this is an inserted 0 bit. This shall be disregarded from. Thus do nothing. In all other cases when in ACTIVE state it shall copy the current bit into the input byte buffer, shifting it in to the right from MSB to LSB. The bitCounter is incremented at each time. If the bitCounter is 8 then the current input byte is transfered to the buffer and the bitCounter is reset to 0.
+The SDLC processor has two states, IDLE and ACTIVE. IDLE when it is waiting for receiving the flag and ACTIVE when receiving data. As with transmit each byte is scanned from LSB to MSB. If a bit is a 1 then oneCounter is incremented. If oneCounter is 6 and the current bit is 0 then we have a flag. Then we switch states, either from IDLE to ACTIVE or from ACTIVE to IDLE. If in ACTIVE state and oneCounter is 6 and we receive a 1 then we have an abort. The current frame shall be discarded and state goes to IDLE.
+In ACTIVE state and oneCounter is 5 and current bit is 0 it means that this is an inserted 0 bit. This shall be disregarded from. Thus do nothing. In all other cases when in ACTIVE state it shall copy the current bit into the input byte buffer, shifting it in to the right from MSB to LSB. The bitCounter is incremented at each time. If the bitCounter is 8 then the current input byte is transfered to the buffer and the bitCounter is reset to 0.
 
-When in ACTIVE state and a flag is received, this means that the current frame is terminated and that it shall be processed by next layer. Thus a flag is signalling that the current frame is ready for processing.
+When in ACTIVE state and a flag is received, this means that the current frame is terminated and that it shall be processed by next layer. Thus a variable is signalling that the current frame is ready for processing.
 
 The data that has been processed by the SDLC input processor is then read from the buffer by the task that frames data for sending over the serial line. This is simply reading the stream of bytes and inserting escaping 0xff characters whenever necessary. The EOR marker will be sent as the last couple of characters.
 
