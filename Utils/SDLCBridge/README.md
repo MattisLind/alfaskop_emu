@@ -605,17 +605,31 @@ This is a trace from MVS startup to shutdown including a logon and then issuing 
 
 ## SDLC implementation in STM32 Blue pill.
 
+
+### Tx
+
 The general idea is to receive frames over serial line. 
 
-There is an End Of Record (EOR) in the data received which indicate when to insert CRC bytes and generate closing flag. Just as little safty measure there is a simple checksum in the serial protcols. The byte just before the EOR is the checksum byte and should be the sum of bytes received until then. When everything is OK the sum should be zero when the EOR is received. If not zeros a REJECT is sent back. A REJECT is 0xff 0xfd. If the frame is OK then 0xff 0xfe is sent back when the frame has been sent. A timeout is needed on the sending side as well. It has to be related to the actual sending speed. An data 0xff has to be escaped with double 0xff to work.
+There is an End Of Record (EOR) in the data received which indicate when to insert CRC bytes and generate closing flag. Just as little safty measure there is a simple checksum in the serial protcols. ~~The byte just before the EOR is the checksum byte and should be the sum of bytes received until then. When everything is OK the sum should be zero when the EOR is received. If not zeros a REJECT is sent back. A REJECT is 0xff 0xfd. If the frame is OK then 0xff 0xfe is sent back when the frame has been sent. A timeout is needed on the sending side as well. It has to be related to the actual sending speed.~~ It turns out that including the escape in the checksum process will not work since you might end up with 0xff as the checksum and then you need to escape it which will then affect the checksum... An data 0xff has to be escaped with double 0xff to work.
 
 Data is then formatted into HDLC and moved into a sending buffer. The SPI routine checks is there are possible to send a byte from the buffer. Whenever it SPI interface is empty a new byte is read from the buffer and written to the SPI interface. When the sending buffer is empty the SPI will continue to send 0xff to indicate IDLE condition. 
 
-As data is received and de-escaped it is handled by the hdlc formatting routine. It takes has several states. In state IDLE when receiving a character it will start the frame by sending a flag. Then it will transfer to state FLAG SENT. In FLAG SENT all bytes are processed bit by bit, from MSB to LSB. If the bit is a zero the output data byte will be shifted one step left, thus shufting in a 0. If the bit is a one there is a counter that counts the number of ones that has been sent already. If this counter is five then a zero bit is inserted prior to shifting in the one bit. The counter is reset to zero at this time.
+As data is received and de-escaped it is handled by the hdlc formatting routine. It takes has several states. In state IDLE when receiving a character it will start the frame by sending a flag. Then it will transfer to state FLAG SENT. In FLAG SENT all bytes are processed bit by bit, from ~~MSB to LSB~~ LSB to MSB. If the bit is a zero the output data byte will be shifted one step ~~left~~ right, thus shufting in a 0. If the bit is a one there is a counter that counts the number of ones that has been sent already. If this counter is five then a zero bit is inserted prior to shifting in the one bit. The counter is reset to zero at this time.
 
 There is also a bit counter that counts from 0 to 8. It counts each bit shifted in into the one byte output buffer. When 8 bits has been shifted in, including extra zeroes that has been inserted, it will transfer the byte to the output buffer queue for sending. The bit counter will then be reset to zero again.  
 
 When all data has been sent there might be a number of residual bits that has not yet been sent in the output buffer byte depening on how many extra zeroes that has been inserted. If this is the case the flag byte will be shifted in rather than just sent directly. To fill up to 8 full bits idle one bits will be shifted in after the flag byte prior to moving it to the output sending buffer.
+
+### Rx
+
+Since receiving is a time critical task bytes has to be received from the SPI interface immediately and put into a buffer. All SDLC processing code will read byte by byte from the buffer rather than from the SPI device to minimize the risk for overrun. To further improve this DMA can be used to transfer the data without involving the CPU at all. Will be invesigated in the future.
+
+The DDLC processor has two states, IDLE and ACTIVE. IDLE when it is waiting for receving the flag and ACTIVE when receiving data. As with transmit each byte is scanned from LSB to MSB. If a bit is a one then oneCounter is incremented. If oneCounter is 6 and the current bit is 0 then we have a flag. Then we switch states, either from IDLE to ACTIVE or from ACTIVE to IDLE. If ACTIVE state and oneCounter is 7 then we have an abort. The current frame shall be discarded and state goes to IDLE.
+In ACTIVE state and oneCounter is 5 and current bit is 0 means that this is an inserted 0 bit. This shall be disregarded from. Thus do nothing. In all other cases when in ACTIVE state it shall copy the current bit into the input byte buffer, shifting it in to the right from MSB to LSB. The bitCounter is incremented at each time. If the bitCounter is 8 then the current input byte is transfered to the buffer and the bitCounter is reset to 0.
+
+When in ACTIVE state and a flag is received, this means that the current frame is terminated and that it shall be processed by next layer. Thus a flag is signalling that the current frame is ready for processing.
+
+The data that has been processed by the SDLC input processor is then read from the buffer by the task that frames data for sending over the serial line. This is simply reading the stream of bytes and inserting escaping 0xff characters whenever necessary. The EOR marker will be sent as the last couple of characters.
 
 ## Links
 
