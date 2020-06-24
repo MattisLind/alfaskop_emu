@@ -198,12 +198,12 @@ int txHDLCState=HDLC_STATE_IDLE;
 
 static inline void shiftInZero() {
   oneCounter=0;
-  out <<= 1; bitCounter++;  // insert  zero bit.  
+  out >>= 1; bitCounter++;  // insert  zero bit.  
   if (bitCounter == 8) { printf("OUT %02X\n", out); txBuffer.writeBuffer(out); bitCounter = 0; }
 }
 
 static inline void shiftInOne() {
-  out <<= 1; out |= 1; bitCounter++; oneCounter++;
+  out >>= 1; out |= 0b10000000; bitCounter++; oneCounter++;
   if (bitCounter == 8) { printf("OUT %02X\n", out); txBuffer.writeBuffer(out); bitCounter = 0; }
 }
 
@@ -223,7 +223,7 @@ void endHDLCProcessing() {
     shiftInOne();
     shiftInOne();
     shiftInZero();
-    for (; bitCounter<8;bitCounter++) { out <<= 1; out |= 1; }
+    for (; bitCounter<8;bitCounter++) { out >>= 1; out |= 0b10000000; }
     txBuffer.writeBuffer(out);   
   }
 }
@@ -248,7 +248,7 @@ void processHDLCforSending(unsigned char ch) {
     txHDLCState=HDLC_STATE_FLAG_SENT;
   } 
   // Process each bit of the input character.
-  if (0b10000000 & ch) {
+  if (0b00000001 & ch) {
     if (oneCounter == 5) {
       shiftInZero(); 
       oneCounter=0;
@@ -258,37 +258,7 @@ void processHDLCforSending(unsigned char ch) {
     shiftInZero();
   }
   printf("out=%02X bitCounter=%d oneCounter=%d\n", out, bitCounter, oneCounter);
-  if (0b01000000 & ch) {
-    if (oneCounter == 5) {
-      shiftInZero(); 
-      oneCounter=0;
-    }
-    shiftInOne();
-  } else {
-    shiftInZero();
-  }
-  printf("out=%02X bitCounter=%d oneCounter=%d\n", out, bitCounter, oneCounter);
-  if (0b00100000 & ch) {
-    if (oneCounter == 5) {
-      shiftInZero(); 
-      oneCounter=0;
-    }
-    shiftInOne();     
-  } else {
-    shiftInZero();
-  }
-  printf("out=%02X bitCounter=%d oneCounter=%d\n", out, bitCounter, oneCounter);
-  if (0b00010000 & ch) {
-    if (oneCounter == 5) {
-      shiftInZero(); 
-      oneCounter=0;
-    }
-    shiftInOne();      
-  } else {
-    shiftInZero();
-  }
-  printf("out=%02X bitCounter=%d oneCounter=%d\n", out, bitCounter, oneCounter);
-  if (0b00001000 & ch) {
+  if (0b00000010 & ch) {
     if (oneCounter == 5) {
       shiftInZero(); 
       oneCounter=0;
@@ -301,6 +271,36 @@ void processHDLCforSending(unsigned char ch) {
   if (0b00000100 & ch) {
     if (oneCounter == 5) {
       shiftInZero(); 
+      oneCounter=0;
+    }
+    shiftInOne();     
+  } else {
+    shiftInZero();
+  }
+  printf("out=%02X bitCounter=%d oneCounter=%d\n", out, bitCounter, oneCounter);
+  if (0b00001000 & ch) {
+    if (oneCounter == 5) {
+      shiftInZero(); 
+      oneCounter=0;
+    }
+    shiftInOne();      
+  } else {
+    shiftInZero();
+  }
+  printf("out=%02X bitCounter=%d oneCounter=%d\n", out, bitCounter, oneCounter);
+  if (0b00010000 & ch) {
+    if (oneCounter == 5) {
+      shiftInZero(); 
+      oneCounter=0;
+    }
+    shiftInOne();
+  } else {
+    shiftInZero();
+  }
+  printf("out=%02X bitCounter=%d oneCounter=%d\n", out, bitCounter, oneCounter);
+  if (0b00100000 & ch) {
+    if (oneCounter == 5) {
+      shiftInZero(); 
       oneCounter=0;	
     }
     shiftInOne();
@@ -308,7 +308,7 @@ void processHDLCforSending(unsigned char ch) {
     shiftInZero();
   }
   printf("out=%02X bitCounter=%d oneCounter=%d\n", out, bitCounter, oneCounter);
-  if (0b00000010 & ch) {
+  if (0b01000000 & ch) {
     if (oneCounter == 5) {
       shiftInZero();      
       oneCounter=0;		
@@ -318,7 +318,7 @@ void processHDLCforSending(unsigned char ch) {
     shiftInZero();
   }
   printf("out=%02X bitCounter=%d oneCounter=%d\n", out, bitCounter, oneCounter);
-  if (0b00000001 & ch) {
+  if (0b10000000 & ch) {
     if (oneCounter == 5) {
       shiftInZero(); 
       oneCounter=0;
