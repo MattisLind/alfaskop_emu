@@ -16,6 +16,7 @@ So the steps are:
 3. Erase all members of SYS1.VTAMOBJ to that they will not interfere. These members will be rebuilt as soon as VTAM starts.
 4. Edit the SYS1.VTAMSRC(N07R) so that it matches SYS1.VTAMLST(N07). Make sure you have added a line for printing the assembly listing output.
 5. Submit the N07R job for execution. It will create the SYS1.VTAMOBJ(N07R) member in the process when assembling and linking. It also produces interesting output on your prnter. Check it.
+6. Edit the member SYS1.PARMLIB(STARTSTD) toi reflect the configuration. Remove non present terminals and add the terminal you want. For example N07L21. Remove unused NCP devices.
 
 ### ATCCON01
 
