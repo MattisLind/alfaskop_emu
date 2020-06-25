@@ -75,7 +75,8 @@ class MessageFSM herculesMessageFSM(txToHercules, messageReceivedFromHerculesCal
 HardwareTimer pwmtimer(1);
 const int pwmOutPin = PA8; // pin10
 
-class RingBuffer rxBuffer;
+class RingBuffer rxSyncBuffer;
+class RingBuffer rxInBuffer
 class RingBuffer txBuffer;
 
 
@@ -196,7 +197,7 @@ void receiveCallback(unsigned char ch) {
   printTwoDigitHex(ch);
   Serial.println();
 #endif     
-  rxBuffer.writeBuffer(ch);
+  messageFSM.rxData(ch);   
 }
 
 
@@ -421,7 +422,9 @@ void txDataCallback (unsigned char ch) {
      printTwoDigitHex(ch);
      Serial.println();
 #endif     
-     txBuffer.writeBuffer(ch);
+    spi_irq_disable(SPI2, SPI_RXNE_INTERRUPT);	
+    txBuffer.writeBuffer(ch);
+    spi_irq_enable(SPI2, SPI_RXNE_INTERRUPT);
 }
 
 void txToHercules (unsigned char ch) {
@@ -447,33 +450,36 @@ void enterHuntHercules() {
 #endif  
 }
 
-void loop() {
-char ch;
-if (spi_is_tx_empty(SPI2)){
+
+// Enable interrups for RX
+//spi_irq_enable(SPI2, SPI_RXNE_INTERRUPT);
+
+//spi_irq_disable(SPI2, SPI_RXNE_INTERRUPT);
+
+
+__weak void __irq_spi2 (void) {
+  if (spi_is_tx_empty(SPI2)){
     if (txBuffer.isBufferEmpty()) {
       spi_tx_reg(SPI2, 0xff);  
     } else {
       ch = translationArray[txBuffer.readBuffer()];
-#ifdef DEBUG3
-      printMillis();
-      Serial.print("Sending SPI: ");
-      printTwoDigitHex(ch);
-      Serial.println();
-#endif            
       spi_tx_reg(SPI2, ch);  
     }    
   }
-           
+
   if (spi_is_rx_nonempty(SPI2)) {
     ch = spi_rx_reg(SPI2);
-#ifdef DEBUG3     
-    if (ch != 0xff ) {
-      printMillis();
-      Serial.print("Receiving SPI: ");
-      printTwoDigitHex(ch);
-      Serial.println();        
-    } 
-#endif    
+    syncFSM.receivedData(ch);
+  }
+}
+
+
+void loop() {
+  char ch;
+  if (!rxInBuffer.isBufferEmpty()) {
+    spi_irq_disable(SPI2, SPI_RXNE_INTERRUPT);	
+    ch = rxInBuffer.readBuffer();
+    spi_irq_enable(SPI2, SPI_RXNE_INTERRUPT);
     syncFSM.receivedData(ch);
   }
   if (Serial1.available()>0) {
@@ -489,8 +495,8 @@ if (spi_is_tx_empty(SPI2)){
      Serial.println("After rxData");
 #endif     
   }
-  if (!rxBuffer.isBufferEmpty()) {
-      ch = rxBuffer.readBuffer();
+  if (!rxSyncBuffer.isBufferEmpty()) {
+      ch = rxSyncBuffer.readBuffer();
 #ifdef DEBUG3      
       printMillis();
       Serial.print("Synced data from buffer to Hercules : ");
@@ -500,3 +506,6 @@ if (spi_is_tx_empty(SPI2)){
       messageFSM.rxData(ch);   
   }
 }
+
+
+
