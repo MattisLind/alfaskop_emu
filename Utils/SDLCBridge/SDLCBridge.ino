@@ -79,9 +79,9 @@ SPIClass SPI_2(2);
 HardwareTimer pwmtimer(1);
 const int pwmOutPin = PA8; // pin10
 
-class RingBuffer rxBuffer;
+class RingBuffer rxOutBuffer;
 class RingBuffer txBuffer;
-
+class RingBuffer rxInBuffer;
 
 
 void setup() {
@@ -108,7 +108,8 @@ void setup() {
   Serial.print("BSC Bridge starting up");
   Serial.println();
 #endif
-  rxBuffer.initBuffer();
+  rxInBuffer.initBuffer();
+  rxOutBuffer.initBuffer();
   txBuffer.initBuffer();
 }
 
@@ -251,7 +252,6 @@ void processHDLCforSending(unsigned char ch) {
   if (0b00000001 & ch) {
     if (oneCounter == 5) {
       shiftInZero(); 
-      oneCounter=0;
     }
     shiftInOne();
   } else {
@@ -261,7 +261,6 @@ void processHDLCforSending(unsigned char ch) {
   if (0b00000010 & ch) {
     if (oneCounter == 5) {
       shiftInZero(); 
-      oneCounter=0;
     }
     shiftInOne();
   } else {
@@ -271,7 +270,6 @@ void processHDLCforSending(unsigned char ch) {
   if (0b00000100 & ch) {
     if (oneCounter == 5) {
       shiftInZero(); 
-      oneCounter=0;
     }
     shiftInOne();     
   } else {
@@ -281,7 +279,6 @@ void processHDLCforSending(unsigned char ch) {
   if (0b00001000 & ch) {
     if (oneCounter == 5) {
       shiftInZero(); 
-      oneCounter=0;
     }
     shiftInOne();      
   } else {
@@ -291,7 +288,6 @@ void processHDLCforSending(unsigned char ch) {
   if (0b00010000 & ch) {
     if (oneCounter == 5) {
       shiftInZero(); 
-      oneCounter=0;
     }
     shiftInOne();
   } else {
@@ -301,7 +297,6 @@ void processHDLCforSending(unsigned char ch) {
   if (0b00100000 & ch) {
     if (oneCounter == 5) {
       shiftInZero(); 
-      oneCounter=0;	
     }
     shiftInOne();
   } else {
@@ -311,7 +306,6 @@ void processHDLCforSending(unsigned char ch) {
   if (0b01000000 & ch) {
     if (oneCounter == 5) {
       shiftInZero();      
-      oneCounter=0;		
     }
     shiftInOne();
   } else {
@@ -321,7 +315,6 @@ void processHDLCforSending(unsigned char ch) {
   if (0b10000000 & ch) {
     if (oneCounter == 5) {
       shiftInZero(); 
-      oneCounter=0;
     }
     shiftInOne();
   } else {
@@ -378,29 +371,113 @@ void processFramedSerialData(unsigned char ch) {
   
 }
 
+int rxMode=0;
+int rxBitCounter = 0;
+int rxOneCounter = 0;
+int rxHDLCState = 0;
+unsigned char in = 0;
 
+
+void processFrameForSendingToHercules(unsigned char ch) {
+}
+
+static inline void processRxZeroHDLCBit() {  
+  if (rxHDLCState) { // We have received a flag - waiting for end flag
+    if (rxOneCounter==6) { // End flag
+      rxHDLCState = 0;
+    }
+    if (rxOneCounter != 5) { // This is an added 0 that we should disregard from.	      
+      in  >>= 1; rxBitCounter++;
+      if (rxBitCounter == 8) { rxBitCounter = 0; rxOutBuffer.writeBuffer(in); }	      
+    }	    
+  } else {  // We are waiting for leading flag
+    if (rxOneCounter==6) { // Start flag
+      rxHDLCState = 1;
+    }	    	    
+  }
+  rxOneCounter=0;	
+}
+
+static inline void processRxOneHDLCBit() {
+  if (rxHDLCState) { // We have received a flag - waiting for end flag
+    rxOneCounter++;	    
+    if (rxOneCounter==7) { // Abort
+      rxHDLCState = 0;
+    } else {
+      in  >>= 1; in |= 0b10000000; rxBitCounter++;
+      if (rxBitCounter == 8) { rxBitCounter = 0; rxOutBuffer.writeBuffer(in); 
+    }	      
+  } else {  // We are waiting for leading flag
+    rxOneCounter = 0;	    
+  }	       
+}
+
+
+void processRxHDLC(unsigned char ch) {
+  if (ch == 0xff && rxHDLCState == 0) return; // This is idle line don't spend time procssing it.
+  if (0b00000001 & ch) {
+    processRxOneHDLCBit();
+  } else {
+    processRxZeroHDLCBit();	  
+  }
+  if (0b00000010 & ch) {
+    processRxOneHDLCBit();
+  } else {
+    processRxZeroHDLCBit();	  
+  } 	
+  if (0b00000100 & ch) {
+    processRxOneHDLCBit();
+  } else {
+    processRxZeroHDLCBit();	  
+  } 	
+  if (0b00001000 & ch) {
+    processRxOneHDLCBit();
+  } else {
+    processRxZeroHDLCBit();	  
+  } 	
+  if (0b00010000 & ch) {
+    processRxOneHDLCBit();
+  } else {
+    processRxZeroHDLCBit();	  
+  } 	
+  if (0b00100000 & ch) {
+    processRxOneHDLCBit();
+  } else {
+    processRxZeroHDLCBit();	  
+  } 	
+  if (0b01000000 & ch) {
+    processRxOneHDLCBit();
+  } else {
+    processRxZeroHDLCBit();	  
+  } 	
+  if (0b10000000 & ch) {
+    processRxOneHDLCBit();
+  } else {
+    processRxZeroHDLCBit();	  
+  } 		
+}
 
 
 
 void loop() {
 unsigned char ch;
-if (txMode) {  
-  if (spi_is_tx_empty(SPI2)){
-    if (txBuffer.isBufferEmpty()) {
-      txMode = 0;
-      spi_tx_reg(SPI2, 0xff);  
-    } else {
-      ch = txBuffer.readBuffer();
+  if (txMode) {  
+    if (spi_is_tx_empty(SPI2)){
+      if (txBuffer.isBufferEmpty()) {
+        txMode = 0;
+        spi_tx_reg(SPI2, 0xff);  
+      } else {
+        ch = txBuffer.readBuffer();
 #ifdef DEBUG3
-      printMillis();
-      Serial.print("Sending SPI: ");
-      printTwoDigitHex(ch);
-      Serial.println();
+        printMillis();
+        Serial.print("Sending SPI: ");
+        printTwoDigitHex(ch);
+        Serial.println();
 #endif            
-      spi_tx_reg(SPI2, ch);  
-    }    
+        spi_tx_reg(SPI2, ch);  
+      }    
+    }
   }
-}
            
   if (spi_is_rx_nonempty(SPI2)) {
     ch = spi_rx_reg(SPI2);
@@ -412,6 +489,7 @@ if (txMode) {
       Serial.println();        
     } 
 #endif    
+    rxInBuffer.writeBuffer(ch);  // 	  
   }
   
   if (!txMode) {
@@ -429,13 +507,20 @@ if (txMode) {
   #endif     
     }
   }  
-  if (!rxBuffer.isBufferEmpty()) {
-      ch = rxBuffer.readBuffer();
+  if (!rxInBuffer.isBufferEmpty()) {
+      ch = rxInBuffer.readBuffer();
 #ifdef DEBUG3      
       printMillis();
       Serial.print("Synced data from buffer to Hercules : ");
       printTwoDigitHex(ch);
       Serial.println(); 
-#endif      
+#endif
+      processRxHDLC(ch);		  
   }
+  if (rxMode)	
+    if (rxOutBuffer.isBufferEmpty()) {
+      ch = rxInBuffer.readBuffer();
+      processFrameForSendingToHercules(ch);	  
+    }
+  }	
 }
