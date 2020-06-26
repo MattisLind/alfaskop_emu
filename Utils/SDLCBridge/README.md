@@ -7,7 +7,7 @@ to achieve this and what changes is needed to the comm3705 module in Hercules.
 ![Informer 213](https://i.imgur.com/M9zcy7E.png)
 
 ## VTAM configuration
-I use the  TK4- MVS dirstribuition as the basis for all experimentation. But the existing configuration of VTAM in TK4- is more complex than necessary, possibly to include a number of features avaiable in the comm3705 code of Hercules. First it defines remote 3705 nodes. Something that is not really necessary and secondly it also add a Switched SNA Major Node configuration. To have an as simple VTAM configuration I have been trying to create a config with one single channel attached local 3705 communictation controller and one single terminal attached (through a 3274 or similar).
+I use the TK4- MVS distribution as the basis for all experimentation. But the existing configuration of VTAM in TK4- is more complex than necessary, possibly to include a number of features avaiable in the comm3705 code of Hercules. First it defines remote 3705 nodes. Something that is not really necessary and secondly it also add a Switched SNA Major Node configuration. To have an as simple VTAM configuration I have been trying to create a config with one single channel attached local 3705 communictation controller and one single terminal attached (through a 3274 or similar).
 
 So the steps are:
 
