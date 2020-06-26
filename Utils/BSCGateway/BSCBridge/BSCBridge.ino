@@ -11,7 +11,7 @@
 #include "RingBuffer.h"
 #include "SyncFSM.h"
 #include "MessageFSM.h"
-#define DEBUG_LEVEL 4 
+#define DEBUG_LEVEL 1 
 #define RTS PB11 // Input
 #define RFS PB1  // Output
 #define DTR PB10 // Input 
@@ -75,9 +75,8 @@ class MessageFSM herculesMessageFSM(txToHercules, messageReceivedFromHerculesCal
 HardwareTimer pwmtimer(1);
 const int pwmOutPin = PA8; // pin10
 
-class RingBuffer rxBuffer
+class RingBuffer rxBuffer;
 class RingBuffer txBuffer;
-
 
 
 void setup() {
@@ -106,6 +105,9 @@ void setup() {
 #endif
   rxBuffer.initBuffer();
   txBuffer.initBuffer();
+  spi_tx_reg(SPI2, 0xff); // dummy write 
+  spi_rx_reg(SPI2); // dummy read
+  spi_irq_enable(SPI2, SPI_RXNE_INTERRUPT);
 }
 
 #ifdef DEBUG1
@@ -450,25 +452,18 @@ void enterHuntHercules() {
 }
 
 
-// Enable interrups for RX
-//spi_irq_enable(SPI2, SPI_RXNE_INTERRUPT);
-
-//spi_irq_disable(SPI2, SPI_RXNE_INTERRUPT);
-
-
-__weak void __irq_spi2 (void) {
+extern "C" void __irq_spi2 (void) {
   if (spi_is_tx_empty(SPI2)){
     if (txBuffer.isBufferEmpty()) {
       spi_tx_reg(SPI2, 0xff);  
     } else {
-      ch = translationArray[txBuffer.readBuffer()];
-      spi_tx_reg(SPI2, ch);  
+      spi_tx_reg(SPI2, translationArray[txBuffer.readBuffer()]);  
     }    
   }
 
   if (spi_is_rx_nonempty(SPI2)) {
-    ch = spi_rx_reg(SPI2);
-    syncFSM.receivedData(ch);
+    syncFSM.receivedData(spi_rx_reg(SPI2));
+    spi_rx_reg(SPI2);
   }
 }
 
@@ -494,6 +489,7 @@ void loop() {
      Serial.print("Reciving from Hercules : ");
      printTwoDigitHex(ch);
      Serial.println();
+     Serial.print(SPI2->irq_num,DEC);
 #endif     
      herculesMessageFSM.rxData(ch);
 #ifdef DEBUG3     
@@ -501,6 +497,3 @@ void loop() {
 #endif     
   }
 }
-
-
-
