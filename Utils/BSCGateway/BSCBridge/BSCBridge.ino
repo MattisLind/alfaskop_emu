@@ -75,8 +75,7 @@ class MessageFSM herculesMessageFSM(txToHercules, messageReceivedFromHerculesCal
 HardwareTimer pwmtimer(1);
 const int pwmOutPin = PA8; // pin10
 
-class RingBuffer rxSyncBuffer;
-class RingBuffer rxInBuffer
+class RingBuffer rxBuffer
 class RingBuffer txBuffer;
 
 
@@ -418,7 +417,7 @@ void messageReceivedFromHerculesCallback(unsigned char msgType, unsigned char * 
 void txDataCallback (unsigned char ch) {
 #ifdef DEBUG2  
      printMillis();
-     Serial.print("txDataCallback: ");
+     Serial.print("txDataCallback From Hercules to Line: ");
      printTwoDigitHex(ch);
      Serial.println();
 #endif     
@@ -476,10 +475,16 @@ __weak void __irq_spi2 (void) {
 
 void loop() {
   char ch;
-  if (!rxInBuffer.isBufferEmpty()) {
+  if (!rxBuffer.isBufferEmpty()) {
     spi_irq_disable(SPI2, SPI_RXNE_INTERRUPT);	
-    ch = rxInBuffer.readBuffer();
+    ch = rxBuffer.readBuffer();
     spi_irq_enable(SPI2, SPI_RXNE_INTERRUPT);
+#ifdef DEBUG3      
+    printMillis();
+    Serial.print("Data from SyncFSM buffer to Hercules : ");
+    printTwoDigitHex(ch);
+    Serial.println(); 
+#endif      
     syncFSM.receivedData(ch);
   }
   if (Serial1.available()>0) {
@@ -494,16 +499,6 @@ void loop() {
 #ifdef DEBUG3     
      Serial.println("After rxData");
 #endif     
-  }
-  if (!rxSyncBuffer.isBufferEmpty()) {
-      ch = rxSyncBuffer.readBuffer();
-#ifdef DEBUG3      
-      printMillis();
-      Serial.print("Synced data from buffer to Hercules : ");
-      printTwoDigitHex(ch);
-      Serial.println(); 
-#endif      
-      messageFSM.rxData(ch);   
   }
 }
 
