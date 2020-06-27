@@ -338,7 +338,7 @@ void messageReceivedFromHerculesCallback(unsigned char msgType, unsigned char * 
       break;
     case RVI_MESSAGE:
 #ifdef DEBUG1    
-      logOne"Received RVI from Hercules.");
+      logOne("Received RVI from Hercules.");
 #endif      
       messageFSM.sendRVI();
       break;               
