@@ -235,6 +235,7 @@ void MessageFSM::messageDone() {
   case ENQ:
 	  receivedMessageCb(ENQ_MESSAGE, NULL);
 	  enterHuntStateCb();
+	  msgBufferCnt=0;
 	  break;
   case DLE:
 	  switch (msgBuffer[1]) {
