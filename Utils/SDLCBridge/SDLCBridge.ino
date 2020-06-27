@@ -386,10 +386,10 @@ static inline void processRxZeroHDLCBit() {
     if (rxOneCounter==6) { // End flag
       rxHDLCState = 0;
     }
-    if (rxOneCounter != 5) { // This is an added 0 that we should disregard from.	      
+    if (rxOneCounter != 5) { // This is an ordinary bit that we should store.	      
       in  >>= 1; rxBitCounter++;
       if (rxBitCounter == 8) { rxBitCounter = 0; rxOutBuffer.writeBuffer(in); }	      
-    }	    
+    } // else we would do nothing since then it is an inserted 0.	    
   } else {  // We are waiting for leading flag
     if (rxOneCounter==6) { // Start flag
       rxHDLCState = 1;
@@ -399,17 +399,15 @@ static inline void processRxZeroHDLCBit() {
 }
 
 static inline void processRxOneHDLCBit() {
-  if (rxHDLCState) { // We have received a flag - waiting for end flag
-    rxOneCounter++;	    
-    if (rxOneCounter==7) { // Abort
+  if (rxHDLCState) { // We have received a flag - waiting for end flag    	    
+    if (rxOneCounter==6) { // Abort
       rxHDLCState = 0;
     } else {
       in  >>= 1; in |= 0b10000000; rxBitCounter++;
-      if (rxBitCounter == 8) { rxBitCounter = 0; rxOutBuffer.writeBuffer(in); 
+      if (rxBitCounter == 8) { rxBitCounter = 0; rxOutBuffer.writeBuffer(in); } 
     }	      
-  } else {  // We are waiting for leading flag
-    rxOneCounter = 0;	    
-  }	       
+  } 
+  rxOneCounter++; // If we haven't received a flag we just increase the one counter - We always do it we receive a one!
 }
 
 
