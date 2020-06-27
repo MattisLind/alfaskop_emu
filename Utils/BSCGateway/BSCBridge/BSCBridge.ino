@@ -78,6 +78,10 @@ const int pwmOutPin = PA8; // pin10
 class RingBuffer rxBuffer;
 class RingBuffer txBuffer;
 
+#define logOne(s) printMillis(); Serial.print(s); Serial.println(); 
+#define logTwo(s,c)  printMillis();Serial.print(s); printTwoDigitHex(c);  Serial.println();
+#define logThree(s1, d1, s2, d2, s3) printMillis();Serial.print(s1);Serial.print(d1, HEX);Serial.print(s2);Serial.print(d2, HEX);Serial.println(s3);
+
 
 void setup() {
   int period;
@@ -99,9 +103,7 @@ void setup() {
   pinMode(RFS, OUTPUT);
   pinMode(DTR, INPUT);
 #ifdef DEBUG1
-  printMillis(); 
-  Serial.print("BSC Bridge starting up");
-  Serial.println();
+  logOne("BSC Bridge Starting up");
 #endif
   rxBuffer.initBuffer();
   txBuffer.initBuffer();
@@ -189,14 +191,9 @@ void printEightHexDigits (uint32 data) {
 
 
 
-
-
 void receiveCallback(unsigned char ch) {
 #ifdef DEBUG2
-  printMillis();
-  Serial.print("Synced data: ");
-  printTwoDigitHex(ch);
-  Serial.println();
+  logTwo("Synced data: ",ch);
 #endif     
   messageFSM.rxData(ch);   
 }
@@ -206,9 +203,8 @@ void messageReceivedCallback(unsigned char msgType, unsigned char * msg) {
   // Dispatch message coming from terminal based on msgType and let the hercules facing take on.
   switch (msgType) {
     case EOT_MESSAGE:
-#ifdef DEBUG1    
-      printMillis();
-      Serial.println("Received EOT from Cluster controller");
+#ifdef DEBUG1
+      logOne("Received EOT from Cluster controller");
 #endif      
       herculesMessageFSM.setTextMode(false);	
       messageFSM.setTextMode(false);	
@@ -216,19 +212,13 @@ void messageReceivedCallback(unsigned char msgType, unsigned char * msg) {
       break;
     case ENQ_MESSAGE:
 #ifdef DEBUG1    
-      printMillis();
-      Serial.println("Received ENQ from Cluster controller");
+      logOne("Received ENQ from Cluster controller");
 #endif      
       herculesMessageFSM.sendENQ();
       break;
     case POLL_MESSAGE:
 #ifdef DEBUG1        
-      printMillis();
-      Serial.print("Received POLL/SELECT for CU=");
-      Serial.print(((MSG *) msg)->enqData.CU, HEX);
-      Serial.print(" DV=");
-      Serial.print(((MSG *) (msg))->enqData.DV, HEX);
-      Serial.println( " from Cluster controller");
+      logThree("Received POLL/SELECT for CU=", ((MSG *) msg)->enqData.CU," DV=", ((MSG *) (msg))->enqData.DV, " from Cluster controller");
 #endif
       herculesMessageFSM.setTextMode(true);	
       messageFSM.setTextMode(true);	      
@@ -236,54 +226,43 @@ void messageReceivedCallback(unsigned char msgType, unsigned char * msg) {
       break;
     case NAK_MESSAGE:
 #ifdef DEBUG1    
-      printMillis();
-      Serial.print("Received NAK from Cluster controller");
+      logOne("Received NAK from Cluster controller");
 #endif      
       herculesMessageFSM.sendNAK();
       break;
     case ACK0_MESSAGE:
 #ifdef DEBUG1    
-      printMillis();
-      Serial.print("Received ACK0 from Cluster controller");
+      logOne("Received ACK0 from Cluster controller");
 #endif      
       herculesMessageFSM.sendACK0();
       break;
     case ACK1_MESSAGE:
 #ifdef DEBUG1    
-      printMillis();
-      Serial.print("Received ACK1 from Cluster controller");
+      logOne("Received ACK1 from Cluster controller");
 #endif      
       herculesMessageFSM.sendACK1();
       break;
     case WACK_MESSAGE:
 #ifdef DEBUG1    
-      printMillis();
-      Serial.print("Received WACK from Cluster controller");
+      logOne("Received WACK from Cluster controller");
 #endif      
       herculesMessageFSM.sendWACK();
       break;
     case RVI_MESSAGE:
 #ifdef DEBUG1    
-      printMillis();
-      Serial.print("Received RVI from Cluster controller");
+      logOne("Received RVI from Cluster controller");
 #endif      
       herculesMessageFSM.sendRVI();
       break;               
     case STATUS_MESSAGE:
 #ifdef DEBUG1    
-      printMillis();
-      Serial.print("Received STATUS for CU=");
-      Serial.print(((MSG *) msg)->statusData.CU, HEX);
-      Serial.print(" DV=");
-      Serial.print(((MSG *) (msg))->statusData.DV, HEX);
-      Serial.println( "from Cluster controller");
+      logThree("Received STATUS for CU=",((MSG *) msg)->statusData.CU," DV=",((MSG *) (msg))->statusData.DV," from Cluster controller");
 #endif            
       herculesMessageFSM.sendStatusMessage(((MSG *) msg)->statusData.CU, ((MSG *) msg)->statusData.DV, ((MSG *) msg)->statusData.status, ((MSG *) msg)->statusData.sense);
       break;               
     case TEXT_MESSAGE:
 #ifdef DEBUG1    
-      printMillis();
-      Serial.print("Received TEXT from Cluster controller");
+      logOne("Received TEXT from Cluster controller");
 #endif
 #ifdef DEBUG2      
       printBufferInEBCDIC (((MSG *) msg)->textData.msg, ((MSG *) msg)->textData.length);
@@ -292,8 +271,7 @@ void messageReceivedCallback(unsigned char msgType, unsigned char * msg) {
       break;               
     case TEST_MESSAGE:
 #ifdef DEBUG1    
-      printMillis();
-      Serial.print("Received TEST from Cluster controller");
+      logOne("Received TEST from Cluster controller");
 #endif 
 #ifdef DEBUG2     
       printBufferInEBCDIC (((MSG *) msg)->testData.msg, ((MSG *) msg)->testData.length);
@@ -311,8 +289,7 @@ void messageReceivedFromHerculesCallback(unsigned char msgType, unsigned char * 
   switch (msgType) {
     case EOT_MESSAGE:
 #ifdef DEBUG1    
-      printMillis();
-      Serial.println("Received EOT from Hercules"); 
+      logOne("Received EOT from Hercules"); 
 #endif
       herculesMessageFSM.setTextMode(false);	
       messageFSM.setTextMode(false);	      
@@ -320,77 +297,60 @@ void messageReceivedFromHerculesCallback(unsigned char msgType, unsigned char * 
       break;
     case ENQ_MESSAGE:
 #ifdef DEBUG1    
-      printMillis();
-      Serial.println("Received ENQ from Hercules"); 
+      logOne("Received ENQ from Hercules"); 
 #endif
       messageFSM.sendENQ();
       break;
     case POLL_MESSAGE:
 #ifdef DEBUG1    
-      printMillis();
-      Serial.print("Received POLL/SELECT for CU=");
-      Serial.print(((MSG *) msg)->enqData.CU, HEX);
-      Serial.print(" DV=");
-      Serial.print(((MSG *) (msg))->enqData.DV, HEX);
-      Serial.println( " from Hercules");
+      logThree("Received POLL/SELECT for CU=",((MSG *) msg)->enqData.CU," DV=",((MSG *) (msg))->enqData.DV," from Hercules");
 #endif 
       herculesMessageFSM.setTextMode(true);	
       messageFSM.setTextMode(true);	               
       messageFSM.sendPollSelect(((MSG *) msg)->enqData.CU, ((MSG *) (msg))->enqData.DV );
 #ifdef DEBUG4       
-      Serial.println("After sendPollSelect");
+      logOne("After sendPollSelect.");
 #endif      
       break;
     case NAK_MESSAGE:
 #ifdef DEBUG1    
-      printMillis();
-      Serial.print("Received NAK from Hercules");
+      logOne("Received NAK from Hercules.");
 #endif          
       messageFSM.sendNAK();
       break;
     case ACK0_MESSAGE:
 #ifdef DEBUG1    
-      printMillis();
-      Serial.print("Received ACK0 from Hercules");
+      logOne("Received ACK0 from Hercules.");
 #endif      
       messageFSM.sendACK0();
       break;
     case ACK1_MESSAGE:
 #ifdef DEBUG1    
-      printMillis();
-      Serial.print("Received ACK1 from Hercules");
+      logOne("Received ACK1 from Hercules.");
 #endif      
       messageFSM.sendACK1();
       break;
     case WACK_MESSAGE:
 #ifdef DEBUG1    
-      printMillis();
-      Serial.print("Received WACK from Hercules");
+      logOne("Received WACK from Hercules.");
 #endif      
       messageFSM.sendWACK();
       break;
     case RVI_MESSAGE:
 #ifdef DEBUG1    
-      printMillis();
-      Serial.print("Received RVI from Hercules");
+      logOne"Received RVI from Hercules.");
 #endif      
       messageFSM.sendRVI();
       break;               
     case STATUS_MESSAGE:
 #ifdef DEBUG1    
-      printMillis();
-      Serial.print("Received STATUS for CU=");
-      Serial.print(((MSG *) msg)->statusData.CU, HEX);
-      Serial.print(" DV=");
-      Serial.print(((MSG *) (msg))->statusData.DV, HEX);
-      Serial.println( " from Hercules");
+      logThree("Received STATUS for CU=",((MSG *) msg)->statusData.CU, " DV=",((MSG *) (msg))->statusData.DV," from Hercules.");
 #endif      
       messageFSM.sendStatusMessage(((MSG *) msg)->statusData.CU, ((MSG *) msg)->statusData.DV, ((MSG *) msg)->statusData.status, ((MSG *) msg)->statusData.sense);
       break;               
     case TEXT_MESSAGE:
 #ifdef DEBUG1    
-      printMillis();
-      Serial.print("Received TEXT from Hercules");
+      logOne("Received TEXT from Hercules");
 #endif
 #ifdef DEBUG2      
       printBufferInEBCDIC (((MSG *) msg)->textData.msg, ((MSG *) msg)->textData.length);
@@ -399,8 +359,7 @@ void messageReceivedFromHerculesCallback(unsigned char msgType, unsigned char * 
       break;               
     case TEST_MESSAGE:
 #ifdef DEBUG1
-      printMillis();
-      Serial.print("Received TEST from Hercules");
+      logOne("Received TEST from Hercules");
 #endif
 #ifdef DEBUG2      
       printBufferInEBCDIC (((MSG *) msg)->testData.msg, ((MSG *) msg)->testData.length);
@@ -409,8 +368,7 @@ void messageReceivedFromHerculesCallback(unsigned char msgType, unsigned char * 
       break;               
     case ERROR_MESSAGE:
 #ifdef DEBUG1    
-      printMillis();
-      Serial.print("Received an ERROR from Hercules");
+      logOne("Received an ERROR from Hercules");
 #endif
       break;                                
   }
@@ -418,10 +376,7 @@ void messageReceivedFromHerculesCallback(unsigned char msgType, unsigned char * 
 
 void txDataCallback (unsigned char ch) {
 #ifdef DEBUG2  
-     printMillis();
-     Serial.print("txDataCallback From Hercules to Line: ");
-     printTwoDigitHex(ch);
-     Serial.println();
+     logTwo("txDataCallback From Hercules to Line: ",ch);
 #endif     
     spi_irq_disable(SPI2, SPI_RXNE_INTERRUPT);	
     txBuffer.writeBuffer(ch);
@@ -430,10 +385,7 @@ void txDataCallback (unsigned char ch) {
 
 void txToHercules (unsigned char ch) {
 #ifdef DEBUG2  
-  printMillis();
-  Serial.print("Sending to Hercules : ");
-  printTwoDigitHex(ch);
-  Serial.println();
+  logTwo("Sending to Hercules : ", ch);
 #endif  
   Serial1.write(ch); 
 }
@@ -447,7 +399,7 @@ void enterHuntStateCallback () {
 
 void enterHuntHercules() {
 #ifdef DEBUG4  
-  Serial.println("Enter Hunt state - Hercules");
+  logOne("Enter Hunt state - Hercules");
 #endif  
 }
 
@@ -475,25 +427,18 @@ void loop() {
     ch = rxBuffer.readBuffer();
     spi_irq_enable(SPI2, SPI_RXNE_INTERRUPT);
 #ifdef DEBUG3      
-    printMillis();
-    Serial.print("Data from SyncFSM buffer to Hercules : ");
-    printTwoDigitHex(ch);
-    Serial.println(); 
+    logTwo("Data from SyncFSM buffer to Hercules : ", ch);
 #endif      
     syncFSM.receivedData(ch);
   }
   if (Serial1.available()>0) {
      ch = Serial1.read();
 #ifdef DEBUG3     
-     printMillis();
-     Serial.print("Reciving from Hercules : ");
-     printTwoDigitHex(ch);
-     Serial.println();
-     Serial.print(SPI2->irq_num,DEC);
+     logTwo"Reciving from Hercules : ", ch);
 #endif     
      herculesMessageFSM.rxData(ch);
 #ifdef DEBUG3     
-     Serial.println("After rxData");
+     logOne("After rxData");
 #endif     
   }
 }
