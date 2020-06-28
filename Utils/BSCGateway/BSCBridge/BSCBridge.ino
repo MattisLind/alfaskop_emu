@@ -11,7 +11,7 @@
 #include "RingBuffer.h"
 #include "SyncFSM.h"
 #include "MessageFSM.h"
-#define DEBUG_LEVEL 1 
+#define DEBUG_LEVEL 4 
 #define RTS PB11 // Input
 #define RFS PB1  // Output
 #define DTR PB10 // Input 
@@ -434,7 +434,7 @@ void loop() {
   if (Serial1.available()>0) {
      ch = Serial1.read();
 #ifdef DEBUG3     
-     logTwo"Reciving from Hercules : ", ch);
+     logTwo("Reciving from Hercules : ", ch);
 #endif     
      herculesMessageFSM.rxData(ch);
 #ifdef DEBUG3     
