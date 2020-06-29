@@ -8,7 +8,8 @@
 
 
 void testStatusMessage (int fd) {
-  int ch, ret
+  unsigned char ch;
+  int ret;
   ch = 0x01;
   ret = write(fd,&ch,1);
   ch = 0x6C;
@@ -57,7 +58,8 @@ void testStatusMessage (int fd) {
 }
 
 void testEOT (int fd) {
-  ch = 0x37;
+  unsigned char ch = 0x37;
+  int ret;
   ret = write(fd,&ch,1);
   ret = read (fd,&ch,1);
   assert (ret == 1);
@@ -65,7 +67,8 @@ void testEOT (int fd) {
 }
 
 void testPOLL (int fd) {
-  ch = 0x40;
+  unsigned char ch = 0x40;
+  int ret;
   ret = write(fd,&ch,1);
   assert (ret == 1);
   ch = 0x40;
@@ -97,8 +100,8 @@ void testPOLL (int fd) {
 }
 
 void testENQ (int fd) {
-  ch = 0x2D;
-  ret = write(fd,&ch,1);
+  unsigned char ch = 0x2D;
+  int ret = write(fd,&ch,1);
   assert (ret == 1);
   ret = read (fd,&ch,1);
   assert (ret == 1);
@@ -106,8 +109,8 @@ void testENQ (int fd) {
 }
 
 void testTextMessage (int fd) {
-  ch = 0x02;  // STX
-  ret = write(fd,&ch,1);
+  unsigned char ch = 0x02;  // STX
+  int ret = write(fd,&ch,1);
   assert (ret == 1);
   ch = 0x27;  // ESC
   ret = write(fd,&ch,1);
@@ -344,16 +347,16 @@ void testTextMessage (int fd) {
 }
 
 void testNAK (int fd) {
-  ch = 0x3D;
-  ret = write(fd,&ch,1);
+  unsigned char ch = 0x3D;
+  int ret = write(fd,&ch,1);
   ret = read (fd,&ch,1);
   assert (ret == 1);
   assert (ch == 0x3D);
 } 
 
 void testACK0 (int fd) {
-  ch = 0x10;
-  ret = write(fd,&ch,1);
+  unsigned char ch = 0x10;
+  int ret = write(fd,&ch,1);
   assert (ret == 1);
   ch = 0x70;
   ret = write(fd,&ch,1);
@@ -367,8 +370,8 @@ void testACK0 (int fd) {
 
 } 
 void testACK1 (int fd) {
-  ch = 0x10;
-  ret = write(fd,&ch,1);
+  unsigned char ch = 0x10;
+  int ret = write(fd,&ch,1);
   assert (ret == 1);
   ch = 0x61;
   ret = write(fd,&ch,1);
@@ -382,8 +385,8 @@ void testACK1 (int fd) {
 
 } 
 void testWACK (int fd) {
-  ch = 0x10;
-  ret = write(fd,&ch,1);
+  unsigned char ch = 0x10;
+  int ret = write(fd,&ch,1);
   assert (ret == 1);
   ch = 0x6b;
   ret = write(fd,&ch,1);
