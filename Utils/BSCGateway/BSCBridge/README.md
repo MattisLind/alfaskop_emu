@@ -41,3 +41,11 @@ DB-25 connecting to cluster controller
 | RFS    | 5       |       PB1 |
 | DTR    | 20      |       PB10|
 | TSET/RSET| 15/17  |  PA8/PB13|
+
+
+## SOCAT
+
+A proper socat command for
+```
+sudo socat  TCP:localhost:32701 OPEN:/dev/ttyUSB0,b2400,raw
+```
