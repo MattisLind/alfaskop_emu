@@ -3,13 +3,15 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <assert.h>
+#include <unistd.h>
 
 int main () {
   int ret;
   int fd;
   const char * devStr = "/dev/ttyUSB0";
   struct termios options;
-  
+  unsigned char ch;
   /* open the port */
   fprintf(stderr, "devStr=%s\n", devStr);
   fd = open(devStr, O_RDWR | O_NOCTTY | O_NDELAY);
@@ -40,10 +42,38 @@ int main () {
   options.c_lflag     &= ~(ICANON | ECHO | ECHOE | ISIG);
   options.c_oflag     &= ~OPOST;
   options.c_cc[VMIN]  = 0;
-  options.c_cc[VTIME] = 100;
+  options.c_cc[VTIME] = 255;
   
   /* set the options */
   ret=tcsetattr(fd, TCSANOW, &options);
-  fprintf(stderr, "tcsetaddt ret=%d", ret);
+  fprintf(stderr, "tcsetattr ret=%d\n", ret);
+  ch = 0x37;
+  ret = write(fd,&ch,1);
+  ret = read (fd,&ch,1);
+  assert (ch == 0x37);
+  ch = 0x40;
+  ret = write(fd,&ch,1);
+  ch = 0x40;
+  ret = write(fd,&ch,1);
+  ch = 0x40;
+  ret = write(fd,&ch,1);
+  ch = 0x40;
+  ret = write(fd,&ch,1);
+  ch = 0x2d;
+  ret = write(fd,&ch,1);
+  ret = read (fd,&ch,1);
+  assert (ch == 0x40);
+  ret = read (fd,&ch,1);
+  assert (ch == 0x40);
+  ret = read (fd,&ch,1);
+  assert (ch == 0x40);
+  ret = read (fd,&ch,1);
+  assert (ch == 0x40);
+  ret = read (fd,&ch,1);
+  assert (ch == 0x2D);
+  ch = 0x2D;
+  ret = write(fd,&ch,1);
+  ret = read (fd,&ch,1);
+  assert (ch == 0x2D);
 
 }
