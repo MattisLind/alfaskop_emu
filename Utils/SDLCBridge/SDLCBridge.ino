@@ -407,7 +407,9 @@ static inline void processRxOneHDLCBit() {
       if (rxBitCounter == 8) { rxBitCounter = 0; rxOutBuffer.writeBuffer(in); } 
     }	      
   } 
-  rxOneCounter++; // If we haven't received a flag we just increase the one counter - We always do it we receive a one!
+  if (rxOneCounter <8) {
+    rxOneCounter++; // If we haven't received a flag we just increase the one counter - We always do it we receive a one! But not more than 8 since it would not matter and we don't want to wrap.
+  }	  
 }
 
 
