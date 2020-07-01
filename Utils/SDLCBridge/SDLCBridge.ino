@@ -375,20 +375,22 @@ int rxMode=0;
 int rxBitCounter = 0;
 int rxOneCounter = 0;
 int rxHDLCState = 0;
+unsigned short rxCrc = 0;
 unsigned char in = 0;
 
 
 void processFrameForSendingToHercules(unsigned char ch) {
 }
 
-static inline void processRxZeroHDLCBit() {  
+static inline void processRxZeroHDLCBit() { 
+  printf ("A 0 received rxOneCounter=%d rxHDLCState=%d rxBitCounter=%d\n", rxOneCounter, rxHDLCState, rxBitCounter); 
   if (rxHDLCState) { // We have received a flag - waiting for end flag
     if (rxOneCounter==6) { // End flag
       rxHDLCState = 0;
-    }
-    if (rxOneCounter != 5) { // This is an ordinary bit that we should store.	      
+      rxMode = 1;
+    } else if (rxOneCounter != 5) { // This is an ordinary bit that we should store.	      
       in  >>= 1; rxBitCounter++;
-      if (rxBitCounter == 8) { rxBitCounter = 0; rxOutBuffer.writeBuffer(in); }	      
+      if (rxBitCounter == 8) { rxBitCounter = 0; rxOutBuffer.writeBuffer(in);  printf("Decoded a %02X\n", in);}	      
     } // else we would do nothing since then it is an inserted 0.	    
   } else {  // We are waiting for leading flag
     if (rxOneCounter==6) { // Start flag
@@ -399,12 +401,13 @@ static inline void processRxZeroHDLCBit() {
 }
 
 static inline void processRxOneHDLCBit() {
+  printf ("A 1 received rxOneCounter=%d rxHDLCState=%d rxBitCounter=%d\n", rxOneCounter, rxHDLCState, rxBitCounter); 
   if (rxHDLCState) { // We have received a flag - waiting for end flag    	    
     if (rxOneCounter==6) { // Abort
       rxHDLCState = 0;
     } else {
       in  >>= 1; in |= 0b10000000; rxBitCounter++;
-      if (rxBitCounter == 8) { rxBitCounter = 0; rxOutBuffer.writeBuffer(in); } 
+      if (rxBitCounter == 8) { rxBitCounter = 0; rxOutBuffer.writeBuffer(in);printf("Decoded a %02X\n", in); } 
     }	      
   } 
   if (rxOneCounter <8) {
@@ -507,7 +510,7 @@ unsigned char ch;
   #endif     
     }
   }  
-  if (!rxInBuffer.isBufferEmpty()) {
+  if (!rxMode && !rxInBuffer.isBufferEmpty()) {
       ch = rxInBuffer.readBuffer();
 #ifdef DEBUG3      
       printMillis();
@@ -517,10 +520,18 @@ unsigned char ch;
 #endif
       processRxHDLC(ch);		  
   }
-  if (rxMode)	
-    if (rxOutBuffer.isBufferEmpty()) {
-      ch = rxInBuffer.readBuffer();
-      processFrameForSendingToHercules(ch);	  
+  if (rxMode) {	
+    if (!rxOutBuffer.isBufferEmpty()) {
+      ch = rxOutBuffer.readBuffer();
+      txCrc = calculateCrcChar(txCrc, ch);
+      if (ch==0xff) Serial1.write(0xff);
+      Serial1.write(ch);	  
+    } else {
+      rxMode = 0;
+      Serial1.write((rxCrc>>8) & 0xff);
+      Serial1.write(rxCrc & 0xff);
+      Serial1.write(0xff);
+      Serial1.write(0xef);
     }
-  }	
-}
+  }
+}	

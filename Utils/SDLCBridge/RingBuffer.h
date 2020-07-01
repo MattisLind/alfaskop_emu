@@ -1,3 +1,5 @@
+#ifndef _RING_BUFFER_
+#define _RING_BUFFER_
 #define SIZE 260
 
 class RingBuffer {
@@ -14,3 +16,4 @@ public:
   int readBuffer ();
   void  initBuffer ();
 };
+#endif

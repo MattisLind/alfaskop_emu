@@ -15,7 +15,7 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <sys/time.h>
-
+#include "../../SDLCBridge/RingBuffer.h"
 
 #define PB11 5
 #define PB1 6
@@ -124,6 +124,7 @@ int DebugHardwareSerial::read() {
 void  DebugHardwareSerial::setReadBuffer(int length, char * buffer) {  
   readBuffer = buffer;
   readBufferLength = length;
+  readPtr=0;
 };
 
 
@@ -158,18 +159,20 @@ void pinMode(int, int) {
 void pwmWrite (int, int) {
 }
 
+class RingBuffer lineBuffer;
 
 void spi_tx_reg(spi_dev *, int ch) {
   printf("SPI tx %02X\n", ch & 0xff);
+  lineBuffer.writeBuffer(ch);
 }
 uint16_t spi_rx_reg(spi_dev *) {
-  return 0;
+  return lineBuffer.readBuffer();
 } 
 bool spi_is_rx_nonempty(spi_dev *) {
-  return true;
+  return !lineBuffer.isBufferEmpty();
 }
 bool spi_is_tx_empty(spi_dev *) {
-  return true;
+  return !lineBuffer.isBufferFull();
 }
 
 void setup();
@@ -185,9 +188,36 @@ char test3[] = {0x01, 0xff, 0xef};
 #include "../../SDLCBridge/SDLCBridge.ino"
 
 int main (int argc, char ** argv) {
-
+  lineBuffer.initBuffer();
   setup();
   Serial1.setReadBuffer(4, test2);
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  Serial1.setReadBuffer(4, test2);
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
   loop();
   loop();
   loop();
