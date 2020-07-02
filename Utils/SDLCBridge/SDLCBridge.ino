@@ -227,6 +227,10 @@ void endHDLCProcessing() {
     for (; bitCounter<8;bitCounter++) { out >>= 1; out |= 0b10000000; }
     txBuffer.writeBuffer(out);   
   }
+  bitCounter=0;
+  oneCounter=0;
+  txHDLCState=HDLC_STATE_IDLE;
+  txCrc=0;
 }
   
   
@@ -531,6 +535,9 @@ unsigned char ch;
       rxMode = 0;
       Serial1.write((rxCrc>>8) & 0xff);
       Serial1.write(rxCrc & 0xff);
+      rxCrc=0;
+      rxBitCounter=0;
+      rxOneCounter=0;
       Serial1.write(0xff);
       Serial1.write(0xef);
     }
