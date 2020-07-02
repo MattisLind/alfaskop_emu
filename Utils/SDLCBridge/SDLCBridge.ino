@@ -352,6 +352,7 @@ void processFramedSerialData(unsigned char ch) {
       processHDLCforSending(ch);   // throw it to HDLC processing
     }
   } else if (serialFrameState == 1) {
+    serialFrameState=0;
     switch (ch) {
       case 0xff: // Just add the 0xff to the data stream
         txCrc = calculateCrcChar(txCrc, ch);  // Calculate the CRC for each character
