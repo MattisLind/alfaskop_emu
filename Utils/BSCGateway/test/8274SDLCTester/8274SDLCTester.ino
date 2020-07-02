@@ -250,24 +250,8 @@ void loop() {
   if (tmp & 0x01) {
     data = readDataRegister(1);
     printTwoDigitHex(data);
-    switch (data) {
-      case 0x37:
-      case 0x2d:
-      writeControlRegister(1, 3, 0b11010001);  // 8 bit RX, NO AUTO ENABLES, Rx CRC Not enabled , Rx Enable, HUNT MODE
-      break;
-    }
   }
   if (tmp & 0x04) {
-    if (txDone > 0) {
-      if (txCnt < txLen) {
-        writeDataRegister(1, txBuf[txCnt]);
-        // Reset the EOM by issuing a RESET Tx Underrun / EOM Latch to force CRC generation
-        txCnt++;
-      } else {
-        txDone = 0; 
-        writeControlRegister(1, 5, 0b11100110);  // Next write is to WR5 - Disable Tx   
-      }
-    } 
   }
   
   if (Serial1.available()> 0) {
@@ -280,37 +264,17 @@ void loop() {
         switch (tmp) {
           case 'R':
             Serial1.write(tmp);
-            initBSC();
-            txDone=1;
             Serial1.println();
             Serial1.print("8274 SDLC TESTER> ");
             break;
-          case 'P':  // send poll
+          case 'A':  // send poll
             Serial1.write(tmp);
             Serial1.println();
-            txBuf = txBufPoll;
-            txLen = 5;
-            if (txDone > 0) {
-              Serial1.println("SENDING IN PROGRESS");
-            } else {
-              txDone = 2;  
-              txCnt=0;   
-              writeControlRegister(1, 5, 0b11101110);  // Next write is to WR5 - Enable Tx                        
-            } 
             Serial1.print("8274 SDLC TESTER> " );
             break;
           case 'S':
             Serial1.write(tmp);
             Serial1.println();
-            txLen = 9;
-            txBuf = txBufStatus;
-            if (txDone > 0) {
-              Serial1.println("SENDING IN PROGRESS");
-            } else {
-              txDone = 1;  
-              txCnt=0;   
-              writeControlRegister(1, 5, 0b11101110);  // Next write is to WR5 - Enable Tx                        
-            } 
             Serial1.print("8274 SDLC TESTER> " );
             break;
           case 'C': // set destination address
@@ -335,7 +299,8 @@ void loop() {
             Serial1.println("8274 SDLC TESTER HELP");
             Serial1.println("=======================");
             Serial1.println("H - HELP");
-            Serial1.println("P - Send BSC Poll");
+            Serial1.println("S - Send SNRM message");
+            Serial1.println("A - Send ACTPU message");
             Serial1.println("R - Do a Reset of the 8274 chip");
             Serial1.println("X - print current poll buffer");
             Serial1.println();
@@ -375,12 +340,8 @@ void loop() {
         cmdState = 0;
         switch (cmd) {
           case 'C':
-            txBuf[12] = hexValue;
-            txBuf[13] = hexValue;
             break;
           case 'D':
-            txBuf[14] = hexValue;
-            txBuf[15] = hexValue;
             break;
         }
         Serial1.println();
