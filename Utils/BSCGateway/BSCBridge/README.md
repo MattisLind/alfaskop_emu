@@ -43,6 +43,10 @@ DB-25 connecting to cluster controller
 | TSET/RSET| 15/17  |  PA8/PB13|
 
 
+To properly handle the case where a real modem is connected pins 15 and 17 should be inputs. Since the design only have one clock signal input which is used for bothRx and Tx there should be a jumper selecting which input to use. 
+
+Pin 24 can then be jumpered to provide a clock signal. If a null-modem is used this can the jumper from one of the inputs on pin 24 to pin 15 and 17.  
+
 ## SOCAT
 
 A proper socat command for
