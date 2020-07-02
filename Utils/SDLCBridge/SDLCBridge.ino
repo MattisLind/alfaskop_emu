@@ -253,73 +253,73 @@ void processHDLCforSending(unsigned char ch) {
     txHDLCState=HDLC_STATE_FLAG_SENT;
   } 
   // Process each bit of the input character.
+  if (oneCounter == 5) {
+    shiftInZero(); 
+  }
   if (0b00000001 & ch) {
-    if (oneCounter == 5) {
-      shiftInZero(); 
-    }
     shiftInOne();
   } else {
     shiftInZero();
   }
   printf("out=%02X bitCounter=%d oneCounter=%d\n", out, bitCounter, oneCounter);
+  if (oneCounter == 5) {
+    shiftInZero(); 
+  }
   if (0b00000010 & ch) {
-    if (oneCounter == 5) {
-      shiftInZero(); 
-    }
     shiftInOne();
   } else {
     shiftInZero();
   }
   printf("out=%02X bitCounter=%d oneCounter=%d\n", out, bitCounter, oneCounter);
+  if (oneCounter == 5) {
+    shiftInZero(); 
+  }
   if (0b00000100 & ch) {
-    if (oneCounter == 5) {
-      shiftInZero(); 
-    }
     shiftInOne();     
   } else {
     shiftInZero();
   }
   printf("out=%02X bitCounter=%d oneCounter=%d\n", out, bitCounter, oneCounter);
+  if (oneCounter == 5) {
+    shiftInZero(); 
+  }
   if (0b00001000 & ch) {
-    if (oneCounter == 5) {
-      shiftInZero(); 
-    }
     shiftInOne();      
   } else {
     shiftInZero();
   }
   printf("out=%02X bitCounter=%d oneCounter=%d\n", out, bitCounter, oneCounter);
+  if (oneCounter == 5) {
+    shiftInZero(); 
+  }
   if (0b00010000 & ch) {
-    if (oneCounter == 5) {
-      shiftInZero(); 
-    }
     shiftInOne();
   } else {
     shiftInZero();
   }
   printf("out=%02X bitCounter=%d oneCounter=%d\n", out, bitCounter, oneCounter);
+  if (oneCounter == 5) {
+    shiftInZero(); 
+  }
   if (0b00100000 & ch) {
-    if (oneCounter == 5) {
-      shiftInZero(); 
-    }
     shiftInOne();
   } else {
     shiftInZero();
   }
   printf("out=%02X bitCounter=%d oneCounter=%d\n", out, bitCounter, oneCounter);
+  if (oneCounter == 5) {
+    shiftInZero();      
+  }
   if (0b01000000 & ch) {
-    if (oneCounter == 5) {
-      shiftInZero();      
-    }
     shiftInOne();
   } else {
     shiftInZero();
   }
   printf("out=%02X bitCounter=%d oneCounter=%d\n", out, bitCounter, oneCounter);
+  if (oneCounter == 5) {
+    shiftInZero(); 
+  }
   if (0b10000000 & ch) {
-    if (oneCounter == 5) {
-      shiftInZero(); 
-    }
     shiftInOne();
   } else {
     shiftInZero();
@@ -348,6 +348,7 @@ int txMode = 0;  // There are two modes. Either it receives data from the Serial
 int serialFrameState = 0;
 
 void processFramedSerialData(unsigned char ch) {
+  printf ("ENTRY txCrc = %04X\n", txCrc);  
   if (serialFrameState == 0) { // Normal state no ESC has been received
     if (ch == 0xff) {         // Received ESC
       serialFrameState = 1;
@@ -364,8 +365,9 @@ void processFramedSerialData(unsigned char ch) {
         break;
       case 0xef: // EOR 
         printf (" CRC %02X  %02X\n", 0xff & (txCrc >> 8), 0xff & txCrc);
-        processHDLCforSending(0xff & (txCrc >> 8));  // MSB of CRC word
+
         processHDLCforSending(0xff & txCrc);       // LSB of CRC word 
+        processHDLCforSending(0xff & (txCrc >> 8));  // MSB of CRC word
         endHDLCProcessing();                // Handle non modulo 8 bits and send flags.
         txMode = 1;
         break;
@@ -373,7 +375,7 @@ void processFramedSerialData(unsigned char ch) {
         break;
     }
   }
-  
+  printf ("EXIT txCrc = %04X\n", txCrc);  
 }
 
 int rxMode=0;
@@ -525,14 +527,18 @@ unsigned char ch;
 #endif
       processRxHDLC(ch);		  
   }
-  if (rxMode) {	
+  if (rxMode) {
+  printf ("ENTRY rxCrc = %04X\n", rxCrc);		
     if (!rxOutBuffer.isBufferEmpty()) {
       ch = rxOutBuffer.readBuffer();
-      txCrc = calculateCrcChar(txCrc, ch);
+      rxCrc = calculateCrcChar(rxCrc, ch);
       if (ch==0xff) Serial1.write(0xff);
       Serial1.write(ch);	  
     } else {
       rxMode = 0;
+      rxCrc = calculateCrcChar(rxCrc, 0);
+  printf ("Middle rxCrc = %04X\n", rxCrc);				
+      rxCrc = calculateCrcChar(rxCrc, 0);
       Serial1.write((rxCrc>>8) & 0xff);
       Serial1.write(rxCrc & 0xff);
       rxCrc=0;
@@ -541,5 +547,6 @@ unsigned char ch;
       Serial1.write(0xff);
       Serial1.write(0xef);
     }
+  printf ("EXIT rxCrc = %04X\n", rxCrc);			
   }
 }	

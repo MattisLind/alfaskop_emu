@@ -184,7 +184,7 @@ class DebugHardwareSerial Serial1;
 char test1[] = {0x01, 0x02, 0xff, 0xef};
 char test2[] = {0xfc, 0x02, 0xff, 0xef};
 char test3[] = {0x01, 0xff, 0xef};
-
+char test4[] = {0xff, 0xff, 0x01, 0xfe, 0x02, 0x7C, 0x00, 0x3e, 0x1c, 0xff, 0xef};
 #include "../../SDLCBridge/SDLCBridge.ino"
 
 int main (int argc, char ** argv) {
@@ -232,6 +232,68 @@ int main (int argc, char ** argv) {
   loop();
   loop();
   loop();
+  Serial1.setReadBuffer(11, test4);
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+
 }
 
 
