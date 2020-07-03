@@ -200,12 +200,12 @@ int txHDLCState=HDLC_STATE_IDLE;
 static inline void shiftInZero() {
   oneCounter=0;
   out >>= 1; bitCounter++;  // insert  zero bit.  
-  if (bitCounter == 8) { printf("OUT %02X\n", out); txBuffer.writeBuffer(out); bitCounter = 0; }
+  if (bitCounter == 8) { txBuffer.writeBuffer(out); bitCounter = 0; }
 }
 
 static inline void shiftInOne() {
   out >>= 1; out |= 0b10000000; bitCounter++; oneCounter++;
-  if (bitCounter == 8) { printf("OUT %02X\n", out); txBuffer.writeBuffer(out); bitCounter = 0; }
+  if (bitCounter == 8) { txBuffer.writeBuffer(out); bitCounter = 0; }
 }
 
 // This method will end the frame. Since the fram might contain a number of bits that is not divisable by eight we need to handle 
@@ -247,7 +247,6 @@ void endHDLCProcessing() {
 // At every shift the bitCounter is checked. If the bitCounter is 8 then it is reset to 0 and the data is moved to the txBuffer.
 
 void processHDLCforSending(unsigned char ch) {
-  printf ("Entry %02X\n", ch & 0xff);
   if (txHDLCState == HDLC_STATE_IDLE) {
     txBuffer.writeBuffer(0x7E); // Send the starting flaga as the first thing to do.
     txHDLCState=HDLC_STATE_FLAG_SENT;
@@ -261,7 +260,6 @@ void processHDLCforSending(unsigned char ch) {
   } else {
     shiftInZero();
   }
-  printf("out=%02X bitCounter=%d oneCounter=%d\n", out, bitCounter, oneCounter);
   if (oneCounter == 5) {
     shiftInZero(); 
   }
@@ -270,7 +268,6 @@ void processHDLCforSending(unsigned char ch) {
   } else {
     shiftInZero();
   }
-  printf("out=%02X bitCounter=%d oneCounter=%d\n", out, bitCounter, oneCounter);
   if (oneCounter == 5) {
     shiftInZero(); 
   }
@@ -279,7 +276,6 @@ void processHDLCforSending(unsigned char ch) {
   } else {
     shiftInZero();
   }
-  printf("out=%02X bitCounter=%d oneCounter=%d\n", out, bitCounter, oneCounter);
   if (oneCounter == 5) {
     shiftInZero(); 
   }
@@ -288,7 +284,6 @@ void processHDLCforSending(unsigned char ch) {
   } else {
     shiftInZero();
   }
-  printf("out=%02X bitCounter=%d oneCounter=%d\n", out, bitCounter, oneCounter);
   if (oneCounter == 5) {
     shiftInZero(); 
   }
@@ -297,7 +292,6 @@ void processHDLCforSending(unsigned char ch) {
   } else {
     shiftInZero();
   }
-  printf("out=%02X bitCounter=%d oneCounter=%d\n", out, bitCounter, oneCounter);
   if (oneCounter == 5) {
     shiftInZero(); 
   }
@@ -306,7 +300,6 @@ void processHDLCforSending(unsigned char ch) {
   } else {
     shiftInZero();
   }
-  printf("out=%02X bitCounter=%d oneCounter=%d\n", out, bitCounter, oneCounter);
   if (oneCounter == 5) {
     shiftInZero();      
   }
@@ -315,7 +308,6 @@ void processHDLCforSending(unsigned char ch) {
   } else {
     shiftInZero();
   }
-  printf("out=%02X bitCounter=%d oneCounter=%d\n", out, bitCounter, oneCounter);
   if (oneCounter == 5) {
     shiftInZero(); 
   }
@@ -324,8 +316,6 @@ void processHDLCforSending(unsigned char ch) {
   } else {
     shiftInZero();
   }
-  printf("out=%02X bitCounter=%d oneCounter=%d\n", out, bitCounter, oneCounter);
-  printf("EXIT\n");
 }
 
 int txMode = 0;  // There are two modes. Either it receives data from the Serial port, via the buffer or
@@ -348,7 +338,6 @@ int txMode = 0;  // There are two modes. Either it receives data from the Serial
 int serialFrameState = 0;
 
 void processFramedSerialData(unsigned char ch) {
-  printf ("ENTRY txCrc = %04X\n", txCrc);  
   if (serialFrameState == 0) { // Normal state no ESC has been received
     if (ch == 0xff) {         // Received ESC
       serialFrameState = 1;
@@ -364,8 +353,6 @@ void processFramedSerialData(unsigned char ch) {
         processHDLCforSending(ch);    // throw it to HDLC processing
         break;
       case 0xef: // EOR 
-        printf (" CRC %02X  %02X\n", 0xff & (txCrc >> 8), 0xff & txCrc);
-
         processHDLCforSending(0xff & txCrc);       // LSB of CRC word 
         processHDLCforSending(0xff & (txCrc >> 8));  // MSB of CRC word
         endHDLCProcessing();                // Handle non modulo 8 bits and send flags.
@@ -375,7 +362,6 @@ void processFramedSerialData(unsigned char ch) {
         break;
     }
   }
-  printf ("EXIT txCrc = %04X\n", txCrc);  
 }
 
 int rxMode=0;
@@ -390,14 +376,13 @@ void processFrameForSendingToHercules(unsigned char ch) {
 }
 
 static inline void processRxZeroHDLCBit() { 
-  printf ("A 0 received rxOneCounter=%d rxHDLCState=%d rxBitCounter=%d\n", rxOneCounter, rxHDLCState, rxBitCounter); 
   if (rxHDLCState) { // We have received a flag - waiting for end flag
     if (rxOneCounter==6) { // End flag
       rxHDLCState = 0;
       rxMode = 1;
     } else if (rxOneCounter != 5) { // This is an ordinary bit that we should store.	      
       in  >>= 1; rxBitCounter++;
-      if (rxBitCounter == 8) { rxBitCounter = 0; rxOutBuffer.writeBuffer(in);  printf("Decoded a %02X\n", in);}	      
+      if (rxBitCounter == 8) { rxBitCounter = 0; rxOutBuffer.writeBuffer(in);  }	      
     } // else we would do nothing since then it is an inserted 0.	    
   } else {  // We are waiting for leading flag
     if (rxOneCounter==6) { // Start flag
@@ -408,13 +393,12 @@ static inline void processRxZeroHDLCBit() {
 }
 
 static inline void processRxOneHDLCBit() {
-  printf ("A 1 received rxOneCounter=%d rxHDLCState=%d rxBitCounter=%d\n", rxOneCounter, rxHDLCState, rxBitCounter); 
   if (rxHDLCState) { // We have received a flag - waiting for end flag    	    
     if (rxOneCounter==6) { // Abort
       rxHDLCState = 0;
     } else {
       in  >>= 1; in |= 0b10000000; rxBitCounter++;
-      if (rxBitCounter == 8) { rxBitCounter = 0; rxOutBuffer.writeBuffer(in);printf("Decoded a %02X\n", in); } 
+      if (rxBitCounter == 8) { rxBitCounter = 0; rxOutBuffer.writeBuffer(in); } 
     }	      
   } 
   if (rxOneCounter <8) {
@@ -528,7 +512,6 @@ unsigned char ch;
       processRxHDLC(ch);		  
   }
   if (rxMode) {
-  printf ("ENTRY rxCrc = %04X\n", rxCrc);		
     if (!rxOutBuffer.isBufferEmpty()) {
       ch = rxOutBuffer.readBuffer();
       rxCrc = calculateCrcChar(rxCrc, ch);
@@ -537,7 +520,6 @@ unsigned char ch;
     } else {
       rxMode = 0;
       rxCrc = calculateCrcChar(rxCrc, 0);
-  printf ("Middle rxCrc = %04X\n", rxCrc);				
       rxCrc = calculateCrcChar(rxCrc, 0);
       Serial1.write((rxCrc>>8) & 0xff);
       Serial1.write(rxCrc & 0xff);
@@ -547,6 +529,5 @@ unsigned char ch;
       Serial1.write(0xff);
       Serial1.write(0xef);
     }
-  printf ("EXIT rxCrc = %04X\n", rxCrc);			
   }
 }	
