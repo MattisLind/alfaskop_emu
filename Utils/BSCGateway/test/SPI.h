@@ -1,6 +1,7 @@
 #ifndef _SPI_H_
 #define _SPI_H_
 #define MSBFIRST 0
+#define LSBFIRST 1
 #define SPI_MODE0 1
 
 class SPIClass {

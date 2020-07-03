@@ -51,6 +51,11 @@
 #define BAUD 30000
 #endif
 
+#define logOne(s) printMillis(); Serial.print(s); Serial.println(); 
+#define logTwo(s,c)  printMillis();Serial.print(s); printTwoDigitHex(c);  Serial.println();
+#define logThree(s1, d1, s2, d2, s3) printMillis();Serial.print(s1);Serial.print(d1, HEX);Serial.print(s2);Serial.print(d2, HEX);Serial.println(s3);
+
+
 
 #ifdef DEBUG1
 void printMillis() {
@@ -68,7 +73,7 @@ void printMillis() {
   Serial.print(time, DEC);
   Serial.print(' ');
 }
-
+#endif
 
 
 
@@ -98,22 +103,20 @@ void setup() {
   Serial1.begin (2400);
   Serial.begin (9600);
   SPI_2.beginSlave(); //Initialize the SPI_2 port.
-  SPI_2.setBitOrder(MSBFIRST); // Set the SPI_2 bit order
+  SPI_2.setBitOrder(LSBFIRST); // Set the SPI_2 bit order
   SPI_2.setDataMode(SPI_MODE0); //Set the  SPI_2 data mode 0
   pinMode(RTS, INPUT);
   pinMode(RFS, OUTPUT);
   pinMode(DTR, INPUT);
 #ifdef DEBUG1
-  printMillis(); 
-  Serial.print("BSC Bridge starting up");
-  Serial.println();
+  logOne("SDLC Bridge starting up");
 #endif
   rxInBuffer.initBuffer();
   rxOutBuffer.initBuffer();
   txBuffer.initBuffer();
 }
 
-
+#ifdef DEBUG1
 void printTwoDigitHex (int data) {
   if (data < 16) {
     Serial.print('0');
@@ -171,8 +174,8 @@ void printEightHexDigits (uint32 data) {
   printTwoDigitHex((data >> 8) & 0xff);  
   printTwoDigitHex(data & 0xff);  
 }
-
 #endif
+
 unsigned short txCrc=0;
 
 unsigned short calculateCrcChar (unsigned short crc, unsigned char data_p) {
@@ -455,69 +458,65 @@ void processRxHDLC(unsigned char ch) {
 
 void loop() {
 unsigned char ch;
-  if (txMode) {  
-    if (spi_is_tx_empty(SPI2)){
+  if (spi_is_tx_empty(SPI2)) {
+    if (txMode) {		
       if (txBuffer.isBufferEmpty()) {
         txMode = 0;
         spi_tx_reg(SPI2, 0xff);  
       } else {
         ch = txBuffer.readBuffer();
 #ifdef DEBUG3
-        printMillis();
-        Serial.print("Sending SPI: ");
-        printTwoDigitHex(ch);
-        Serial.println();
+	logTwo("Sending SPI: ", ch);
 #endif            
         spi_tx_reg(SPI2, ch);  
       }    
+    } else {
+      spi_tx_reg(SPI2, 0xff);		
     }
   }
            
   if (spi_is_rx_nonempty(SPI2)) {
     ch = spi_rx_reg(SPI2);
-#ifdef DEBUG3     
     if (ch != 0xff ) {
-      printMillis();
-      Serial.print("Receiving SPI: ");
-      printTwoDigitHex(ch);
-      Serial.println();        
-    } 
+#ifdef DEBUG3      
+      logTwo("Receiving SPI: ", ch);
 #endif    
-    rxInBuffer.writeBuffer(ch);  // 	  
+      rxInBuffer.writeBuffer(ch);  		
+    } 
   }
   
   if (!txMode) {
     if (Serial1.available()>0) {
        ch = Serial1.read();
   #ifdef DEBUG3     
-       printMillis();
-       Serial.print("Reciving from Hercules : ");
-       printTwoDigitHex(ch);
-       Serial.println();
+       logTwo("Reciving from Serial port : ", ch);
   #endif   
        processFramedSerialData(ch);
   #ifdef DEBUG3     
-       Serial.println("After rxData");
+       logOne("After rxData");
   #endif     
     }
   }  
   if (!rxMode && !rxInBuffer.isBufferEmpty()) {
       ch = rxInBuffer.readBuffer();
 #ifdef DEBUG3      
-      printMillis();
-      Serial.print("Synced data from buffer to Hercules : ");
-      printTwoDigitHex(ch);
-      Serial.println(); 
+      logTwo("Synced data from buffer to be HDLC processed : ", ch);
 #endif
       processRxHDLC(ch);		  
   }
   if (rxMode) {
     if (!rxOutBuffer.isBufferEmpty()) {
       ch = rxOutBuffer.readBuffer();
+#ifdef DEBUG3
+     logTwo("Read from rxOutBuffer for sending to serial port: ", ch);
+#endif 
       rxCrc = calculateCrcChar(rxCrc, ch);
       if (ch==0xff) Serial1.write(0xff);
       Serial1.write(ch);	  
     } else {
+#ifdef DEBUG3
+      logOne("Buffer empty sending the CRCs and the EOR");
+#endif
       rxMode = 0;
       rxCrc = calculateCrcChar(rxCrc, 0);
       rxCrc = calculateCrcChar(rxCrc, 0);

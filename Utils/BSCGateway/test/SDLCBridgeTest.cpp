@@ -185,6 +185,7 @@ char test1[] = {0x01, 0x02, 0xff, 0xef};
 char test2[] = {0xfc, 0x02, 0xff, 0xef};
 char test3[] = {0x01, 0xff, 0xef};
 char test4[] = {0xff, 0xff, 0x01, 0xfe, 0x02, 0x7C, 0x00, 0x3e, 0x1c, 0xff, 0xef};
+char test5[] = {0x40, 0x93, 0xff, 0xef};
 #include "../../SDLCBridge/SDLCBridge.ino"
 
 int main (int argc, char ** argv) {
@@ -273,6 +274,27 @@ int main (int argc, char ** argv) {
   loop();
   loop();
   loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  loop();
+  Serial1.setReadBuffer(4, test5);
   loop();
   loop();
   loop();
