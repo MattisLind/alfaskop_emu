@@ -48,7 +48,7 @@
 
 #ifdef DEBUG4
 #undef BAUD 
-#define BAUD 30000
+#define BAUD 60000
 #endif
 
 #define logOne(s) printMillis(); Serial.print(s); Serial.println(); 
@@ -201,14 +201,47 @@ int oneCounter=0;
 int txHDLCState=HDLC_STATE_IDLE;
 
 static inline void shiftInZero() {
+#ifdef DEBUG4
+  logTwo("ENTRY shiftInZero: bitCounter=", bitCounter);
+  logTwo("ENTRY shiftInZero: oneCOunter=", oneCounter);
+  logTwo("ENTRY shiftInZero: out=", out);  
+#endif  
   oneCounter=0;
   out >>= 1; bitCounter++;  // insert  zero bit.  
-  if (bitCounter == 8) { txBuffer.writeBuffer(out); bitCounter = 0; }
+  if (bitCounter == 8) { 
+    txBuffer.writeBuffer(out); 
+    bitCounter = 0;
+#ifdef DEBUG4
+    logTwo("bitCounter==8 > shiftInZero: out=", out);
+#endif
+  }
+#ifdef DEBUG4
+  logTwo("EXIT shiftInZero: bitCounter=", bitCounter);
+  logTwo("EXIT shiftInZero: oneCOunter=", oneCounter);
+  logTwo("EXIT shiftInZero: out=", out);  
+#endif  
 }
 
 static inline void shiftInOne() {
+#ifdef DEBUG4
+  logTwo("ENTRY shiftInOne: bitCounter=", bitCounter);
+  logTwo("ENTRY shiftInOne: oneCOunter=", oneCounter);
+  logTwo("ENTRY shiftInOne: out=", out);  
+#endif  
   out >>= 1; out |= 0b10000000; bitCounter++; oneCounter++;
-  if (bitCounter == 8) { txBuffer.writeBuffer(out); bitCounter = 0; }
+  if (bitCounter == 8) { 
+    txBuffer.writeBuffer(out); 
+    bitCounter = 0;
+#ifdef DEBUG4
+    logTwo("bitCounter==8 > shiftInOne: out=", out);
+#endif
+ 
+  }
+#ifdef DEBUG4
+  logTwo("EXIT shiftInOne: bitCounter=", bitCounter);
+  logTwo("EXIT shiftInOne: oneCOunter=", oneCounter);
+  logTwo("EXIT shiftInOne: out=", out);  
+#endif  
 }
 
 // This method will end the frame. Since the fram might contain a number of bits that is not divisable by eight we need to handle 
@@ -216,6 +249,7 @@ static inline void shiftInOne() {
 // will be filled by one to indicate idle line.
 
 void endHDLCProcessing() {
+  logTwo("ENTRY endHDLCProcessing bitCounter=", bitCounter); 
   if (bitCounter == 0) {
     txBuffer.writeBuffer(0x7E);  // Send the flag directly if the bitcounter is indicateing no residual bits.    
   } else {
@@ -250,11 +284,19 @@ void endHDLCProcessing() {
 // At every shift the bitCounter is checked. If the bitCounter is 8 then it is reset to 0 and the data is moved to the txBuffer.
 
 void processHDLCforSending(unsigned char ch) {
+#ifdef DEBUG4
+  logTwo("processHDLCforSending ch=", ch);
+  logTwo("processHDLCforSending oneCounter=", oneCounter);
+  logTwo("processHDLCforSending bitCunter=", bitCounter);
+#endif  
   if (txHDLCState == HDLC_STATE_IDLE) {
     txBuffer.writeBuffer(0x7E); // Send the starting flaga as the first thing to do.
     txHDLCState=HDLC_STATE_FLAG_SENT;
   } 
   // Process each bit of the input character.
+#ifdef DEBUG4
+    logTwo("bit 00000001 oneCounter=", oneCounter);
+#endif    
   if (oneCounter == 5) {
     shiftInZero(); 
   }
@@ -263,6 +305,9 @@ void processHDLCforSending(unsigned char ch) {
   } else {
     shiftInZero();
   }
+#ifdef DEBUG4
+    logTwo("bit 00000010 oneCounter=", oneCounter);
+#endif    
   if (oneCounter == 5) {
     shiftInZero(); 
   }
@@ -271,6 +316,9 @@ void processHDLCforSending(unsigned char ch) {
   } else {
     shiftInZero();
   }
+#ifdef DEBUG4
+    logTwo("bit 00000100 oneCounter=", oneCounter);
+#endif    
   if (oneCounter == 5) {
     shiftInZero(); 
   }
@@ -279,6 +327,9 @@ void processHDLCforSending(unsigned char ch) {
   } else {
     shiftInZero();
   }
+#ifdef DEBUG4
+    logTwo("bit 00001000 oneCounter=", oneCounter);
+#endif    
   if (oneCounter == 5) {
     shiftInZero(); 
   }
@@ -287,6 +338,9 @@ void processHDLCforSending(unsigned char ch) {
   } else {
     shiftInZero();
   }
+#ifdef DEBUG4
+    logTwo("bit 00010000 oneCounter=", oneCounter);
+#endif    
   if (oneCounter == 5) {
     shiftInZero(); 
   }
@@ -295,6 +349,9 @@ void processHDLCforSending(unsigned char ch) {
   } else {
     shiftInZero();
   }
+#ifdef DEBUG4
+    logTwo("bit 00100000 oneCounter=", oneCounter);
+#endif    
   if (oneCounter == 5) {
     shiftInZero(); 
   }
@@ -303,6 +360,9 @@ void processHDLCforSending(unsigned char ch) {
   } else {
     shiftInZero();
   }
+#ifdef DEBUG4
+    logTwo("bit 01000000 oneCounter=", oneCounter);
+#endif    
   if (oneCounter == 5) {
     shiftInZero();      
   }
@@ -311,6 +371,9 @@ void processHDLCforSending(unsigned char ch) {
   } else {
     shiftInZero();
   }
+#ifdef DEBUG4
+    logTwo("bit 10000000 oneCounter=", oneCounter);
+#endif    
   if (oneCounter == 5) {
     shiftInZero(); 
   }
