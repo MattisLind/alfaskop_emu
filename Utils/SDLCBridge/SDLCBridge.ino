@@ -87,7 +87,24 @@ const int pwmOutPin = PA8; // pin10
 class RingBuffer rxOutBuffer;
 class RingBuffer txBuffer;
 class RingBuffer rxInBuffer;
+unsigned short txCrc=0;
+#define HDLC_STATE_IDLE      0
+#define HDLC_STATE_FLAG_SENT 1
 
+unsigned char out;
+int bitCounter=0;
+int oneCounter=0;
+int txHDLCState=HDLC_STATE_IDLE;
+int txMode = 0;  // There are two modes. Either it receives data from the Serial port, via the buffer or
+                 // it transmits data that has been stored previosly in the ringBuffer on SPI interface.
+
+
+int rxMode=0;
+int rxBitCounter = 0;
+int rxOneCounter = 0;
+int rxHDLCState = 0;
+unsigned short rxCrc = 0;
+unsigned char in = 0;
 
 void setup() {
   int period;
@@ -114,6 +131,17 @@ void setup() {
   rxInBuffer.initBuffer();
   rxOutBuffer.initBuffer();
   txBuffer.initBuffer();
+  oneCounter = 0;
+  bitCounter = 0;
+  txHDLCState = 0;
+  txCrc = 0;
+  out = 0;
+  rxOneCounter = 0;
+  in = 0;
+  rxBitCounter=0;
+  rxMode = 0;
+  txMode = 0;
+  rxHDLCState = 0;
 }
 
 #ifdef DEBUG1
@@ -176,7 +204,7 @@ void printEightHexDigits (uint32 data) {
 }
 #endif
 
-unsigned short txCrc=0;
+
 
 unsigned short calculateCrcChar (unsigned short crc, unsigned char data_p) {
   unsigned char i;
@@ -192,13 +220,7 @@ unsigned short calculateCrcChar (unsigned short crc, unsigned char data_p) {
   return crc;
 }
 
-#define HDLC_STATE_IDLE      0
-#define HDLC_STATE_FLAG_SENT 1
 
-unsigned char out;
-int bitCounter=0;
-int oneCounter=0;
-int txHDLCState=HDLC_STATE_IDLE;
 
 static inline void shiftInZero() {
 #ifdef DEBUG4
@@ -384,8 +406,6 @@ void processHDLCforSending(unsigned char ch) {
   }
 }
 
-int txMode = 0;  // There are two modes. Either it receives data from the Serial port, via the buffer or
-                 // it transmits data that has been stored previosly in the ringBuffer on SPI interface.
 
 
 // Process each character.
@@ -418,6 +438,22 @@ void processFramedSerialData(unsigned char ch) {
         txCrc = calculateCrcChar(txCrc, ch);  // Calculate the CRC for each character
         processHDLCforSending(ch);    // throw it to HDLC processing
         break;
+      case 0xee:
+        oneCounter = 0;
+        bitCounter = 0;
+        txHDLCState = 0;
+        txCrc = 0;
+        out = 0;
+        rxOneCounter = 0;
+        in = 0;
+        rxBitCounter=0;
+        rxMode = 0;
+        txMode = 0;
+        rxHDLCState = 0;
+        rxInBuffer.initBuffer();
+        rxOutBuffer.initBuffer();
+        txBuffer.initBuffer();
+        break;
       case 0xef: // EOR 
         processHDLCforSending(0xff & txCrc);       // LSB of CRC word 
         processHDLCforSending(0xff & (txCrc >> 8));  // MSB of CRC word
@@ -430,12 +466,7 @@ void processFramedSerialData(unsigned char ch) {
   }
 }
 
-int rxMode=0;
-int rxBitCounter = 0;
-int rxOneCounter = 0;
-int rxHDLCState = 0;
-unsigned short rxCrc = 0;
-unsigned char in = 0;
+
 
 
 void processFrameForSendingToHercules(unsigned char ch) {
