@@ -95,7 +95,7 @@ unsigned char out;
 int bitCounter=0;
 int oneCounter=0;
 int txHDLCState=HDLC_STATE_IDLE;
-int txMode = 0;  // There are two modes. Either it receives data from the Serial port, via the buffer or
+volatile int txMode = 0;  // There are two modes. Either it receives data from the Serial port, via the buffer or
                  // it transmits data that has been stored previosly in the ringBuffer on SPI interface.
 
 
@@ -142,6 +142,9 @@ void setup() {
   rxMode = 0;
   txMode = 0;
   rxHDLCState = 0;
+  spi_tx_reg(SPI2, 0xff); // dummy write 
+  spi_rx_reg(SPI2); // dummy read
+  spi_irq_enable(SPI2, SPI_RXNE_INTERRUPT);
 }
 
 #ifdef DEBUG1
@@ -230,8 +233,10 @@ static inline void shiftInZero() {
 #endif  
   oneCounter=0;
   out >>= 1; bitCounter++;  // insert  zero bit.  
-  if (bitCounter == 8) { 
+  if (bitCounter == 8) {
+    spi_irq_disable(SPI2, SPI_RXNE_INTERRUPT); 
     txBuffer.writeBuffer(out); 
+    spi_irq_enable(SPI2, SPI_RXNE_INTERRUPT);
     bitCounter = 0;
 #ifdef DEBUG4
     logTwo("bitCounter==8 > shiftInZero: out=", out);
@@ -251,8 +256,10 @@ static inline void shiftInOne() {
   logTwo("ENTRY shiftInOne: out=", out);  
 #endif  
   out >>= 1; out |= 0b10000000; bitCounter++; oneCounter++;
-  if (bitCounter == 8) { 
+  if (bitCounter == 8) {
+    spi_irq_disable(SPI2, SPI_RXNE_INTERRUPT); 
     txBuffer.writeBuffer(out); 
+    spi_irq_enable(SPI2, SPI_RXNE_INTERRUPT);
     bitCounter = 0;
 #ifdef DEBUG4
     logTwo("bitCounter==8 > shiftInOne: out=", out);
@@ -273,7 +280,9 @@ static inline void shiftInOne() {
 void endHDLCProcessing() {
   logTwo("ENTRY endHDLCProcessing bitCounter=", bitCounter); 
   if (bitCounter == 0) {
+    spi_irq_disable(SPI2, SPI_RXNE_INTERRUPT);
     txBuffer.writeBuffer(0x7E);  // Send the flag directly if the bitcounter is indicateing no residual bits.    
+    spi_irq_enable(SPI2, SPI_RXNE_INTERRUPT);
   } else {
     shiftInZero();
     shiftInOne();
@@ -284,7 +293,9 @@ void endHDLCProcessing() {
     shiftInOne();
     shiftInZero();
     for (; bitCounter<8;bitCounter++) { out >>= 1; out |= 0b10000000; }
+    spi_irq_disable(SPI2, SPI_RXNE_INTERRUPT);
     txBuffer.writeBuffer(out);   
+    spi_irq_enable(SPI2, SPI_RXNE_INTERRUPT);
   }
   bitCounter=0;
   oneCounter=0;
@@ -312,7 +323,9 @@ void processHDLCforSending(unsigned char ch) {
   logTwo("processHDLCforSending bitCunter=", bitCounter);
 #endif  
   if (txHDLCState == HDLC_STATE_IDLE) {
+    spi_irq_disable(SPI2, SPI_RXNE_INTERRUPT);
     txBuffer.writeBuffer(0x7E); // Send the starting flaga as the first thing to do.
+    spi_irq_enable(SPI2, SPI_RXNE_INTERRUPT);
     txHDLCState=HDLC_STATE_FLAG_SENT;
   } 
   // Process each bit of the input character.
@@ -479,7 +492,10 @@ static inline void processRxZeroHDLCBit() {
       rxMode = 1;
     } else if (rxOneCounter != 5) { // This is an ordinary bit that we should store.	      
       in  >>= 1; rxBitCounter++;
-      if (rxBitCounter == 8) { rxBitCounter = 0; rxOutBuffer.writeBuffer(in);  }	      
+      if (rxBitCounter == 8) { 
+        rxBitCounter = 0;         
+        rxOutBuffer.writeBuffer(in);
+      }	      
     } // else we would do nothing since then it is an inserted 0.	    
   } else {  // We are waiting for leading flag
     if (rxOneCounter==6) { // Start flag
@@ -495,7 +511,10 @@ static inline void processRxOneHDLCBit() {
       rxHDLCState = 0;
     } else {
       in  >>= 1; in |= 0b10000000; rxBitCounter++;
-      if (rxBitCounter == 8) { rxBitCounter = 0; rxOutBuffer.writeBuffer(in); } 
+      if (rxBitCounter == 8) { 
+        rxBitCounter = 0; 
+        rxOutBuffer.writeBuffer(in); 
+      } 
     }	      
   } 
   if (rxOneCounter <8) {
@@ -549,17 +568,16 @@ void processRxHDLC(unsigned char ch) {
 }
 
 
-
-void loop() {
-unsigned char ch;
-  if (spi_is_tx_empty(SPI2)) {
+extern "C" void __irq_spi2 (void) {
+  unsigned char ch;	   
+  if (spi_is_tx_empty(SPI2)){
     if (txMode) {		
       if (txBuffer.isBufferEmpty()) {
         txMode = 0;
         spi_tx_reg(SPI2, 0xff);  
       } else {
         ch = txBuffer.readBuffer();
-#ifdef DEBUG3
+#ifdef DEBUG5
 	logTwo("Sending SPI: ", ch);
 #endif            
         spi_tx_reg(SPI2, ch);  
@@ -568,16 +586,22 @@ unsigned char ch;
       spi_tx_reg(SPI2, 0xff);		
     }
   }
-           
+
   if (spi_is_rx_nonempty(SPI2)) {
     ch = spi_rx_reg(SPI2);
     if (ch != 0xff ) {
-#ifdef DEBUG3      
+#ifdef DEBUG5      
       logTwo("Receiving SPI: ", ch);
 #endif    
       rxInBuffer.writeBuffer(ch);  		
     } 
   }
+}
+
+
+
+void loop() {
+unsigned char ch;
   
   if (!txMode) {
     if (Serial1.available()>0) {
@@ -591,12 +615,15 @@ unsigned char ch;
   #endif     
     }
   }  
+
   if (!rxMode && !rxInBuffer.isBufferEmpty()) {
-      ch = rxInBuffer.readBuffer();
+    spi_irq_disable(SPI2, SPI_RXNE_INTERRUPT);	
+    ch = rxInBuffer.readBuffer();
+    spi_irq_enable(SPI2, SPI_RXNE_INTERRUPT);      
 #ifdef DEBUG3      
-      logTwo("Synced data from buffer to be HDLC processed : ", ch);
+    logTwo("Synced data from buffer to be HDLC processed : ", ch);
 #endif
-      processRxHDLC(ch);		  
+    processRxHDLC(ch);		  
   }
   if (rxMode) {
     if (!rxOutBuffer.isBufferEmpty()) {

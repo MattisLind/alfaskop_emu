@@ -415,7 +415,6 @@ extern "C" void __irq_spi2 (void) {
 
   if (spi_is_rx_nonempty(SPI2)) {
     syncFSM.receivedData(spi_rx_reg(SPI2));
-    spi_rx_reg(SPI2);
   }
 }
 
