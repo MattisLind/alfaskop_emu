@@ -20,7 +20,7 @@
 
 HardwareTimer timer(2);
 
-void outputAddress (int address) {
+inline void outputAddress (int address) {
   //int tmp = ;
   //GPIOB->regs->ODR &= ~(0b11<<ADDRESS_SHIFT) | (address << ADDRESS_SHIFT);  
   //GPIOB->regs->ODR |= (3<<ADDRESS_SHIFT) & (3 << ADDRESS_SHIFT);
@@ -29,46 +29,46 @@ void outputAddress (int address) {
   //GPIOB->regs->ODR = tmp;
 }
 
-void setIOR () {
+inline void setIOR () {
   //digitalWrite(IOR, HIGH);
   GPIOB->regs->BSRR = 1 << IOR_SHIFT;
 }
 
-void clearIOR () {
+inline void clearIOR () {
   //digitalWrite(IOR, LOW);
   GPIOB->regs->BRR = 1 << IOR_SHIFT;
 }
 
-void setIOW () {
+inline void setIOW () {
   GPIOB->regs->BSRR = 1 << IOW_SHIFT;
 }
 
-void clearIOW () {
+inline void clearIOW () {
   GPIOB->regs->BRR = 1 << IOW_SHIFT;
 }
 
-void setDirection () {
+inline void setDirection () {
   GPIOB->regs->BSRR = 1 << DIRECTION_SHIFT;
 }
 
-void clearDirection () {
+inline void clearDirection () {
   GPIOB->regs->BRR = 1 << DIRECTION_SHIFT;
 }
 
-void setReset () {
+inline void setReset () {
   GPIOB->regs->BSRR = 1 << RESET_SHIFT;
 }
 
-void clearReset () {
+inline void clearReset () {
   GPIOB->regs->BRR = 1 << RESET_SHIFT;
 }
 
-void outputData(int value) {
+inline void outputData(int value) {
   GPIOA->regs->CRL = 0x33333333; // set all as outputs 
   GPIOA->regs->ODR = (GPIOA->regs->ODR & ~DATA_MASK) |  (0xff & value);
 }
 
-void writeData (int address, int value) {
+inline void writeData (int address, int value) {
   setDirection();
   outputData(value);
   outputAddress(address);
@@ -77,7 +77,7 @@ void writeData (int address, int value) {
   setIOW(); 
 }
 
-int readData (int address) {
+inline int readData (int address) {
   int tmp;
   clearDirection();
   GPIOA->regs->CRL = 0x44444444; // set all as inputs
@@ -91,84 +91,69 @@ int readData (int address) {
   return tmp; 
 }
 
-int readStatusRegister (int channel) {
+inline int readStatusRegister (int channel) {
   return 0xff & readData((channel & 0x01) | 0x02);
 }
 
-int readStatusRegister (int channel, int regNumber) {
+inline int readStatusRegister (int channel, int regNumber) {
   writeData((channel & 0x01) | 0x02, regNumber);
   delay_us(2);
   return 0xff & readData((channel & 0x01) | 0x02);  
 }
 
-void writeControlRegister (int channel, int value) {
+inline void writeControlRegister (int channel, int value) {
   writeData ((channel & 0x01) | 0x02, value);
 }
 
-void writeControlRegister (int channel, int regNumber, int value) {
+inline void writeControlRegister (int channel, int regNumber, int value) {
   writeData((channel & 0x01) | 0x02, regNumber);
   delay_us(2);
   writeData((channel & 0x01) | 0x02, value);
 }
 
-int readDataRegister (int channel) {
-  int tmp=0xff & readData(channel & 0x01);
-  return tmp;
+inline int readDataRegister (int channel) {
+  return (0xff & readData(channel & 0x01));
 }
 
-void writeDataRegister (int channel, int value) {
+inline void writeDataRegister (int channel, int value) {
   writeData(channel & 0x01, value);
 }
 
 
-void sendData (int channel, int data) {
+inline void sendData (int channel, int data) {
   while (!(readStatusRegister(channel) & 0x04));
   writeData (channel, data);
 }
 
-bool isTxEmpty (int channel) {
-  return ((readStatusRegister(channel) & 0x04) == 0x04);
+inline bool isTxEmpty (int channel) {
+  return ((readStatusRegister(channel) & 0b00000100) == 0b00000100);
 }
 
-bool isRxAvailable (int channel) {
-  return ((readStatusRegister(channel) & 0x01) == 0x01);
+inline bool isRxAvailable (int channel) {
+  return ((readStatusRegister(channel) & 0b00000001) == 0b00000001);
 }
 
-int receiveData (int channel) {
+inline bool isFrameAborted(int channel) {
+ return ((readStatusRegister(channel) & 0b10000000) == 0b10000000);
+}
+
+inline isEndOfFrame (int channel) {
+  return ((readStatusRegister (channel, 1) & 0b10000000) == 0b10000000); 
+}
+
+inline isCrcError (int channel) {
+  return ((readStatusRegister (channel, 1) & 0b01000000) == 0b01000000); 
+}
+
+
+inline int receiveData (int channel) {
   while (!(readStatusRegister(channel) & 0x01));
   return readData(channel);
 }
 
-void handler_led(void){ // Toggle pin. 
-  digitalWrite(PB1, !digitalRead(PB1));
-}
-
-
 
 // the setup function runs once when you press reset or power the board
 void setup() {
-  // initialize digital pin LED_BUILTIN as an output.
-
-
-      // Pause the timer while we're configuring it
-    timer.pause();
-
-    // Set up period
-    timer.setPeriod(1000); // in microseconds
-
-    // Set up an interrupt on channel 1
-    timer.setChannel1Mode(TIMER_OUTPUT_COMPARE);
-    timer.setCompare(TIMER_CH1, 1);  // Interrupt 1 count after each update
-    timer.attachCompare1Interrupt(handler_led);
-
-    // Refresh the timer's count, prescale, and overflow
-    timer.refresh();
-
-    // Start the timer counting
-    timer.resume();  
-
-  pinMode(PB1, OUTPUT);
-  pinMode(LED_BUILTIN, OUTPUT);
   Serial1.begin(921600);
   setIOR();
   setIOW();
@@ -178,7 +163,6 @@ void setup() {
   pinMode (A1,  OUTPUT);
   pinMode (RESET, OUTPUT);
   pinMode (DIRECTION, OUTPUT);
-  pinMode (PB5, OUTPUT);
   setIOR();
   setIOW();
   setReset();
@@ -189,49 +173,65 @@ void setup() {
   Serial1.print("8274 SDLC TESTER> " );
 }
 
-void initHdlc () {
+inline void channelReset(int channel) {
+ writeControlRegister(channel, 0b00011000); // channel RESET
+}
+
+inline void errorReset (int channel) {
+   writeControlRegister(channel, 0b00110000); // Error RESET
+}
+
+inline void sendAbort (int channel) {
+  writeControlRegister(channel, 0b00001000);
+}
+
+inline void resetExtStatus (int channel) {
+  writeControlRegister(channel, 0b00010000);
+}
+ 
+inline void enterHuntMode (int channel) {
+    writeControlRegister(channel, 0x03);  // Next write is to WR3 and RESET EXT/STATUS INTERRUPT
+    writeControlRegister(channel, 0b11011001);  // 8 bits Hunt mode Rx CRC enable Rx Enable
+}
+
+inline void hardwareReset() {
     setReset();  
     delay_us(10);
     clearReset();
     delay_us(10);
-    writeControlRegister(1, 0b00011000); // channel RESET
-    //writeControlRegister(1, 0b00110000); // channel RESET
-    delay_us(2);
-    writeControlRegister(1, 0b00011000); // Error RESET
-    writeControlRegister(1, 0x14); // Next write is to WR4 and RESET EXT/STATUS INTERRUPT
-    writeControlRegister(1, 0b00100000); // X1 Clock SDLC SYNC MODE 
-    writeControlRegister(1, 0x12);  // Next write is to WR2 and RESET EXT/STATUS INTERRUPT
-    writeControlRegister(1, 0b00000000);  // No interrupts enabled all should be zero
-    writeControlRegister(1, 0x11);  // Next write is to WR1 and RESET EXT/STATUS INTERRUPT
-    writeControlRegister(1, 0b00000000);  // No interrupts enabled all should be zero
-    writeControlRegister(1, 0x17);  // Next write is to WR7 and RESET EXT/STATUS INTERRUPT
-    writeControlRegister(1, 0b01111110);  // Sync byte must be 01111110
-    writeControlRegister(1, 0x13);  // Next write is to WR3 and RESET EXT/STATUS INTERRUPT
-    writeControlRegister(1, 0b11011001);  // 8 bits Hunt mode Rx CRC enable Rx Enable
-    writeControlRegister(1, 0x15);  // Next write is to WR5 and RESET EXT/STATUS INTERRUPT
-    //writeControlRegister(1, 0b01100001);  // 8 bits Tx Enable CCITT-CRC RTS Tx CRC enable
-    writeControlRegister(1, 0b01100001);  
-    writeControlRegister(1, 0b00110000); // Error RESET
-    writeControlRegister(1, 0b00110000); // Error RESET
-    writeControlRegister(1, 0b00110000); // Error RESET
 }
 
+void initHdlc (int channel) {
+    cannelReset(channel);
+    delay_us(2);
+    writeControlRegister(channel, 0x14); // Next write is to WR4 and RESET EXT/STATUS INTERRUPT
+    writeControlRegister(channel, 0b00100000); // X1 Clock SDLC SYNC MODE 
+    writeControlRegister(channel, 0x12);  // Next write is to WR2 and RESET EXT/STATUS INTERRUPT
+    writeControlRegister(channel, 0b00000000);  // No interrupts enabled all should be zero
+    writeControlRegister(channel, 0x11);  // Next write is to WR1 and RESET EXT/STATUS INTERRUPT
+    writeControlRegister(channel, 0b00000000);  // No interrupts enabled all should be zero
+    writeControlRegister(channel, 0x17);  // Next write is to WR7 and RESET EXT/STATUS INTERRUPT
+    writeControlRegister(channel, 0b01111110);  // Sync byte must be 01111110
+    writeControlRegister(channel, 0x13);  // Next write is to WR3 and RESET EXT/STATUS INTERRUPT
+    writeControlRegister(channel, 0b11011001);  // 8 bits Hunt mode Rx CRC enable Rx Enable
+    writeControlRegister(channel, 0x15);  // Next write is to WR5 and RESET EXT/STATUS INTERRUPT
+    writeControlRegister(channel, 0b01101001);  // 8 bits Tx Enable CCITT-CRC RTS Tx CRC enable
+    errorReset (channel); 
+    errorReset (channel);
+    errorReset (channel);    
+}
 
+inline void resetRxCrc (int channel) {
+  writeControlRegister(channel, 0b01000000);
+}
 
+inline void resetTxCrc (int channel) {
+  writeControlRegister(channel, 0b10000000);
+}
+inline void resetTxUnderrun (int channel) {
+  writeControlRegister(channel, 0b11000000);
+}
 
-char rxBuf[255];
-char * txBuf;
-char txBufPoll[5]= {0x40, 0x40, 0x40, 0x40, 0x2D};
-char txBufStatus[9] = {0x01, 0x6C, 0xD9, 0x02, 0x40, 0x40, 0x40, 0x70, 0x03};
-int txLen;
-int txCnt=0, rxCnt=0;
-int txState=0, rxDone=0, txDone=1;
-int cmdState = 0;
-int cmd;
-int hexValue;
-int readLast=0;
-uint32_t oldTimerValue, oldTimerRTSValue;
-// the loop function runs over and over again forever
 
 void printTwoDigitHex (int data) {
   if (data < 16) {
@@ -240,114 +240,87 @@ void printTwoDigitHex (int data) {
   Serial1.print(data, HEX);
 }
 
+void printPrompt() {
+  Serial1.println();
+  Serial1.print("8274 SDLC TESTER> " );
+}
 
-
+bool messagePrinted = false;
+bool firstTxChar = true;
+bool sendingInProgress = false;
 void loop() {
-  int tmp, tmp2;
-  int i;
   int data;
-  tmp = readStatusRegister(1);
-  if (tmp & 0x01) {
-    data = readDataRegister(1);
-    printTwoDigitHex(data);
+  if (isRxAvailable(1)) {
+    rxBuffer.writeBuffer(readDataRegister(1));
   }
-  if (tmp & 0x04) {
+  if (sendingInProgress && isTxEmpty(1)) {
+    if (txBuffer.isNotEmpty()) {
+      writeDataRegister(1, txBuffer.readBuffer());
+      if (firstTxChar) {
+        firstTxChar = false;
+        resetTxUnderrun(1);
+      }
+    } else {
+      sendingInProgress = false;
+    }
+  }   
+  if (isEndOfFrame(1)) {
+    if (!messagePrinted) {
+      messagePrinted = true;
+      Serial1.println();
+      Serial1.print("Message received: ");      
+      while (!rxBuffer.isBufferEmpty) {
+        printTwoDigitHex(rxBuffer.readBuffer()); 
+      }
+      printPrompt();
+    }
+  } 
+  if (isFrameAborted(1)) {
+    resetRxCrc(1);
+    enterHuntMode(1);
+    Serial1.println();
+    Serial1.print("Frame aborted!");
+    printPrompt();
   }
-  
   if (Serial1.available()> 0) {
     tmp = Serial1.read();
     if ((tmp >= 'a') && (tmp <= 'z')) {
       tmp &= ~0x20; // to upper case
     }
-    switch (cmdState) {
-      case 0:
-        switch (tmp) {
-          case 'R':
-            Serial1.write(tmp);
-            Serial1.println();
-            Serial1.print("8274 SDLC TESTER> ");
-            break;
-          case 'A':  // send poll
-            Serial1.write(tmp);
-            Serial1.println();
-            Serial1.print("8274 SDLC TESTER> " );
-            break;
-          case 'S':
-            Serial1.write(tmp);
-            Serial1.println();
-            Serial1.print("8274 SDLC TESTER> " );
-            break;
-          case 'C': // set destination address
-          case 'D': // set poll status
-            Serial1.write(tmp);
-            Serial1.write(' ');
-            cmdState = 1;
-            cmd = tmp;
-            break;
-          case 'X':
-            Serial1.println();
-            Serial1.print("Current poll buffer: ");
-            for(i=0; i < txLen; i++) {
-              printTwoDigitHex(txBuf[i]);
-              Serial1.write(' ');
-            }
-            Serial1.println();
-            Serial1.print("8274 SDLC TESTER> " );
-            break;
-          case 'H':
-            Serial1.println();
-            Serial1.println("8274 SDLC TESTER HELP");
-            Serial1.println("=======================");
-            Serial1.println("H - HELP");
-            Serial1.println("S - Send SNRM message");
-            Serial1.println("A - Send ACTPU message");
-            Serial1.println("R - Do a Reset of the 8274 chip");
-            Serial1.println("X - print current poll buffer");
-            Serial1.println();
-            Serial1.print("8274 SDLC TESTER> " );
-            break;
-          case '\r': 
-            Serial1.println();
-            Serial1.print("8274 SDLC TESTER> " );
+    switch (tmp) {
+      case 'R':
+        Serial1.write(tmp);           
+        hardwareReset();
+        initHdlc(1);
+        printPrompt();
+        break;
+      case 'S':
+        if (sendingInProgress) {
+          Serial1.write(tmp);
+          Serial1.println();
+          Serial1.print("Sending already in progress!");
+          printPrompt();
+        } else {
+          txBuffer.writeBuffer(0x40);
+          txBuffer.writeBuffer(0x93);
+          sendingInProgress = true;
+          Serial1.write(tmp);
+          printPrompt();
         }
         break;
-      case 1: 
-        //Serial1.write(tmp);
-        // in state 1 we collect hex digits.
-        if (((tmp >= '0' ) && (tmp <= '9')) || ((tmp >= 'A') && (tmp <= 'F'))) {
-          Serial1.write(tmp); // Echo character
-          if (tmp > '9') {
-            tmp -= 'A';
-            tmp += 10;
-          } else {
-            tmp -= '0';
-          }
-          hexValue = tmp << 4;
-          cmdState = 2;
-        }
-        break;        
-      case 2:
-        if (((tmp >= '0' ) && (tmp <= '9')) || ((tmp >= 'A') && (tmp <= 'F'))) {
-          Serial1.write(tmp); // Echo character
-          if (tmp > '9') {
-            tmp -= 'A';
-            tmp += 10;
-          } else {
-            tmp -= '0';
-          }
-          hexValue |= tmp;
-        }
-        cmdState = 0;
-        switch (cmd) {
-          case 'C':
-            break;
-          case 'D':
-            break;
-        }
+      case 'H':
         Serial1.println();
-        Serial1.print("8274 SDLC TESTER> " );
-      break;      
+        Serial1.println("8274 SDLC TESTER HELP");
+        Serial1.println("=======================");
+        Serial1.println("H - HELP");
+        Serial1.println("S - Send SNRM message");
+        Serial1.println("A - Send ACTPU message");
+        Serial1.println("R - Do a Reset of the 8274 chip");
+        printPrompt();
+        break;
+      case '\r': 
+        printPrompt();
+        break;
     }
   } 
-
 }
