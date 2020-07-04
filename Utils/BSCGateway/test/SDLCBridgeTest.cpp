@@ -159,20 +159,27 @@ void pinMode(int, int) {
 void pwmWrite (int, int) {
 }
 
-class RingBuffer lineBuffer;
+
+unsigned int spibuf;
+bool spi_empty = true;
 
 void spi_tx_reg(spi_dev *, int ch) {
   printf("SPI tx %02X\n", ch & 0xff);
-  lineBuffer.writeBuffer(ch);
+  spibuf = ch;
+  spi_empty = false;
 }
 uint16_t spi_rx_reg(spi_dev *) {
-  return lineBuffer.readBuffer();
+  spi_empty=true;
+  printf ("SPI rx %02X\n", spibuf & 0xff);
+  return spibuf; 
 } 
 bool spi_is_rx_nonempty(spi_dev *) {
-  return !lineBuffer.isBufferEmpty();
+  printf("spi_is_rx_nonempty: %d\n", !spi_empty);
+  return !spi_empty;
 }
 bool spi_is_tx_empty(spi_dev *) {
-  return !lineBuffer.isBufferFull();
+  printf("spi_is_tx_empty: %d\n", spi_empty);
+  return spi_empty;
 }
 
 void setup();
@@ -189,7 +196,6 @@ char test5[] = {0x40, 0x93, 0xff, 0xef};
 #include "../../SDLCBridge/SDLCBridge.ino"
 
 int main (int argc, char ** argv) {
-  lineBuffer.initBuffer();
   setup();
   Serial1.setReadBuffer(4, test2);
   loop();
