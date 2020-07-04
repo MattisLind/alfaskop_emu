@@ -105,6 +105,7 @@ int main () {
   fd = openSerial();
   sendReset(fd);
   testSNRM(fd);
+  testSNRM(fd);
   sleep(2); //required to make flush work, for some reason
   tcflush(fd,TCIOFLUSH);
   close(fd);
