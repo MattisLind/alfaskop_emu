@@ -105,6 +105,7 @@ int rxOneCounter = 0;
 int rxHDLCState = 0;
 unsigned short rxCrc = 0;
 unsigned char in = 0;
+int nonEmptyFrame = 0;
 
 void setup() {
   int period;
@@ -142,6 +143,7 @@ void setup() {
   rxMode = 0;
   txMode = 0;
   rxHDLCState = 0;
+  nonEmptyFrame = 0;	
   spi_tx_reg(SPI2, 0xff); // dummy write 
   spi_rx_reg(SPI2); // dummy read
   spi_irq_enable(SPI2, SPI_RXNE_INTERRUPT);
@@ -463,6 +465,7 @@ void processFramedSerialData(unsigned char ch) {
         rxMode = 0;
         txMode = 0;
         rxHDLCState = 0;
+	nonEmptyFrame = 0; 	    
         rxInBuffer.initBuffer();
         rxOutBuffer.initBuffer();
         txBuffer.initBuffer();
@@ -487,14 +490,15 @@ void processFrameForSendingToHercules(unsigned char ch) {
 
 static inline void processRxZeroHDLCBit() { 
   if (rxHDLCState) { // We have received a flag - waiting for end flag
-    if (rxOneCounter==6) { // End flag
-      rxHDLCState = 0;
-      rxMode = 1;
+    if (rxOneCounter==6 && nonEmptyFrame) { // Flag - still in sync. 
+      rxMode = 1; 
+      nonEmptyFrame = 0; 
     } else if (rxOneCounter != 5) { // This is an ordinary bit that we should store.	      
       in  >>= 1; rxBitCounter++;
       if (rxBitCounter == 8) { 
         rxBitCounter = 0;         
         rxOutBuffer.writeBuffer(in);
+	nonEmptyFrame = 1;      
       }	      
     } // else we would do nothing since then it is an inserted 0.	    
   } else {  // We are waiting for leading flag
@@ -508,7 +512,11 @@ static inline void processRxZeroHDLCBit() {
 static inline void processRxOneHDLCBit() {
   if (rxHDLCState) { // We have received a flag - waiting for end flag    	    
     if (rxOneCounter==6) { // Abort
-      rxHDLCState = 0;
+      rxHDLCState = 0;     // This is normal if the line goes to marking state directly after a flag.
+      if (nonEmptyFrame) { // But we do have data received in the buffer, then we need to clear out the buffer.
+        nonEmptyFrame=0;
+	rxOutBuffer.initBuffer();  // re-init the buffer would do it for us. 
+      }	    
     } else {
       in  >>= 1; in |= 0b10000000; rxBitCounter++;
       if (rxBitCounter == 8) { 
