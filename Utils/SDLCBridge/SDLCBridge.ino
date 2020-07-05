@@ -48,7 +48,7 @@
 
 #ifdef DEBUG4
 #undef BAUD 
-#define BAUD 60000
+#define BAUD 120000
 #endif
 
 #define logOne(s) printMillis(); Serial.print(s); Serial.println(); 
@@ -87,7 +87,7 @@ const int pwmOutPin = PA8; // pin10
 class RingBuffer rxOutBuffer;
 class RingBuffer txBuffer;
 class RingBuffer rxInBuffer;
-unsigned short txCrc=0;
+unsigned short txCrc=0xffff;
 #define HDLC_STATE_IDLE      0
 #define HDLC_STATE_FLAG_SENT 1
 
@@ -103,7 +103,7 @@ int rxMode=0;
 int rxBitCounter = 0;
 int rxOneCounter = 0;
 int rxHDLCState = 0;
-unsigned short rxCrc = 0;
+unsigned short rxCrc = 0xffff;
 unsigned char in = 0;
 int nonEmptyFrame = 0;
 
@@ -135,7 +135,7 @@ void setup() {
   oneCounter = 0;
   bitCounter = 0;
   txHDLCState = 0;
-  txCrc = 0;
+  txCrc = 0xffff;
   out = 0;
   rxOneCounter = 0;
   in = 0;
@@ -302,7 +302,7 @@ void endHDLCProcessing() {
   bitCounter=0;
   oneCounter=0;
   txHDLCState=HDLC_STATE_IDLE;
-  txCrc=0;
+  txCrc=0xffff;
 }
   
   
@@ -457,7 +457,7 @@ void processFramedSerialData(unsigned char ch) {
         oneCounter = 0;
         bitCounter = 0;
         txHDLCState = 0;
-        txCrc = 0;
+        txCrc = 0xffff;
         out = 0;
         rxOneCounter = 0;
         in = 0;
@@ -489,20 +489,28 @@ void processFrameForSendingToHercules(unsigned char ch) {
 }
 
 static inline void processRxZeroHDLCBit() { 
+  logTwo("processRxZeroHDLCBit rxOneCounter=", rxOneCounter);
+  logTwo("processRxZeroHDLCBit rxBitCunter=", rxBitCounter);
   if (rxHDLCState) { // We have received a flag - waiting for end flag
-    if (rxOneCounter==6 && nonEmptyFrame) { // Flag - still in sync. 
-      rxMode = 1; 
-      nonEmptyFrame = 0; 
+    if (rxOneCounter==6) { 
+      logOne("Flag - while in-sync");
+      if (nonEmptyFrame) { // Flag - still in sync.         
+        rxMode = 1; 
+        nonEmptyFrame = 0;
+      }
+      rxBitCounter = 0; 
     } else if (rxOneCounter != 5) { // This is an ordinary bit that we should store.	      
       in  >>= 1; rxBitCounter++;
       if (rxBitCounter == 8) { 
-        rxBitCounter = 0;         
+        rxBitCounter = 0;  
+        logTwo("processRxZeroHDLCBit rxBitCounter=8 in=", in);       
         rxOutBuffer.writeBuffer(in);
-	nonEmptyFrame = 1;      
+	      nonEmptyFrame = 1;      
       }	      
     } // else we would do nothing since then it is an inserted 0.	    
   } else {  // We are waiting for leading flag
     if (rxOneCounter==6) { // Start flag
+      logOne("Flag - Going from out of sync to in sync");
       rxHDLCState = 1;
     }	    	    
   }
@@ -510,17 +518,21 @@ static inline void processRxZeroHDLCBit() {
 }
 
 static inline void processRxOneHDLCBit() {
+  logTwo("processRxOneHDLCBit rxOneCounter=", rxOneCounter);
+  logTwo("processRxOneHDLCBit rxBitCounter=", rxBitCounter);
   if (rxHDLCState) { // We have received a flag - waiting for end flag    	    
     if (rxOneCounter==6) { // Abort
       rxHDLCState = 0;     // This is normal if the line goes to marking state directly after a flag.
       if (nonEmptyFrame) { // But we do have data received in the buffer, then we need to clear out the buffer.
         nonEmptyFrame=0;
-	rxOutBuffer.initBuffer();  // re-init the buffer would do it for us. 
+	      rxOutBuffer.initBuffer();  // re-init the buffer would do it for us. 
       }	    
     } else {
       in  >>= 1; in |= 0b10000000; rxBitCounter++;
       if (rxBitCounter == 8) { 
         rxBitCounter = 0; 
+        nonEmptyFrame=1;
+        logTwo("processRxOneHDLCBit rxBitCounter=8 in=", in);
         rxOutBuffer.writeBuffer(in); 
       } 
     }	      
@@ -532,42 +544,51 @@ static inline void processRxOneHDLCBit() {
 
 
 void processRxHDLC(unsigned char ch) {
+  logTwo("processRxHDLC: ch=", ch);
   if (ch == 0xff && rxHDLCState == 0) return; // This is idle line don't spend time procssing it.
+  logOne("bit 0");
   if (0b00000001 & ch) {
     processRxOneHDLCBit();
   } else {
     processRxZeroHDLCBit();	  
   }
+  logOne("bit 1");
   if (0b00000010 & ch) {
     processRxOneHDLCBit();
   } else {
     processRxZeroHDLCBit();	  
   } 	
+  logOne("bit 2");
   if (0b00000100 & ch) {
     processRxOneHDLCBit();
   } else {
     processRxZeroHDLCBit();	  
   } 	
+  logOne("bit 3");
   if (0b00001000 & ch) {
     processRxOneHDLCBit();
   } else {
     processRxZeroHDLCBit();	  
   } 	
+  logOne("bit 4");
   if (0b00010000 & ch) {
     processRxOneHDLCBit();
   } else {
     processRxZeroHDLCBit();	  
   } 	
+  logOne("bit 5");
   if (0b00100000 & ch) {
     processRxOneHDLCBit();
   } else {
     processRxZeroHDLCBit();	  
   } 	
+  logOne("bit 6");
   if (0b01000000 & ch) {
     processRxOneHDLCBit();
   } else {
     processRxZeroHDLCBit();	  
   } 	
+  logOne("bit 7");
   if (0b10000000 & ch) {
     processRxOneHDLCBit();
   } else {
@@ -649,11 +670,13 @@ unsigned char ch;
       rxMode = 0;
       rxCrc = calculateCrcChar(rxCrc, 0);
       rxCrc = calculateCrcChar(rxCrc, 0);
+      logTwo("CRC first byte: ",(rxCrc>>8) & 0xff);
+      logTwo("CRC second byte: ",rxCrc & 0xff);  
       Serial1.write((rxCrc>>8) & 0xff);
       Serial1.write(rxCrc & 0xff);
-      rxCrc=0;
+      rxCrc=0xffff;
       rxBitCounter=0;
-      rxOneCounter=0;
+      //rxOneCounter=0;
       Serial1.write(0xff);
       Serial1.write(0xef);
     }

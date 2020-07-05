@@ -3,6 +3,7 @@
 */
 
 #include <libmaple/delay.h>
+#include "RingBuffer.h"
 
 #define IOR PB6
 #define IOW PB7
@@ -19,6 +20,9 @@
 #define DATA_MASK 0x000000FF
 
 HardwareTimer timer(2);
+
+class RingBuffer txBuffer;
+class RingBuffer rxBuffer;
 
 inline void outputAddress (int address) {
   //int tmp = ;
@@ -137,11 +141,11 @@ inline bool isFrameAborted(int channel) {
  return ((readStatusRegister(channel) & 0b10000000) == 0b10000000);
 }
 
-inline isEndOfFrame (int channel) {
+inline bool isEndOfFrame (int channel) {
   return ((readStatusRegister (channel, 1) & 0b10000000) == 0b10000000); 
 }
 
-inline isCrcError (int channel) {
+inline bool isCrcError (int channel) {
   return ((readStatusRegister (channel, 1) & 0b01000000) == 0b01000000); 
 }
 
@@ -154,7 +158,7 @@ inline int receiveData (int channel) {
 
 // the setup function runs once when you press reset or power the board
 void setup() {
-  Serial1.begin(921600);
+  Serial.begin(921600);
   setIOR();
   setIOW();
   pinMode (IOR, OUTPUT);
@@ -169,8 +173,8 @@ void setup() {
   delay_us(10);
   clearReset();
   delay_us(10);
-  Serial1.println();
-  Serial1.print("8274 SDLC TESTER> " );
+  Serial.println();
+  Serial.print("8274 SDLC TESTER> " );
 }
 
 inline void channelReset(int channel) {
@@ -202,7 +206,7 @@ inline void hardwareReset() {
 }
 
 void initHdlc (int channel) {
-    cannelReset(channel);
+    channelReset(channel);
     delay_us(2);
     writeControlRegister(channel, 0x14); // Next write is to WR4 and RESET EXT/STATUS INTERRUPT
     writeControlRegister(channel, 0b00100000); // X1 Clock SDLC SYNC MODE 
@@ -235,26 +239,26 @@ inline void resetTxUnderrun (int channel) {
 
 void printTwoDigitHex (int data) {
   if (data < 16) {
-    Serial1.print('0');
+    Serial.print('0');
   } 
-  Serial1.print(data, HEX);
+  Serial.print(data, HEX);
 }
 
 void printPrompt() {
-  Serial1.println();
-  Serial1.print("8274 SDLC TESTER> " );
+  Serial.println();
+  Serial.print("8274 SDLC TESTER> " );
 }
 
 bool messagePrinted = false;
 bool firstTxChar = true;
 bool sendingInProgress = false;
 void loop() {
-  int data;
+  int data, tmp;
   if (isRxAvailable(1)) {
     rxBuffer.writeBuffer(readDataRegister(1));
   }
   if (sendingInProgress && isTxEmpty(1)) {
-    if (txBuffer.isNotEmpty()) {
+    if (!txBuffer.isBufferEmpty()) {
       writeDataRegister(1, txBuffer.readBuffer());
       if (firstTxChar) {
         firstTxChar = false;
@@ -267,9 +271,9 @@ void loop() {
   if (isEndOfFrame(1)) {
     if (!messagePrinted) {
       messagePrinted = true;
-      Serial1.println();
-      Serial1.print("Message received: ");      
-      while (!rxBuffer.isBufferEmpty) {
+      Serial.println();
+      Serial.print("Message received: ");      
+      while (!rxBuffer.isBufferEmpty()) {
         printTwoDigitHex(rxBuffer.readBuffer()); 
       }
       printPrompt();
@@ -278,44 +282,45 @@ void loop() {
   if (isFrameAborted(1)) {
     resetRxCrc(1);
     enterHuntMode(1);
-    Serial1.println();
-    Serial1.print("Frame aborted!");
+    Serial.println();
+    Serial.print("Frame aborted!");
     printPrompt();
   }
-  if (Serial1.available()> 0) {
-    tmp = Serial1.read();
+  if (Serial.available()> 0) {
+    tmp = Serial.read();
     if ((tmp >= 'a') && (tmp <= 'z')) {
       tmp &= ~0x20; // to upper case
     }
     switch (tmp) {
       case 'R':
-        Serial1.write(tmp);           
+        Serial.write(tmp);           
         hardwareReset();
         initHdlc(1);
         printPrompt();
         break;
       case 'S':
         if (sendingInProgress) {
-          Serial1.write(tmp);
-          Serial1.println();
-          Serial1.print("Sending already in progress!");
+          Serial.write(tmp);
+          Serial.println();
+          Serial.print("Sending already in progress!");
           printPrompt();
         } else {
           txBuffer.writeBuffer(0x40);
           txBuffer.writeBuffer(0x93);
           sendingInProgress = true;
-          Serial1.write(tmp);
+          firstTxChar=true;
+          Serial.write(tmp);
           printPrompt();
         }
         break;
       case 'H':
-        Serial1.println();
-        Serial1.println("8274 SDLC TESTER HELP");
-        Serial1.println("=======================");
-        Serial1.println("H - HELP");
-        Serial1.println("S - Send SNRM message");
-        Serial1.println("A - Send ACTPU message");
-        Serial1.println("R - Do a Reset of the 8274 chip");
+        Serial.println();
+        Serial.println("8274 SDLC TESTER HELP");
+        Serial.println("=======================");
+        Serial.println("H - HELP");
+        Serial.println("S - Send SNRM message");
+        Serial.println("A - Send ACTPU message");
+        Serial.println("R - Do a Reset of the 8274 chip");
         printPrompt();
         break;
       case '\r': 
