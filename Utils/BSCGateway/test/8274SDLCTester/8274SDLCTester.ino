@@ -313,6 +313,51 @@ void loop() {
           printPrompt();
         }
         break;
+      case 'T':
+        if (sendingInProgress) {
+          Serial.write(tmp);
+          Serial.println();
+          Serial.print("Sending already in progress!");
+          printPrompt();
+        } else {
+          txBuffer.writeBuffer(0x21);
+          txBuffer.writeBuffer(0x43);
+          sendingInProgress = true;
+          firstTxChar=true;
+          Serial.write(tmp);
+          printPrompt();
+        }
+        break;
+      case 'U':
+        if (sendingInProgress) {
+          Serial.write(tmp);
+          Serial.println();
+          Serial.print("Sending already in progress!");
+          printPrompt();
+        } else {
+          txBuffer.writeBuffer(0x66);
+          txBuffer.writeBuffer(0x64);
+          sendingInProgress = true;
+          firstTxChar=true;
+          Serial.write(tmp);
+          printPrompt();
+        }
+        break;
+      case 'V':
+        if (sendingInProgress) {
+          Serial.write(tmp);
+          Serial.println();
+          Serial.print("Sending already in progress!");
+          printPrompt();
+        } else {
+          txBuffer.writeBuffer(0xcc);
+          txBuffer.writeBuffer(0x19);
+          sendingInProgress = true;
+          firstTxChar=true;
+          Serial.write(tmp);
+          printPrompt();
+        }
+        break;
       case 'H':
         Serial.println();
         Serial.println("8274 SDLC TESTER HELP");
