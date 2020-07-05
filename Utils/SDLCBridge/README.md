@@ -631,6 +631,41 @@ When in ACTIVE state and a flag is received, this means that the current frame i
 
 The data that has been processed by the SDLC input processor is then read from the buffer by the task that frames data for sending over the serial line. This is simply reading the stream of bytes and inserting escaping 0xff characters whenever necessary. The EOR marker will be sent as the last couple of characters.
 
+### CRC
+To get the CRC right always become a problem. Is it LSB first? MSB first? Initial value? In this case in theory the algorithm should be quite well known. IBM SDLC CRC, initial value 0xffff.
+
+Use of CRC reveng for a number of messages sent from a actual Intel 8274 chip:
+```
+$ ./reveng -w 16 -s 409333ef 21433345 6664e01b cc190de1
+width=16  poly=0x1021  init=0xffff  refin=true  refout=true  xorout=0xffff  check=0x906e  residue=0xf0b8  name="CRC-16/IBM-SDLC"
+```
+```
+$ ./reveng -c -m CRC-16/IBM-SDLC 4093
+33ef
+$ ./reveng -c -m CRC-16/IBM-SDLC 2143
+3345
+$ ./reveng -c -m CRC-16/IBM-SDLC 6664
+e01b
+$ ./reveng -c -m CRC-16/IBM-SDLC cc19
+0de1
+```
+Yes. We get the right check digits when we use this algorithm.
+
+```
+$ ./reveng -c -m CRC-16/IBM-SDLC 409333ef
+470f
+$ ./reveng -c -m CRC-16/IBM-SDLC 21433345
+470f
+$ ./reveng -c -m CRC-16/IBM-SDLC 6664e01b
+470f
+$ ./reveng -c -m CRC-16/IBM-SDLC cc190de1
+470f
+```
+But the sum of the full buffer is not 0? Or 0xffff? Which I thought would be reasonable.
+
+So how to find a proper C-algorithm that does this in the same way?
+
+
 ## Links
 
 ### SNA
