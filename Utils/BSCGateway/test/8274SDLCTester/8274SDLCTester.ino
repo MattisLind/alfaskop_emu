@@ -255,7 +255,12 @@ bool sendingInProgress = false;
 void loop() {
   int data, tmp;
   if (isRxAvailable(1)) {
-    rxBuffer.writeBuffer(readDataRegister(1));
+    tmp = readDataRegister(1);
+    //printTwoDigitHex(tmp);
+    //if (isCrcError(1)) {
+    //  Serial.println("CRC ERROR"); 
+    //}
+    rxBuffer.writeBuffer(tmp);
   }
   if (sendingInProgress && isTxEmpty(1)) {
     if (!txBuffer.isBufferEmpty()) {
@@ -269,22 +274,27 @@ void loop() {
     }
   }   
   if (isEndOfFrame(1)) {
-    if (!messagePrinted) {
-      messagePrinted = true;
-      Serial.println();
-      Serial.print("Message received: ");      
-      while (!rxBuffer.isBufferEmpty()) {
-        printTwoDigitHex(rxBuffer.readBuffer()); 
-      }
-      printPrompt();
+    Serial.println();
+    Serial.print("Message received: ");      
+    while (!rxBuffer.isBufferEmpty()) {
+      printTwoDigitHex(rxBuffer.readBuffer()); 
     }
+    Serial.println();
+    if (isCrcError(1)) {
+      Serial.println("CRC ERROR"); 
+    } else {
+      Serial.println("CRC OK");
+    }
+    errorReset(1);
+    printPrompt();
   } 
   if (isFrameAborted(1)) {
     resetRxCrc(1);
     enterHuntMode(1);
-    Serial.println();
-    Serial.print("Frame aborted!");
-    printPrompt();
+    resetExtStatus(1);
+    //Serial.println();
+    //Serial.print("Frame aborted!");
+    //printPrompt();
   }
   if (Serial.available()> 0) {
     tmp = Serial.read();

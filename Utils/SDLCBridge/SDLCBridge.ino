@@ -7,7 +7,7 @@
 #include <SPI.h>
 #include "ebcdic.h"
 #include "RingBuffer.h"
-#define DEBUG_LEVEL 4 
+#define DEBUG_LEVEL 0 
 #define RTS PB11 // Input
 #define RFS PB1  // Output
 #define DTR PB10 // Input 
