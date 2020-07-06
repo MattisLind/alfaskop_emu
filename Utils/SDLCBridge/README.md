@@ -631,6 +631,16 @@ When in ACTIVE state and a flag is received, this means that the current frame i
 
 The data that has been processed by the SDLC input processor is then read from the buffer by the task that frames data for sending over the serial line. This is simply reading the stream of bytes and inserting escaping 0xff characters whenever necessary. The EOR marker will be sent as the last couple of characters.
 
+### Debugging
+
+This involved writing a couple of test programs to be found unser the Utils/BSCGateway/test; SDLCBridgeTest and SDLCBridgeSerialTest. The former wraps the arduino sketch so it can be run loopbacked in a Linux environment. The latter is a Linux program that sends messages over the serial port and excpects them to be loopbacked.
+
+A lot of small issues was rooted out this way. Using various amount of logging inside the code. Since all logging is done over the USB serial port in the Arduino environment there were heavy load on it. The bufferes overflow and there were loss of logging. The solution was to increase USB bufferes substantially. It can be done by changing the values in the file "Documents \ Arduino \ Hardware \ Arduino_STM32 \ STM32F1 \ cores \ maple \ libmaple \ usb \ stm32f1 \ usb_cdcacm.c"
+
+But the final test has to be done with real hardware. Since earlier I have been using the Ericsson TWIB board hooked up to a STM32F103 Blue Pill. The same test setup was used this time connecting it back to back with the SDLCBridge.
+
+
+
 ### CRC
 To get the CRC right always become a problem. Is it LSB first? MSB first? Initial value? In this case in theory the algorithm should be quite well known. IBM SDLC CRC, initial value 0xffff.
 
