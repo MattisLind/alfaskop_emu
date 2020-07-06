@@ -639,7 +639,9 @@ A lot of small issues was rooted out this way. Using various amount of logging i
 
 But the final test has to be done with real hardware. Since earlier I have been using the Ericsson TWIB board hooked up to a STM32F103 Blue Pill. The same test setup was used this time connecting it back to back with the SDLCBridge.
 
+![Debugging with TWIB board](https://i.imgur.com/e9XisGPl.jpg)
 
+A few more problems were rooted out. Especially handling of idle flags which were a sequence 0111111001111110... rather than expected 011111101111110... Then handling of bit patterns that were not aligined on a byte boundry didn't work very well. Problems here were expected since there had been not been covered by previious tests.
 
 ### CRC
 To get the CRC right always become a problem. Is it LSB first? MSB first? Initial value? In this case in theory the algorithm should be quite well known. IBM SDLC CRC, initial value 0xffff.
