@@ -280,7 +280,9 @@ static inline void shiftInOne() {
 // will be filled by one to indicate idle line.
 
 void endHDLCProcessing() {
+#ifdef DEBUG4
   logTwo("ENTRY endHDLCProcessing bitCounter=", bitCounter); 
+#endif
   if (bitCounter == 0) {
     spi_irq_disable(SPI2, SPI_RXNE_INTERRUPT);
     txBuffer.writeBuffer(0x7E);  // Send the flag directly if the bitcounter is indicateing no residual bits.    
@@ -471,8 +473,8 @@ void processFramedSerialData(unsigned char ch) {
         txBuffer.initBuffer();
         break;
       case 0xef: // EOR 
-        processHDLCforSending((0xff & txCrc) ^ 0xff);       // LSB of CRC word 
-        processHDLCforSending(0xff & (txCrc >> 8) ^ 0xff);  // MSB of CRC word
+        processHDLCforSending(~(0xff & txCrc));       // LSB of CRC word 
+        processHDLCforSending(~(0xff & (txCrc >> 8)));  // MSB of CRC word
         endHDLCProcessing();                // Handle non modulo 8 bits and send flags.
         txMode = 1;
         break;
@@ -489,11 +491,15 @@ void processFrameForSendingToHercules(unsigned char ch) {
 }
 
 static inline void processRxZeroHDLCBit() { 
+#ifdef DEBUG4
   logTwo("processRxZeroHDLCBit rxOneCounter=", rxOneCounter);
   logTwo("processRxZeroHDLCBit rxBitCunter=", rxBitCounter);
+#endif
   if (rxHDLCState) { // We have received a flag - waiting for end flag
     if (rxOneCounter==6) { 
+#ifdef DEBUG4
       logOne("Flag - while in-sync");
+#endif
       if (nonEmptyFrame) { // Flag - still in sync.         
         rxMode = 1; 
         nonEmptyFrame = 0;
@@ -503,14 +509,18 @@ static inline void processRxZeroHDLCBit() {
       in  >>= 1; rxBitCounter++;
       if (rxBitCounter == 8) { 
         rxBitCounter = 0;  
+#ifdef DEBUG4
         logTwo("processRxZeroHDLCBit rxBitCounter=8 in=", in);       
+#endif
         rxOutBuffer.writeBuffer(in);
 	      nonEmptyFrame = 1;      
       }	      
     } // else we would do nothing since then it is an inserted 0.	    
   } else {  // We are waiting for leading flag
     if (rxOneCounter==6) { // Start flag
+#ifdef DEBUG4
       logOne("Flag - Going from out of sync to in sync");
+#endif
       rxHDLCState = 1;
     }	    	    
   }
@@ -518,8 +528,10 @@ static inline void processRxZeroHDLCBit() {
 }
 
 static inline void processRxOneHDLCBit() {
+#ifdef DEBUG4
   logTwo("processRxOneHDLCBit rxOneCounter=", rxOneCounter);
   logTwo("processRxOneHDLCBit rxBitCounter=", rxBitCounter);
+#endif
   if (rxHDLCState) { // We have received a flag - waiting for end flag    	    
     if (rxOneCounter==6) { // Abort
       rxHDLCState = 0;     // This is normal if the line goes to marking state directly after a flag.
@@ -532,7 +544,9 @@ static inline void processRxOneHDLCBit() {
       if (rxBitCounter == 8) { 
         rxBitCounter = 0; 
         nonEmptyFrame=1;
+#ifdef DEBUG4
         logTwo("processRxOneHDLCBit rxBitCounter=8 in=", in);
+#endif
         rxOutBuffer.writeBuffer(in); 
       } 
     }	      
@@ -544,51 +558,69 @@ static inline void processRxOneHDLCBit() {
 
 
 void processRxHDLC(unsigned char ch) {
+#ifdef DEBUG4
   logTwo("processRxHDLC: ch=", ch);
+#endif
   if (ch == 0xff && rxHDLCState == 0) return; // This is idle line don't spend time procssing it.
+#ifdef DEBUG4
   logOne("bit 0");
+#endif
   if (0b00000001 & ch) {
     processRxOneHDLCBit();
   } else {
     processRxZeroHDLCBit();	  
   }
+#ifdef DEBUG4
   logOne("bit 1");
+#endif
   if (0b00000010 & ch) {
     processRxOneHDLCBit();
   } else {
     processRxZeroHDLCBit();	  
   } 	
+#ifdef DEBUG4
   logOne("bit 2");
+#endif
   if (0b00000100 & ch) {
     processRxOneHDLCBit();
   } else {
     processRxZeroHDLCBit();	  
   } 	
+#ifdef DEBUG4
   logOne("bit 3");
+#endif
   if (0b00001000 & ch) {
     processRxOneHDLCBit();
   } else {
     processRxZeroHDLCBit();	  
   } 	
+#ifdef DEBUG4
   logOne("bit 4");
+#endif
   if (0b00010000 & ch) {
     processRxOneHDLCBit();
   } else {
     processRxZeroHDLCBit();	  
   } 	
+#ifdef DEBUG4
   logOne("bit 5");
+#endif
   if (0b00100000 & ch) {
     processRxOneHDLCBit();
   } else {
     processRxZeroHDLCBit();	  
   } 	
+#ifdef DEBUG4
   logOne("bit 6");
+#endif
   if (0b01000000 & ch) {
     processRxOneHDLCBit();
   } else {
     processRxZeroHDLCBit();	  
   } 	
+#ifdef DEBUG4
   logOne("bit 7");
+#endif
   if (0b10000000 & ch) {
     processRxOneHDLCBit();
   } else {
@@ -668,8 +700,10 @@ unsigned char ch;
       logOne("Buffer empty sending the CRCs and the EOR");
 #endif
       rxMode = 0;
+#ifdef DEBUG4
       logTwo("CRC first byte: ",(rxCrc>>8) & 0xff);
       logTwo("CRC second byte: ",rxCrc & 0xff);  
+#endif
       Serial1.write((rxCrc>>8) & 0xff);
       Serial1.write(rxCrc & 0xff);
       rxCrc=0xffff;
