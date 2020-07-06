@@ -471,8 +471,8 @@ void processFramedSerialData(unsigned char ch) {
         txBuffer.initBuffer();
         break;
       case 0xef: // EOR 
-        processHDLCforSending(0xff & txCrc);       // LSB of CRC word 
-        processHDLCforSending(0xff & (txCrc >> 8));  // MSB of CRC word
+        processHDLCforSending((0xff & txCrc) ^ 0xff);       // LSB of CRC word 
+        processHDLCforSending(0xff & (txCrc >> 8) ^ 0xff);  // MSB of CRC word
         endHDLCProcessing();                // Handle non modulo 8 bits and send flags.
         txMode = 1;
         break;
@@ -668,15 +668,12 @@ unsigned char ch;
       logOne("Buffer empty sending the CRCs and the EOR");
 #endif
       rxMode = 0;
-      rxCrc = calculateCrcChar(rxCrc, 0);
-      rxCrc = calculateCrcChar(rxCrc, 0);
       logTwo("CRC first byte: ",(rxCrc>>8) & 0xff);
       logTwo("CRC second byte: ",rxCrc & 0xff);  
       Serial1.write((rxCrc>>8) & 0xff);
       Serial1.write(rxCrc & 0xff);
       rxCrc=0xffff;
       rxBitCounter=0;
-      //rxOneCounter=0;
       Serial1.write(0xff);
       Serial1.write(0xef);
     }
