@@ -641,7 +641,7 @@ But the final test has to be done with real hardware. Since earlier I have been 
 
 ![Debugging with TWIB board](https://i.imgur.com/e9XisGPl.jpg)
 
-A few more problems were rooted out. Especially handling of idle flags which were a sequence 0111111001111110... rather than expected 011111101111110... Then handling of bit patterns that were not aligined on a byte boundry didn't work very well. Problems here were expected since there had been not been covered by previious tests.
+A few more problems were rooted out. Especially handling of idle flags which were a sequence 0111111001111110... rather than expected 011111101111110... Then handling of bit patterns that were not aligined on a byte boundry didn't work very well. Problems here were expected since there had been not been covered by previous tests.
 
 ### CRC
 To get the CRC right always become a problem. Is it LSB first? MSB first? Initial value? In this case in theory the algorithm should be quite well known. IBM SDLC CRC, initial value 0xffff.
@@ -673,9 +673,9 @@ $ ./reveng -c -m CRC-16/IBM-SDLC 6664e01b
 $ ./reveng -c -m CRC-16/IBM-SDLC cc190de1
 470f
 ```
-But the sum of the full buffer is not 0? Or 0xffff? Which I thought would be reasonable.
+But the sum of the full buffer is not 0? Or 0xffff? Which I thought would be reasonable. No. For IBM SDLC CRC the value remaining in the crc variable should be f0b8. Actually the same value stated by CRC reveng. But 470f is not f0b8? If we invert the bits we get b8f0. And then transpose the bytes. Voila f0b8! But why CRC reveng claims that value to be 470f? I have no idea.  
 
-So how to find a proper C-algorithm that does this in the same way?
+Using the standard CRC algorithm yields the same result. f0b8. So I think the CRC issue is settled.
 
 
 ## Links
