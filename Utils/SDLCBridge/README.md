@@ -677,6 +677,25 @@ But the sum of the full buffer is not 0? Or 0xffff? Which I thought would be rea
 
 Using the standard CRC algorithm yields the same result. f0b8. So I think the CRC issue is settled.
 
+### Informer 213
+
+Pinout of the DB25 connector on the back on the terminal.
+
+| DSUB Female DB25 | Function | Tx / Rx |
+|------------------|----------|---------|
+|     1            | GND      |         |
+|     2            |          |  Tx     |
+|     3            |          |  Rx     |
+|     4            |          |  Tx     |
+|     5            |          |  Rx     |
+|     6            |          |  Rx     |
+|     7            |  GND     |         |
+|     8            |          |  Rx     |
+|    15            |          |  Rx     |
+|    17            |          |  Rx     |
+|    20            |          |  Tx     |
+
+All others are Not Connected.
 
 ## Links
 
