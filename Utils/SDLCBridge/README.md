@@ -1,6 +1,6 @@
 # SDLC bridge
 
-This is an attemmpt to interface a Informer 213, a portable 3178 compatible terminal with integrated 3274 comatible cluster controller, to the Hercules mainframe emulator.
+This is an attempt to interface a Informer 213, a portable 3178 compatible terminal with integrated 3274 comatible cluster controller, to the Hercules mainframe emulator.
 This terminal needs a SDLC compatible interface. This project also discusses how to create the relevant configuration in the MVS / VTAM environment
 to achieve this and what changes is needed to the comm3705 module in Hercules.
 
