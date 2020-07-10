@@ -697,6 +697,17 @@ Pinout of the DB25 connector on the back on the terminal.
 
 All others are Not Connected.
 
+### Improvements
+
+Listed below is a set  of items to improve on in the software.
+
+* Add escaped command to set the baudrate. 0.1 BPS, 1 BPS, 30 BPS, 300 BPS, 600, BPS, 1200 BPS, 2400 BPS, 4800 BPS, 9600, BPS, 19200 BPS, 38400 BPS, 115200 BPS.
+* Add individual commands to set the state of the DSR, CTS and DCD signals sent from the DCE.
+* Add a possibility for the device to send a status signal when the state of DTE signals DTR and RTS is changed.
+* Add a command that requests a response for the actual status for the signals mentioned above.
+* The transmitter should be able to send continuous flags when not sending rather than going to marking state. Add two modes. Either go idle or send flags.
+* In send flags mode it should be possible to send a command that forces the interface to go to idle with line i marking state.
+
 ## Links
 
 ### SNA
