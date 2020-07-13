@@ -708,6 +708,13 @@ Listed below is a set  of items to improve on in the software.
 * The transmitter should be able to send continuous flags when not sending rather than going to marking state. Add two modes. Either go idle or send flags.
 * In send flags mode it should be possible to send a command that forces the interface to go to idle with line i marking state.
 
+Continous flag sending is implmented by a check that is done in the mainloop. If the level of bytes is under a certain level we call a sendFlag routine that shifts in a 0 and 6 ones. This is done until the level in the sending buffer is OK.
+
+### We have a connection
+The first attempt to send somethingto the Informer 213 was a success. Sending 40h 93h which a SNRM with pol bit sent yielded a 40h 73h in return which is a UA, or  Unnumbered Acknowledge. All with correct CRC bytes. Then also a 40h 11h, which a RR, or Receiver Ready with a poll bit set, gave a 40h 11h in return which means RR response. All good!
+
+Next step is to do some test integration into the comm3705.c code to connect to the serial port which then talks to my adapter. 
+
 ## Links
 
 ### SNA
