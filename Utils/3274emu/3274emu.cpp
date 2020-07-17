@@ -7,7 +7,9 @@
  */
 
 /*
-  Compile using c++ 3274emu.cpp ../BSCGateway/BSCGateway-STM32/MessageFSM.cpp ../BSCGateway/BSCGateway-STM32/crc-16.c   -DHERCULES -DDEBUG  -o 3274emu
+  Compile using c++ 3274emu.cpp ../BSCGateway/BSCBridge/MessageFSM.cpp ../BSCGateway/BSCBridge/crc-16.c   -DHERCULES -DDEBUG  -o 3274emu
+
+ Run: ./3274emu 127.0.01 37051 127.0.0.1 32701 3274emu2.log
 
  */
 
@@ -20,7 +22,7 @@
 #include <unistd.h>
 #include <netdb.h>
 #include <signal.h>
-#include "../BSCGateway/BSCGateway-STM32/MessageFSM.h"
+#include "../BSCGateway/BSCBridge/MessageFSM.h"
 
  
 #define BACKLOG  10      /* Passed to listen() */
@@ -455,7 +457,7 @@ void txData (unsigned char);
 void receivedMessage(unsigned char, unsigned char *);
 void enterHuntState();
 
-class MessageFSM messageFSM(txData, receivedMessage, enterHuntState);
+class MessageFSM messageFSM(txData, receivedMessage, enterHuntState, true);
 
 void txData (unsigned char data) {
   int ret = write( server , &data, 1); 
@@ -500,11 +502,11 @@ void receivedMessage (unsigned char msgType, unsigned char * msg) {
   unsigned char aid[0];
   fprintf(logfile, "msgType = %d\n", msgType);
   switch (msgType) {
-  case ENQ_MESSAGE:
-    fprintf(logfile, "POLL CU=%02X DV=%02X\n",msg[0],msg[2]);
+  case POLL_MESSAGE:
+    fprintf(logfile, "POLL CU=%02X DV=%02X\n",((MSG *) msg)->enqData.CU, ((MSG *) (msg))->enqData.DV);
     ack=1;
-    if (msg[0] == 0x40) {
-    switch (msg[2]) {
+    if (((MSG *) msg)->enqData.CU == 0x40) {
+    switch (((MSG *) msg)->enqData.DV) {
     case 0x40:
       if (firstThingToDoCnt) {
 	aid[0]=0x6D;
@@ -570,6 +572,9 @@ void receivedMessage (unsigned char msgType, unsigned char * msg) {
     break;
   case EOT_MESSAGE:
     fprintf(logfile, "Got EOT\n");
+    break;
+  case ENQ_MESSAGE:
+    fprintf(logfile, "Got ENQ\n");
     break;
   case NAK_MESSAGE:
     fprintf(logfile, "Got NAK\n");
