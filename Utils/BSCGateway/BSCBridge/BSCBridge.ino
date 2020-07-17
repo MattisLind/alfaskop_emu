@@ -48,7 +48,7 @@
 #endif
 
 #ifdef DEBUG4
-#define BAUD 30000
+#define BAUD 1000
 #endif
 
 
@@ -101,6 +101,7 @@ void setup() {
   SPI_2.setDataMode(SPI_MODE0); //Set the  SPI_2 data mode 0
   pinMode(RTS, INPUT);
   pinMode(RFS, OUTPUT);
+  digitalWrite(RFS, LOW);
   pinMode(DTR, INPUT);
 #ifdef DEBUG1
   logOne("BSC Bridge Starting up");
@@ -436,7 +437,7 @@ void loop() {
      logTwo("Reciving from Hercules : ", ch);
 #endif     
      herculesMessageFSM.rxData(ch);
-#ifdef DEBUG3     
+#ifdef DEBUG5     
      logOne("After rxData");
 #endif     
   }
