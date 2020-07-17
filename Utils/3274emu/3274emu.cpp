@@ -492,7 +492,7 @@ unsigned int writeTextToClient(unsigned char * msg, int length) {
 }
 
 unsigned char sendBuffer[BUF_SIZE];
-int bufferLength;
+int bufferLength=2;
 int dataToSend = 0;
 int firstThingToDoCnt=0;
 
@@ -516,7 +516,7 @@ void receivedMessage (unsigned char msgType, unsigned char * msg) {
 	if (dataToSend==1) {
 	  messageFSM.sendTextMessage(bufferLength, sendBuffer, false);
 	  dataToSend=0;
-	  bufferLength=0;
+	  bufferLength=2;
 	} else {
 	  messageFSM.sendEOT();
 	}
@@ -618,7 +618,6 @@ void receivedMessage (unsigned char msgType, unsigned char * msg) {
 void enterHuntState () {
 }
 
-   
 
 void process3270Data(unsigned char ch) {
   int i;
@@ -950,6 +949,9 @@ int main(int argc, char **argv)
   int reuseaddr = 1; /* True */
   const char *local_host, *local_port, *remote_host, *remote_port;
   /* Get the local and remote hosts and ports from the command line */
+  sendBuffer[0]=0x40;
+  sendBuffer[1]=0x40;
+ 
   if (argc < 5) {
     fprintf(stderr, "Usage: tcpproxy local_host local_port remote_host remote_port\n");
     return 1;
