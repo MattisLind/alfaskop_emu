@@ -491,6 +491,8 @@ unsigned int writeTextToClient(unsigned char * msg, int length) {
   return disconnected;
 }
 
+bool sendACK = false;
+
 unsigned char sendBuffer[BUF_SIZE];
 int bufferLength=2;
 int dataToSend = 0;
@@ -566,12 +568,16 @@ void receivedMessage (unsigned char msgType, unsigned char * msg) {
     }
     } else {
       // selection
-      messageFSM.sendACK0();
-      ack=1;
+      //messageFSM.sendACK0();
+      fprintf(logfile, "SELECTION - Setting SendACK=true\n");
+      sendACK=true;
+      ack=0;
     }
     break;
   case EOT_MESSAGE:
-    fprintf(logfile, "Got EOT\n");
+    fprintf(logfile, "Got EOT sendACK=%s\n", sendACK?"TRUE":"FALSE");
+    if (sendACK) messageFSM.sendEOT();
+    sendACK=false;
     break;
   case ENQ_MESSAGE:
     fprintf(logfile, "Got ENQ\n");
@@ -600,9 +606,11 @@ void receivedMessage (unsigned char msgType, unsigned char * msg) {
     fprintf(logfile, "Got TEXT\n");
     fprintf(logfile, "Got crcOK = %d\n", m->textData.crcOk);
     writeTextToClient(m->textData.msg, m->textData.length);
-    if ((ack&1)==1) messageFSM.sendACK1();
-    else messageFSM.sendACK0();
-    ack++;
+    sendACK = true;
+    fprintf(logfile, "TEXT - Setting SendACK=true\n");
+    //if ((ack&1)==1) messageFSM.sendACK1();
+    //else messageFSM.sendACK0();
+    //ack++;
     break;
   case TEST_MESSAGE:
     fprintf(logfile, "Got TEST\n");
@@ -926,6 +934,13 @@ void handle(int client, const char *remote_host, const char *remote_port)
     FD_ZERO(&set);
     FD_SET(client, &set);
     FD_SET(server, &set);
+    if (sendACK) {
+      fprintf (logfile, "SendACK=true. Now we send the ACK\n");
+      sendACK=false;
+      if ((ack&1)==1) messageFSM.sendACK1();
+      else messageFSM.sendACK0();
+      ack++;
+    }
     if (select(max_sock + 1, &set, NULL, NULL, NULL) == -1) {
       perror("select");
       break;
