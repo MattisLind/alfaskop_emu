@@ -147,7 +147,7 @@ void receivedMessage (unsigned char msgType, unsigned char * msg) {
   switch (msgType) {
   case POLL_MESSAGE:
     printLog("POLL CU=%02X DV=%02X\n",((MSG *) msg)->enqData.CU, ((MSG *) (msg))->enqData.DV);
-    ack=1;
+    ack=0;
     if (((MSG *) msg)->enqData.CU == 0x40) {
     switch (((MSG *) msg)->enqData.DV) {
       case 0x40:
@@ -164,12 +164,15 @@ void receivedMessage (unsigned char msgType, unsigned char * msg) {
         break;
       }
     } else {
-      messageFSM.sendACK0();
-      ack=1;
+      // selection
+      //messageFSM.sendACK0();
+      printLog("SELECTION - Setting SendACK=true\n");
+      sendACK=true;
+      ack=0;
     }
     break;
   case EOT_MESSAGE:
-    printLog("Got EOT\n");
+    printLog("Got ENQ\n");
     break;
   case ENQ_MESSAGE:
     printLog("Got ENQ\n");
@@ -205,7 +208,8 @@ void receivedMessage (unsigned char msgType, unsigned char * msg) {
     fprintf(logfile, "TEXT - Setting SendACK=true\n");
     //if ((ack&1)==1) messageFSM.sendACK1();
     //else messageFSM.sendACK0();
-    //ack++;
+
+    ack++;
     break;
   case TEST_MESSAGE:
     printLog("Got TEST\n");
@@ -534,7 +538,6 @@ void handle(int client, const char *remote_host, const char *remote_port)
       sendACK=false;
       if ((ack&1)==1) messageFSM.sendACK1();
       else messageFSM.sendACK0();
-      ack++;
     }
     if (select(max_sock + 1, &set, NULL, NULL, NULL) == -1) {
       perror("select");
