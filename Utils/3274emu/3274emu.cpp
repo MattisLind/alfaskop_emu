@@ -39,7 +39,7 @@ void printLog (const char * format, ...) {
   struct timeval t;
   gettimeofday(&t, NULL);
   va_list(args);
-  fprintf(logfile, "%lu.%u: ",t.tv_sec, t.tv_usec );
+  fprintf(logfile, "%lu.%06lu: ",t.tv_sec, t.tv_usec );
   va_start(args, format);
   vfprintf(logfile, format, args);
   fflush (logfile);
@@ -173,6 +173,9 @@ void receivedMessage (unsigned char msgType, unsigned char * msg) {
     break;
   case ENQ_MESSAGE:
     printLog("Got ENQ\n");
+    if (((ack-1)&1)==1) messageFSM.sendACK1();
+    else messageFSM.sendACK0();
+    messageFSM.sendACK0();
     break;
   case NAK_MESSAGE:
     printLog("Got NAK\n");
