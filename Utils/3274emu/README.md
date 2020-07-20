@@ -41,4 +41,40 @@ Then I was able to log in, but as soon as I type commands on other lines the the
 ![REVIEW start screen](https://github.com/MattisLind/alfaskop_emu/raw/master/pics/REVIEW-start.png)
 ![REVIEW editing screen](https://github.com/MattisLind/alfaskop_emu/raw/master/pics/REVIEW-editing-COBOL.png)
 
+## Hercules bugfixing
+
+As I had been off working on other things I got back to this and found it suddenly failed to work. Strange errors that made communication to break down completely. I re-read various documents and discussed the issu on the H390-hercules mailing list. It looked like the channel program tried to write more than one text block to the line without waiting for an ACK inbetween. Protocol violation? Maybe, but it is hard to be sure so long time later on. Where there specifcation changes that has been introduced in the documentation?
+
+The problem occured when a SELECT operation was initiated by the host, the receiving end responded with an ACK0 to confirm the SELECT. Then the channel program did two separate write operations. The first one did not include a full message, but the sencod write concluded the first text message, but also included a second text message and an EOT at the end. All these data was then transfered to the line. The receiving end would then issue an ACK1 for the first message and then an ACK0 for the second message. Now the channel program sent another text message which looked identical to the last text message in the first transmission, including the trailing EOT. Some sort of re-transmission? Since the receiving end had seen three text message it sent an ACK1 back. Now the channel program became most unhappy and replied with a ENQ message indicating a wrong ACK has been sent! It was expecting an ACK0 instead of an ACK1?
+
+Re-reading the [manual for the 2703 TCU](http://bitsavers.trailing-edge.com/pdf/ibm/2703/GA27-2703-1_2703_Transmission_Ctl_Component_Descr_May67.pdf) again revealed that on page 58 there were a section on how Write operations takes place from the channel program:
+
+```
+All data or control characters
+that are transmitted to the communications line must
+be originated in main storage (except DLE and SYN
+when used as time-fill). The Write command will
+end as a result of any of the following conditions:
+a. An ETX or ETB control character is detected
+in the data stream (except in transparent
+mode).
+b. The 2703 detects common-carrier-equipment
+malfunction.
+c. Count field in Write CCW is decremented to
+zero.
+At the end of the Write command, a single pad
+character is automatically sent after the last
+character of block-check character (bcc) to ensure
+that the data set will have time to transmit the last
+character before data-set turnaround. 
+```
+
+It was quite clear the commadpt.c code inside Hercules did someting wrong since it was not just forwarding the first text message but also the second text message as well as the trailing EOT. It should not do that! It should have stopped at the ETB of the first text block, then waiting for the proper ACK1 to be received.
+
+That also meant that what was looking like a re-transmission was just the actual transmission of text block 2. The one prior was only sent by mistake.
+
+A very simple patch was introduced in the write logic of the commadpt.c to force to stop write as soon as it saw an ETX or ETB when in non transparent mode. The code was tested an indeed solved the problem!
+
+An PR was created towards the Hercules repo: [PR](https://github.com/rbowler/spinhawk/pull/93)
+
 
