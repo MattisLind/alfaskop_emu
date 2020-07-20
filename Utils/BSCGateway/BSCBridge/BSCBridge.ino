@@ -16,6 +16,9 @@
 #define RFS PB1  // Output
 #define DTR PB10 // Input 
 
+#define HostSerial Serial
+#define DebugSerial Serial1
+
 #define BAUD 104
 
 #if DEBUG_LEVEL > 3
@@ -78,9 +81,9 @@ const int pwmOutPin = PA8; // pin10
 class RingBuffer rxBuffer;
 class RingBuffer txBuffer;
 
-#define logOne(s) printMillis(); Serial.print(s); Serial.println(); 
-#define logTwo(s,c)  printMillis();Serial.print(s); printTwoDigitHex(c);  Serial.println();
-#define logThree(s1, d1, s2, d2, s3) printMillis();Serial.print(s1);Serial.print(d1, HEX);Serial.print(s2);Serial.print(d2, HEX);Serial.println(s3);
+#define logOne(s) printMillis(); DebugSerial.print(s); DebugSerial.println(); 
+#define logTwo(s,c)  printMillis();DebugSerial.print(s); printTwoDigitHex(c);  DebugSerial.println();
+#define logThree(s1, d1, s2, d2, s3) printMillis();DebugSerial.print(s1);DebugSerial.print(d1, HEX);DebugSerial.print(s2);DebugSerial.print(d2, HEX);DebugSerial.println(s3);
 
 
 void setup() {
@@ -94,8 +97,8 @@ void setup() {
   pwmtimer.refresh();
   pwmtimer.resume();
   pwmWrite(pwmOutPin, maxduty/2); //50% duty cycle
-  Serial1.begin (2400);
-  Serial.begin (9600);
+  HostSerial.begin (230400);
+  DebugSerial.begin (230400);
   SPI_2.beginSlave(); //Initialize the SPI_2 port.
   SPI_2.setBitOrder(MSBFIRST); // Set the SPI_2 bit order
   SPI_2.setDataMode(SPI_MODE0); //Set the  SPI_2 data mode 0
@@ -116,25 +119,25 @@ void setup() {
 #ifdef DEBUG1
 void printMillis() {
   unsigned long time = millis();
-  if (time < 10L) Serial.print('0');
-  if (time < 100L) Serial.print('0');
-  if (time < 1000L) Serial.print('0');
-  if (time < 10000L) Serial.print('0');
-  if (time < 100000L) Serial.print('0');
-  if (time < 1000000L) Serial.print('0');
-  if (time < 10000000L) Serial.print('0');
-  if (time < 100000000L) Serial.print('0');
-  if (time < 1000000000L) Serial.print('0');
-  if (time < 10000000000L) Serial.print('0');
-  Serial.print(time);
-  Serial.print(' ');
+  if (time < 10L) DebugSerial.print('0');
+  if (time < 100L) DebugSerial.print('0');
+  if (time < 1000L) DebugSerial.print('0');
+  if (time < 10000L) DebugSerial.print('0');
+  if (time < 100000L) DebugSerial.print('0');
+  if (time < 1000000L) DebugSerial.print('0');
+  if (time < 10000000L) DebugSerial.print('0');
+  if (time < 100000000L) DebugSerial.print('0');
+  if (time < 1000000000L) DebugSerial.print('0');
+  if (time < 10000000000L) DebugSerial.print('0');
+  DebugSerial.print(time);
+  DebugSerial.print(' ');
 }
 
 void printTwoDigitHex (int data) {
   if (data < 16) {
-    Serial.print('0');
+    DebugSerial.print('0');
   } 
-  Serial.print(data, HEX);
+  DebugSerial.print(data, HEX);
 }
 #endif 
 #ifdef DEBUG2
@@ -142,41 +145,41 @@ void printBufferInEBCDIC (const unsigned char  * buf, int length) {
   int i, j;
   for (i=0;i<length;i+=16) {
     printMillis();
-    Serial.print(' ');
+    DebugSerial.print(' ');
     for (j=i; j < (i+16); j++) {
       if (j>=length) {
-        Serial.print("   ");
+        DebugSerial.print("   ");
       } else {
         printTwoDigitHex (buf[j]);
       }
     }
-    Serial.print("  ");
+    DebugSerial.print("  ");
     for (j=i; j < (i+16); j++) {
       if (j>=length) {
-        Serial.print(" ");
+        DebugSerial.print(" ");
       } else {
         if (isprint(buf[j])) {
-          Serial.print(buf[j]);
-          Serial.print(' ');  
+          DebugSerial.print(buf[j]);
+          DebugSerial.print(' ');  
         } else {
-          Serial.print(". ");
+          DebugSerial.print(". ");
         }
       }
     }
-    Serial.print("  ");
+    DebugSerial.print("  ");
     for (j=i; j < (i+16); j++) {
       if (j>=length) {
-        Serial.print(' ');
+        DebugSerial.print(' ');
       } else {
         if (isprint(EBCDICtoASCII(buf[j]))) {
-          Serial.print(EBCDICtoASCII(buf[j]));
-          Serial.print(' ');
+          DebugSerial.print(EBCDICtoASCII(buf[j]));
+          DebugSerial.print(' ');
         } else {
-          Serial.print(". ");
+          DebugSerial.print(". ");
         }
       }
     }
-    Serial.println();
+    DebugSerial.println();
   }
 }
 #endif
@@ -388,7 +391,7 @@ void txToHercules (unsigned char ch) {
 #ifdef DEBUG2  
   logTwo("Sending to Hercules : ", ch);
 #endif  
-  Serial1.write(ch); 
+  HostSerial.write(ch); 
 }
 
 class SyncFSM syncFSM(receiveCallback);
@@ -431,8 +434,8 @@ void loop() {
 #endif      
     syncFSM.receivedData(ch);
   }
-  if (Serial1.available()>0) {
-     ch = Serial1.read();
+  if (HostSerial.available()>0) {
+     ch = HostSerial.read();
 #ifdef DEBUG3     
      logTwo("Reciving from Hercules : ", ch);
 #endif     
