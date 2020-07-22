@@ -1,4 +1,5 @@
 (sym_lib_table
   (lib (name MyLibrary)(type Legacy)(uri ${KIPRJMOD}/MyLibrary.lib)(options "")(descr ""))
   (lib (name MAX208CWG)(type Legacy)(uri ${KIPRJMOD}/MAX208CWG.lib)(options "")(descr ""))
+  (lib (name DIPSWITCH6)(type Legacy)(uri ${KIPRJMOD}/DIPSWITCH6.lib)(options "")(descr ""))
 )
