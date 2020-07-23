@@ -684,16 +684,16 @@ Pinout of the DB25 connector on the back on the terminal.
 | DSUB Female DB25 | Function | Tx / Rx |
 |------------------|----------|---------|
 |     1            | GND      |         |
-|     2            |          |  Tx     |
-|     3            |          |  Rx     |
-|     4            |          |  Tx     |
-|     5            |          |  Rx     |
-|     6            |          |  Rx     |
+|     2            |  TD      |  Tx     |
+|     3            |  RD      |  Rx     |
+|     4            |  RTS     |  Tx     |
+|     5            |  CTS     |  Rx     |
+|     6            |  DSR     |  Rx     |
 |     7            |  GND     |         |
-|     8            |          |  Rx     |
-|    15            |          |  Rx     |
-|    17            |          |  Rx     |
-|    20            |          |  Tx     |
+|     8            |  DCD     |  Rx     |
+|    15            |  TSET    |  Rx     |
+|    17            |  RSET    |  Rx     |
+|    20            |  DTR     |  Tx     |
 
 All others are Not Connected.
 
