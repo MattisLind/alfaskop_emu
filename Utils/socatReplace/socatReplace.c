@@ -1,8 +1,17 @@
+/*
+ * cc socatReplace.c -o socatReplace
+ * 
+ * sudo ./socatReplace -d /dev/ttyUSB0 -p 32701 -h 127.0.0.1 -b 230400 -l socatReplace.log
+ *
+ */
+
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <getopt.h>
 #include <netdb.h>
-#include <error.h>
+#include <errno.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -14,6 +23,7 @@
 #include <sys/uio.h>
 #include <unistd.h>
 
+FILE * logfile;
 
 extern int h_errno;
 
@@ -61,8 +71,8 @@ int openSerial (int fd, int baudrate) {
 
   ret = fcntl(fd, F_SETFL, 0);
   if (ret == -1) {
-    perror("Error:");
-    abort();
+    fprintf(logfile, "fcntl() error: %s.\n", strerror(errno));
+    exit(1);
   }
 
 
@@ -97,9 +107,9 @@ int main (int argc, char **argv) {
   struct sockaddr_in serveraddr;
   int serialFd=-1;
   int serialBaudrate=0;
-  FILE * logfile = stderr;
   int hostSocket;
   char buf [4096];
+  logfile = stderr;
   while (1) {
     static struct option long_options[] = {
       {"host",    required_argument, 0, 'h'},
@@ -123,9 +133,9 @@ int main (int argc, char **argv) {
       /* If this option set a flag, do nothing else now. */
       if (long_options[option_index].flag != 0)
 	break;
-      fprintf (stderr, "option %s", long_options[option_index].name);
+      fprintf (logfile, "option %s", long_options[option_index].name);
       if (optarg)
-	fprintf (stderr, " with arg %s", optarg);
+	fprintf (logfile, " with arg %s", optarg);
       printf ("\n");
       break;
       
@@ -136,7 +146,7 @@ int main (int argc, char **argv) {
     case 'p':
       remotePort = atoi(optarg);
       if (remotePort == 0) {
-	fprintf(stderr, "Invalid port: %s.\n", optarg);
+	fprintf(logfile, "Invalid port: %s.\n", optarg);
 	exit(1);
       }
       break;
@@ -144,7 +154,7 @@ int main (int argc, char **argv) {
     case 'd':
       serialFd = open (optarg,O_RDWR | O_NOCTTY | O_NDELAY);
       if (serialFd == -1) {
-	perror("Failed to open serial port.");
+	fprintf(logfile, "Failed to open serial port: %s.\n", strerror(errno));
 	exit(1);
       }
       break;
@@ -152,7 +162,7 @@ int main (int argc, char **argv) {
     case 'b':
       serialBaudrate = atoi(optarg);
       if (serialBaudrate == 0) {
-	fprintf(stderr, "Baudrate invalid: %s. \n", optarg);
+	fprintf(logfile, "Baudrate invalid: %s. \n", optarg);
 	exit(1);
       }
       break;
@@ -160,7 +170,7 @@ int main (int argc, char **argv) {
     case 'l':
       logfile = fopen (optarg, "w+");
       if (logfile == NULL) {
-	fprintf(stderr, "Invalid logfile: %s.\n",optarg);
+	fprintf(logfile, "Invalid logfile: %s.\n",optarg);
 	exit(1);
       }
       break;
@@ -173,26 +183,26 @@ int main (int argc, char **argv) {
     }
   }
   if (serialBaudrate == 0) {
-    fprintf(stderr, "No baudrate specified. Use -b <rate> to specify the baudrate for the serial port.\n");
+    fprintf(logfile, "No baudrate specified. Use -b <rate> to specify the baudrate for the serial port.\n");
     exit(1);
   }
   if (remotePort == 0) {
-    fprintf(stderr, "No host port specified. Use -p <port> to specify the port to connect to.\n");
+    fprintf(logfile, "No host port specified. Use -p <port> to specify the port to connect to.\n");
     exit(1);
   }
   if (serialFd==-1) {
-    fprintf(stderr, "No serial device specified. Use -d <device> to specify a serial port.\n");
+    fprintf(logfile, "No serial device specified. Use -d <device> to specify a serial port.\n");
     exit(1);
   }
   if (remoteHost == NULL) {
-    fprintf(stderr, "No remote host specified. Use -h <hostname>  to specify a host.\n");
+    fprintf(logfile, "No remote host specified. Use -h <hostname>  to specify a host.\n");
     exit(1);
   }
 
   openSerial(serialFd, serialBaudrate);
   hostSocket = socket(AF_INET, SOCK_STREAM, 0);
   if (hostSocket == -1) {
-    perror("socket");
+    fprintf(logfile, "socket() error: %s.\n", strerror(errno));
     return -1;
   }
   /* build the server's Internet address */
@@ -203,7 +213,7 @@ int main (int argc, char **argv) {
   serveraddr.sin_port = htons(remotePort);
 
   if (connect(hostSocket,(const struct sockaddr *) &serveraddr, sizeof(serveraddr)) < 0) 
-      perror("ERROR connecting");
+    fprintf(logfile, "ERROR connecting: %s.\n", strerror(errno));
 
 
 
@@ -224,51 +234,54 @@ int main (int argc, char **argv) {
     
     switch (activity) {
     case -1:
-      perror("select()");
-      abort();
+      fprintf(logfile, "select() error: %s.\n", strerror(errno));
+      exit(1);
       
     case 0:
       // you should never get here
-      fprintf(logfile, "select() returns 0.\n");
-      abort();
+      fprintf(logfile, "Select() returns 0.\n");
+      exit(1);
       
     default:
       /* All fd_set's should be checked. */
       if (FD_ISSET(serialFd, &read_fds)) {
 	ret = read (serialFd, buf, 4096);
+	fprintf (logfile, "Read %d bytes from serial port.\n", ret);
 	if ( ret > 0 ) {
 	  ret = write (hostSocket, buf, ret);
+	  fprintf (logfile, "Wrote %d bytes from host.\n", ret);
 	  if (ret < 0) {
-	    fprintf(logfile, "write to hostSocket failed.\n");
-	    abort();
+	    fprintf(logfile, "Write to hostSocket failed.\n");
+	    exit(1);
 	  }
 	} else {
-	  fprintf(logfile, "read from serialFd failed.\n");
-	  abort();
+	  fprintf(logfile, "Read from serialFd failed.\n");
+	  exit(1);
 	}
       }
       
       if (FD_ISSET(serialFd, &except_fds)) {
 	fprintf(logfile, "except_fds for serialFd.\n");
-	abort();
+	exit(1);
       }
       
       if (FD_ISSET(hostSocket, &read_fds)) {
 	ret = read(hostSocket, buf, 4096);
+	fprintf(logfile, "Read %d bytes from host.\n", ret);
 	if (ret > 0) {
 	  ret = write(serialFd, buf, ret);
+	  fprintf(logfile, "Wrote %d bytes to serial port.\n", ret);
 	} else {
 	  fprintf (logfile, "Read from hostsocket failed.\n");
-	  abort();
+	  exit(1);
 	}
       }
       
       if (FD_ISSET(hostSocket, &except_fds)) {
 	fprintf(logfile, "except_fds for server.\n");
-	abort();
+	exit(1);
       }
     }
-    
-  exit (0);
   }
+  exit (0);
 }
