@@ -104,14 +104,17 @@ int main (int argc, char **argv) {
   int c;
   int remotePort=0;
   struct hostent * remoteHost = NULL;
-  struct sockaddr_in serveraddr;
+  struct sockaddr_in serveraddr, client;
   int serialFd=-1;
   int serialBaudrate=0;
-  int hostSocket;
+  int hostSocket, connfd;
   char buf [4096];
+  int server = 0;
+  int len;
   logfile = stderr;
   while (1) {
     static struct option long_options[] = {
+      {"server",  no_argument,       0, 's'},
       {"host",    required_argument, 0, 'h'},
       {"port",    required_argument, 0, 'p'},
       {"device",  required_argument, 0, 'd'},
@@ -122,7 +125,7 @@ int main (int argc, char **argv) {
     /* getopt_long stores the option index here. */
     int option_index = 0;
     
-    c = getopt_long (argc, argv, "h:p:d:b:l:", long_options, &option_index);
+    c = getopt_long (argc, argv, "sh:p:d:b:l:", long_options, &option_index);
     
     /* Detect the end of the options. */
     if (c == -1)
@@ -174,7 +177,9 @@ int main (int argc, char **argv) {
 	exit(1);
       }
       break;
-      
+    case 's':
+      server = 1;
+      break;
     case '?':
       break;
       
@@ -194,7 +199,7 @@ int main (int argc, char **argv) {
     fprintf(logfile, "No serial device specified. Use -d <device> to specify a serial port.\n");
     exit(1);
   }
-  if (remoteHost == NULL) {
+  if (remoteHost == NULL && server == 0) {
     fprintf(logfile, "No remote host specified. Use -h <hostname>  to specify a host.\n");
     exit(1);
   }
@@ -208,13 +213,49 @@ int main (int argc, char **argv) {
   /* build the server's Internet address */
   bzero((char *) &serveraddr, sizeof(serveraddr));
   serveraddr.sin_family = AF_INET;
-  bcopy((char *)remoteHost->h_addr, 
-	(char *)&serveraddr.sin_addr.s_addr, remoteHost->h_length);
+  if (server) {
+    serveraddr.sin_addr.s_addr = htonl(INADDR_ANY);
+  } else {
+    bcopy((char *)remoteHost->h_addr, (char *)&serveraddr.sin_addr.s_addr, remoteHost->h_length);
+  }
   serveraddr.sin_port = htons(remotePort);
 
-  if (connect(hostSocket,(const struct sockaddr *) &serveraddr, sizeof(serveraddr)) < 0) 
-    fprintf(logfile, "ERROR connecting: %s.\n", strerror(errno));
+  if (server) {
+    if ((bind(hostSocket, (const struct sockaddr *) &serveraddr, sizeof(serveraddr))) != 0) { 
+      fprintf(logfile, "socket bind failed: %s\n", strerror(errno)); 
+      exit(1); 
+    } 
+    else {
+      fprintf(logfile, "Socket successfully binded..\n");
+    }
+  
+    // Now server is ready to listen and verification 
+    if ((listen(hostSocket, 5)) != 0) { 
+      fprintf(logfile, "Listen failed: %s.\n", strerror(errno)); 
+      exit(1); 
+    } 
+    else {
+      fprintf(logfile, "Server listening..\n");
+    }
 
+    len = sizeof(client); 
+  
+    // Accept the data packet from client and verification 
+    connfd = accept(hostSocket, (struct sockaddr *) &client, &len); 
+    if (connfd < 0) { 
+      printf("server acccept failed: %s.\n", strerror(errno)); 
+      exit(1); 
+    } 
+    else {
+      fprintf(logfile, "server acccepted the client...\n");
+      close (hostSocket);
+      hostSocket = connfd;
+    }
+  } else {
+    if (connect(hostSocket,(const struct sockaddr *) &serveraddr, sizeof(serveraddr)) < 0) {
+      fprintf(logfile, "ERROR connecting: %s.\n", strerror(errno));
+    }
+  }
 
 
   while (1) {
