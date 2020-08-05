@@ -93,7 +93,7 @@ int openSerial (int fd, int baudrate) {
 int main (int argc, char **argv) {
   int c;
   int remotePort=0;
-  struct hostent * remoteHost;
+  struct hostent * remoteHost = NULL;
   struct sockaddr_in serveraddr;
   int serialFd=-1;
   int serialBaudrate=0;
@@ -137,7 +137,7 @@ int main (int argc, char **argv) {
       remotePort = atoi(optarg);
       if (remotePort == 0) {
 	fprintf(stderr, "Invalid port: %s.\n", optarg);
-	abort();
+	exit(1);
       }
       break;
       
@@ -145,7 +145,7 @@ int main (int argc, char **argv) {
       serialFd = open (optarg,O_RDWR | O_NOCTTY | O_NDELAY);
       if (serialFd == -1) {
 	perror("Failed to open serial port.");
-	abort();
+	exit(1);
       }
       break;
       
@@ -153,7 +153,7 @@ int main (int argc, char **argv) {
       serialBaudrate = atoi(optarg);
       if (serialBaudrate == 0) {
 	fprintf(stderr, "Baudrate invalid: %s. \n", optarg);
-	abort();
+	exit(1);
       }
       break;
       
@@ -161,7 +161,7 @@ int main (int argc, char **argv) {
       logfile = fopen (optarg, "w+");
       if (logfile == NULL) {
 	fprintf(stderr, "Invalid logfile: %s.\n",optarg);
-	abort();
+	exit(1);
       }
       break;
       
@@ -169,20 +169,24 @@ int main (int argc, char **argv) {
       break;
       
     default:
-      abort ();
+      exit(1);
     }
   }
   if (serialBaudrate == 0) {
-    fprintf(stderr, "No baudrate specified.\n");
-    abort();
+    fprintf(stderr, "No baudrate specified. Use -b <rate> to specify the baudrate for the serial port.\n");
+    exit(1);
   }
   if (remotePort == 0) {
-    fprintf(stderr, "No host port specified.\n");
-    abort();
+    fprintf(stderr, "No host port specified. Use -p <port> to specify the port to connect to.\n");
+    exit(1);
   }
   if (serialFd==-1) {
-    fprintf(stderr, "No serial device specified.\n");
-    abort();
+    fprintf(stderr, "No serial device specified. Use -d <device> to specify a serial port.\n");
+    exit(1);
+  }
+  if (remoteHost == NULL) {
+    fprintf(stderr, "No remote host specified. Use -h <hostname>  to specify a host.\n");
+    exit(1);
   }
 
   openSerial(serialFd, serialBaudrate);
