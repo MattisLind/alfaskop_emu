@@ -2,13 +2,20 @@
 #include <stdlib.h>
 #include <getopt.h>
 #include <netdb.h>
+#include <error.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <sys/param.h>
 
- #include <sys/types.h>
- #include <sys/stat.h>
- #include <fcntl.h>
+#include <termios.h>
+#include <fcntl.h>
+#include <string.h>
+#include <sys/uio.h>
+#include <unistd.h>
+
 
 extern int h_errno;
-FILE * logfile = stderr;
 
 speed_t translateSpeed (int speed) {
   switch (speed) {
@@ -90,8 +97,9 @@ int main (int argc, char **argv) {
   struct sockaddr_in serveraddr;
   int serialFd=-1;
   int serialBaudrate=0;
-  FILE * logfile;
+  FILE * logfile = stderr;
   int hostSocket;
+  char buf [4096];
   while (1) {
     static struct option long_options[] = {
       {"host",    required_argument, 0, 'h'},
@@ -115,9 +123,9 @@ int main (int argc, char **argv) {
       /* If this option set a flag, do nothing else now. */
       if (long_options[option_index].flag != 0)
 	break;
-      printf ("option %s", long_options[option_index].name);
+      fprintf (stderr, "option %s", long_options[option_index].name);
       if (optarg)
-	printf (" with arg %s", optarg);
+	fprintf (stderr, " with arg %s", optarg);
       printf ("\n");
       break;
       
@@ -168,7 +176,7 @@ int main (int argc, char **argv) {
     fprintf(stderr, "No baudrate specified.\n");
     abort();
   }
-  if (hostPort == 0) {
+  if (remotePort == 0) {
     fprintf(stderr, "No host port specified.\n");
     abort();
   }
@@ -177,9 +185,9 @@ int main (int argc, char **argv) {
     abort();
   }
 
-  openSerial(serialFd);
+  openSerial(serialFd, serialBaudrate);
   hostSocket = socket(AF_INET, SOCK_STREAM, 0);
-  if (conn_fd == -1) {
+  if (hostSocket == -1) {
     perror("socket");
     return -1;
   }
@@ -190,53 +198,73 @@ int main (int argc, char **argv) {
 	(char *)&serveraddr.sin_addr.s_addr, remoteHost->h_length);
   serveraddr.sin_port = htons(remotePort);
 
-  if (connect(sockfd, &serveraddr, sizeof(serveraddr)) < 0) 
-      error("ERROR connecting");
+  if (connect(hostSocket,(const struct sockaddr *) &serveraddr, sizeof(serveraddr)) < 0) 
+      perror("ERROR connecting");
+
 
 
   while (1) {
 
-    build_fd_sets(&server, &read_fds, &write_fds, &except_fds);
-        
-    int activity = select(maxfd + 1, &read_fds, &write_fds, &except_fds, NULL);
+    int nfds = MAX(serialFd, hostSocket) + 1;
+    fd_set read_fds, except_fds;
+    int activity;
+    int ret;
+    FD_ZERO(&read_fds);
+    FD_ZERO(&except_fds);
+    FD_SET(serialFd, &read_fds);
+    FD_SET(hostSocket, &read_fds);
+    FD_SET(serialFd, &except_fds);
+    FD_SET(hostSocket, &except_fds);
+    
+    activity = select(nfds, &read_fds, NULL, &except_fds, NULL);
     
     switch (activity) {
     case -1:
       perror("select()");
-      shutdown_properly(EXIT_FAILURE);
+      abort();
       
     case 0:
       // you should never get here
-      printf("select() returns 0.\n");
-      shutdown_properly(EXIT_FAILURE);
+      fprintf(logfile, "select() returns 0.\n");
+      abort();
       
     default:
       /* All fd_set's should be checked. */
-      if (FD_ISSET(STDIN_FILENO, &read_fds)) {
-	if (handle_read_from_stdin(&server, client_name) != 0)
-	  shutdown_properly(EXIT_FAILURE);
+      if (FD_ISSET(serialFd, &read_fds)) {
+	ret = read (serialFd, buf, 4096);
+	if ( ret > 0 ) {
+	  ret = write (hostSocket, buf, ret);
+	  if (ret < 0) {
+	    fprintf(logfile, "write to hostSocket failed.\n");
+	    abort();
+	  }
+	} else {
+	  fprintf(logfile, "read from serialFd failed.\n");
+	  abort();
+	}
       }
       
-      if (FD_ISSET(STDIN_FILENO, &except_fds)) {
-	printf("except_fds for stdin.\n");
-	shutdown_properly(EXIT_FAILURE);
+      if (FD_ISSET(serialFd, &except_fds)) {
+	fprintf(logfile, "except_fds for serialFd.\n");
+	abort();
       }
       
-      if (FD_ISSET(server.socket, &read_fds)) {
-	if (receive_from_peer(&server, &handle_received_message) != 0)
-	  shutdown_properly(EXIT_FAILURE);
+      if (FD_ISSET(hostSocket, &read_fds)) {
+	ret = read(hostSocket, buf, 4096);
+	if (ret > 0) {
+	  ret = write(serialFd, buf, ret);
+	} else {
+	  fprintf (logfile, "Read from hostsocket failed.\n");
+	  abort();
+	}
       }
       
-      if (FD_ISSET(server.socket, &write_fds)) {
-	if (send_to_peer(&server) != 0)
-	  shutdown_properly(EXIT_FAILURE);
-      }
-      
-      if (FD_ISSET(server.socket, &except_fds)) {
-	printf("except_fds for server.\n");
-	shutdown_properly(EXIT_FAILURE);
+      if (FD_ISSET(hostSocket, &except_fds)) {
+	fprintf(logfile, "except_fds for server.\n");
+	abort();
       }
     }
     
   exit (0);
+  }
 }
