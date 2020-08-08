@@ -1,4 +1,4 @@
-#define SIZE 4096
+#define SIZE 1024
 
 class RingBuffer {
   volatile int inPtr, outPtr, bufferFull, bufferEmpty;

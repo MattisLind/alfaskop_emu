@@ -11,15 +11,15 @@
 #include "RingBuffer.h"
 #include "SyncFSM.h"
 #include "MessageFSM.h"
-#define DEBUG_LEVEL 4 
+#define DEBUG_LEVEL 0 
 #define RTS PB11 // Input
 #define RFS PB1  // Output
 #define DTR PB10 // Input 
 
-#define HostSerial Serial
-#define DebugSerial Serial1
+#define HostSerial Serial1
+#define DebugSerial Serial
 
-#define BAUD 104
+#define BAUD 416
 
 #if DEBUG_LEVEL > 3
 #define DEBUG4
@@ -97,8 +97,8 @@ void setup() {
   pwmtimer.refresh();
   pwmtimer.resume();
   pwmWrite(pwmOutPin, maxduty/2); //50% duty cycle
-  HostSerial.begin (230400);
-  DebugSerial.begin (230400);
+  HostSerial.begin (2400);
+  DebugSerial.begin (2400);
   SPI_2.beginSlave(); //Initialize the SPI_2 port.
   SPI_2.setBitOrder(MSBFIRST); // Set the SPI_2 bit order
   SPI_2.setDataMode(SPI_MODE0); //Set the  SPI_2 data mode 0
@@ -418,7 +418,7 @@ extern "C" void __irq_spi2 (void) {
   }
 
   if (spi_is_rx_nonempty(SPI2)) {
-    syncFSM.receivedData(spi_rx_reg(SPI2));
+    rxBuffer.writeBuffer(spi_rx_reg(SPI2));
   }
 }
 
