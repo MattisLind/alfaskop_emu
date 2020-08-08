@@ -1,7 +1,8 @@
 /*
  * cc socatReplace.c -o socatReplace
  * 
- * sudo ./socatReplace -d /dev/ttyUSB0 -p 32701 -h 127.0.0.1 -b 230400 -l socatReplace.log
+ * sudo ./socatReplace -d /dev/ttyUSB0 -p 32701 -h 127.0.0.1 -b 230400 -l socatReplace_client.log
+ * sudo ./socatReplace -d /dev/ttyUSB1 -p 32702 -b 230400 -s -l socatReplace_server.log
  *
  */
 
@@ -270,9 +271,9 @@ int main (int argc, char **argv) {
     FD_SET(hostSocket, &read_fds);
     FD_SET(serialFd, &except_fds);
     FD_SET(hostSocket, &except_fds);
-    
+    fprintf (logfile, "Before select.\n");    
     activity = select(nfds, &read_fds, NULL, &except_fds, NULL);
-    
+    fprintf (logfile, "Select returned %d.\n", activity);
     switch (activity) {
     case -1:
       fprintf(logfile, "select() error: %s.\n", strerror(errno));
@@ -286,11 +287,12 @@ int main (int argc, char **argv) {
     default:
       /* All fd_set's should be checked. */
       if (FD_ISSET(serialFd, &read_fds)) {
+	fprintf (logfile, "serialFd is active for read.\n");
 	ret = read (serialFd, buf, 4096);
 	fprintf (logfile, "Read %d bytes from serial port.\n", ret);
 	if ( ret > 0 ) {
 	  ret = write (hostSocket, buf, ret);
-	  fprintf (logfile, "Wrote %d bytes from host.\n", ret);
+	  fprintf (logfile, "Wrote %d bytes to host.\n", ret);
 	  if (ret < 0) {
 	    fprintf(logfile, "Write to hostSocket failed.\n");
 	    exit(1);
@@ -307,6 +309,7 @@ int main (int argc, char **argv) {
       }
       
       if (FD_ISSET(hostSocket, &read_fds)) {
+	fprintf (logfile, "hostSocket is active for read.\n");
 	ret = read(hostSocket, buf, 4096);
 	fprintf(logfile, "Read %d bytes from host.\n", ret);
 	if (ret > 0) {
