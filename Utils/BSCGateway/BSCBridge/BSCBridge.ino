@@ -442,6 +442,13 @@ void loop() {
      herculesMessageFSM.rxData(ch);
 #ifdef DEBUG5     
      logOne("After rxData");
-#endif     
+#endif  
+  }
+  if (HostSerial.availableForWrite() > 1) {
+    herculesMessageFSM.txPoll();   
+  }   
+  
+  if (!txBuffer.isBufferFull()) {
+    messageFSM.txPoll();    
   }
 }
