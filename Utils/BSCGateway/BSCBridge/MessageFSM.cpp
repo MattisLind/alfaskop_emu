@@ -29,187 +29,401 @@ MessageFSM::MessageFSM(void (*txData)(unsigned char), void (*recivedMessage)(uns
 }
 
 
+// The Tx FSM
+// Called every time there is at least one byte space in transmitting buffer.
+// txDataCb is used to send one character. Or no character is sent if there is nothing to send.
+
+
+#define TX_IDLE 0
+#define TX_FIRST_SYN 1
+#define TX_SECOND_SYN 2
+#define TX_EOT 3
+#define TX_ENQ 4
+#define TX_PAD 5
+#define TX_POLL 6
+#define TX_POLL2 7
+#define TX_POLL3 8
+#define TX_POLL4 9
+#define TX_STATUS 10
+#define TX_STATUS2 11
+#define TX_STATUS3 12
+#define TX_STATUS4 13
+#define TX_STATUS5 14
+#define TX_STATUS6 15
+#define TX_STATUS7 16
+#define TX_STATUS8 17
+#define TX_STATUS9 18
+#define TX_CRC1 19
+#define TX_CRC2 20
+#define TX_TEST 21
+#define TX_TEST2 22
+#define TX_TEST3 23
+#define TX_TEST4 24
+#define TX_TEST5 25
+#define TX_TEST6 26
+#define TX_TEXT 27
+#define TX_TEXT2 28
+#define TX_TEXT3 29
+#define TX_ACK0 30
+#define TX_ACK0_2 31
+#define TX_ACK1 32
+#define TX_ACK1_2 33
+#define TX_WACK 34
+#define TX_WACK2 35
+#define TX_RVI 36
+#define TX_RVI2 37
+#define TX_NAK 38
+
+void MessageFSM::txPoll() {
+  switch (txState) {
+  case TX_IDLE:
+    break;
+  case TX_FIRST_SYN:
+    txState = TX_SECOND_SYN;
+    txDataCb(SYN);
+    break;
+  case TX_SECOND_SYN:
+    txState = txStateAfterSYN;
+    txDataCb(SYN);
+    break;
+  case TX_EOT:
+    if (herculesMode) {
+      txState = TX_IDLE;     
+    } else {
+      txState = TX_PAD;
+    }
+    txDataCb(EOT);
+    break;
+  case TX_ENQ:
+    if (herculesMode) {
+      txState = TX_IDLE;     
+    } else {
+      txState = TX_PAD;
+    }
+    txDataCb(ENQ);
+    break;
+  case TX_POLL:
+    txState = TX_POLL2;
+    txDataCb(txCU);
+    break;
+  case TX_POLL2:
+    txState = TX_POLL3;
+    txDataCb(txCU);
+    break;
+  case TX_POLL3:
+    txState = TX_POLL4;
+    txDataCb(txDV);
+    break;
+  case TX_POLL4:
+    txState = TX_ENQ;
+    txDataCb(txDV);
+    break;
+  case TX_STATUS:
+    txState = TX_STATUS2;
+    txDataCb(SOH);
+    break;
+  case TX_STATUS2:
+    txCrc = 0;
+    txState = TX_STATUS3;
+    txDataCb(0x6C);
+    txCrc = calculateCrcChar (txCrc, 0x6c);
+  case TX_STATUS3:
+    txState = TX_STATUS4;
+    txDataCb(0xd9);
+    txCrc = calculateCrcChar (txCrc, 0xd9);
+    break;
+  case TX_STATUS4:
+    txState = TX_STATUS5;
+    txDataCb(STX);
+    txCrc = calculateCrcChar (txCrc, STX);
+    break;
+  case TX_STATUS5:
+    txState = TX_STATUS6;
+    txDataCb(txCU);
+    txCrc = calculateCrcChar (txCrc, txCU);
+    break;
+  case TX_STATUS6:
+    txState = TX_STATUS7;
+    txDataCb(txDV);
+    txCrc = calculateCrcChar (txCrc, txDV);
+    break;
+  case TX_STATUS7:
+    txState = TX_STATUS8;
+    txDataCb(txStatus);
+    txCrc = calculateCrcChar (txCrc, txStatus);
+    break;
+  case TX_STATUS8:
+    txState = TX_STATUS9;
+    txDataCb(txSense);  
+    txCrc = calculateCrcChar (txCrc, txSense);
+    break;
+  case TX_STATUS9:
+    if (herculesMode) {
+      txState = TX_IDLE;
+    } else {
+      txState = TX_CRC1;
+    }
+    txDataCb(ETX);
+    txCrc = calculateCrcChar (txCrc, ETX);
+    break;
+  case TX_TEST:
+    txState = TX_TEST2;
+    txDataCb(SOH);
+    break;
+  case TX_TEST2:
+    txCrc = 0;
+    txState = TX_TEST3;
+    txDataCb(0x6C);
+    txCrc = calculateCrcChar (txCrc, 0x6c);
+  case TX_TEST3:
+    txState = TX_TEST4;
+    txDataCb(0x61);
+    txCrc = calculateCrcChar (txCrc, 0xd9);
+    break;
+  case TX_TEST4:
+    if (txMsgLength > 0) {
+      txState = TX_TEST5;
+    } else {
+      txState = TX_TEST6;
+    }
+    txDataCb(STX);
+    txCrc = calculateCrcChar (txCrc, STX);
+    break;
+  case TX_TEST5:
+    txMsgLength--;
+    if (txMsgLength == 0) {
+      txState = TX_TEST6;
+    }
+    txDataCb(*txMsg);
+    txCrc = calculateCrcChar (txCrc, *txMsg++);
+    break;
+  case TX_TEST6:
+    if (herculesMode) {
+      txState = TX_IDLE;
+    } else {
+      txState = TX_CRC1;
+    }
+    if (txThereIsMoreComing) {
+      txDataCb(ETB);
+      txCrc = calculateCrcChar (txCrc, ETB);
+    } else {
+      txDataCb(ETX);
+      txCrc = calculateCrcChar (txCrc, ETX);
+    }
+    break;
+  case TX_TEXT:
+    if (txMsgLength > 0) {
+      txState = TX_TEST2;
+    } else {
+      txState = TX_TEST3;
+    }
+    txDataCb(STX);
+    txCrc = calculateCrcChar (txCrc, STX);
+    break;
+  case TX_TEXT2:
+    txMsgLength--;
+    if (txMsgLength == 0) {
+      txState = TX_TEST3;
+    }
+    txDataCb(*txMsg);
+    txCrc = calculateCrcChar (txCrc, *txMsg++);
+    break;
+  case TX_TEXT3:
+    if (herculesMode) {
+      txState = TX_IDLE;
+    } else {
+      txState = TX_CRC1;
+    }
+    if (txThereIsMoreComing) {
+      txDataCb(ETB);
+      txCrc = calculateCrcChar (txCrc, ETB);
+    } else {
+      txDataCb(ETX);
+      txCrc = calculateCrcChar (txCrc, ETX);
+    }
+    break;
+  case TX_ACK0:
+    txState = TX_ACK0_2;
+    txDataCb(DLE);
+    break;
+  case TX_ACK0_2:
+    if (herculesMode) {
+      txState = TX_IDLE;     
+    } else {
+      txState = TX_PAD;
+    }
+    txDataCb(0x70);
+  case TX_ACK1:
+    txState = TX_ACK1_2;
+    txDataCb(DLE);
+    break;
+  case TX_ACK1_2:
+    if (herculesMode) {
+      txState = TX_IDLE;     
+    } else {
+      txState = TX_PAD;
+    }
+    txDataCb(0x61);
+    break;
+  case TX_WACK:
+    txState = TX_WACK2;
+    txDataCb(DLE);
+    break;
+  case TX_WACK2:
+    if (herculesMode) {
+      txState = TX_IDLE;     
+    } else {
+      txState = TX_PAD;
+    }
+    txDataCb(0x6b);
+    break;
+  case TX_RVI:
+    txState = TX_RVI2;
+    txDataCb(DLE);
+    break;
+  case TX_RVI2:
+    if (herculesMode) {
+      txState = TX_IDLE;     
+    } else {
+      txState = TX_PAD;
+    }
+    txDataCb(0x7C);
+    break;
+  case TX_NAK:
+    if (herculesMode) {
+      txState = TX_IDLE;     
+    } else {
+      txState = TX_PAD;
+    }
+    txDataCb(NAK);
+    break;  
+  case TX_CRC1:
+    txState = TX_CRC2;
+    txDataCb(crc & 0xff);
+    break;
+  case TX_CRC2:
+    txState = TX_PAD;
+    txDataCb((crc >> 8) & 0xff);
+    break;
+  case TX_PAD:
+    txState = TX_IDLE;
+    txDataCb(PAD);
+    break;
+  }
+}
+
+
 // Method to send the EOT message
 
 void MessageFSM::sendEOT(){
-  if (!herculesMode) {
-    txDataCb(SYN);
-    txDataCb(SYN);
-  } 
-  txDataCb(EOT);
-  if (!herculesMode) {
-    txDataCb(PAD);
+  if (herculesMode) {
+    txState = TX_EOT;
+  } else {
+    txState = TX_FIRST_SYN;
+    txStateAfterSYN = TX_EOT;
   }
 }
+
 void MessageFSM::sendENQ(){
-  if (!herculesMode) {
-    txDataCb(SYN);
-    txDataCb(SYN);
-  } 
-  txDataCb(ENQ);
-  if (!herculesMode) {
-    txDataCb(PAD);
+  if (herculesMode) {
+    txState = TX_ENQ;
+  } else {
+    txState = TX_FIRST_SYN;
+    txStateAfterSYN = TX_ENQ;
   }
 }
 
 void MessageFSM::sendPollSelect(uint8_t CU, uint8_t DV){
-  if (!herculesMode) {
-    txDataCb(SYN);
-    txDataCb(SYN);
-  } 
-  txDataCb(CU);
-  txDataCb(CU);
-  txDataCb(DV);
-  txDataCb(DV);
-  txDataCb(ENQ);
-  if (!herculesMode) {
-    txDataCb(PAD);
+  if (herculesMode) {
+    txState = TX_POLL;
+  } else {
+    txState = TX_FIRST_SYN;
+    txStateAfterSYN = TX_POLL;
   }
+  txCU = CU;
+  txDV = DV;
+  txState = TX_POLL;
 }
 
 void MessageFSM::sendStatusMessage(uint8_t CU, uint8_t DV,  uint8_t status, uint8_t sense) {
-  int crc=0;
-  if (!herculesMode) {
-    txDataCb(SYN);
-    txDataCb(SYN);
-  } 
-  txDataCb(SOH);
-  txDataCb(0x6c);
-  crc = calculateCrcChar (crc, 0x6c);
-  txDataCb(0xd9);
-  crc = calculateCrcChar (crc, 0xd9);
-  txDataCb(STX);
-  crc = calculateCrcChar (crc, STX);
-  txDataCb(CU);
-  crc = calculateCrcChar (crc, CU);
-  txDataCb(DV);
-  crc = calculateCrcChar (crc, DV);
-  txDataCb(status);
-  crc = calculateCrcChar (crc, status);
-  txDataCb(sense);  
-  crc = calculateCrcChar (crc, sense);
-  txDataCb(ETX);
-  crc = calculateCrcChar (crc, ETX);
-  if (!herculesMode) {
-    txDataCb(crc & 0xff);
-    txDataCb((crc >> 8) & 0xff);
-    txDataCb(PAD);
+  if (herculesMode) {
+    txState = TX_STATUS;
+  } else {
+    txState = TX_FIRST_SYN;
+    txStateAfterSYN = TX_STATUS;
   }
+  txCU = CU;
+  txDV = DV;
+  txStatus = status;
+  txSense = sense;
 }
 
 void MessageFSM::sendTestRequestMessage(int messageLength, uint8_t * msg, bool thereIsMoreComing) {
-  int i;
-  int crc=0;
-  if (!herculesMode) {
-    txDataCb(SYN);
-    txDataCb(SYN);
-  } 
-  txDataCb(SOH);
-  txDataCb(0x6c);
-  crc = calculateCrcChar (crc, 0x6c);
-  txDataCb(0x61);
-  crc = calculateCrcChar (crc, 0x61);
-  txDataCb(STX);
-  crc = calculateCrcChar (crc, STX);
-  for (i=0; i<messageLength; i++) {
-    txDataCb(msg[i]);
-    crc = calculateCrcChar (crc, msg[i]);
-  }
-  if (thereIsMoreComing) {
-    txDataCb(ETB);
-    crc = calculateCrcChar (crc, ETB);
+  if (herculesMode) {
+    txState = TX_TEST;
   } else {
-    txDataCb(ETX);
-    crc = calculateCrcChar (crc, ETX);
+    txState = TX_FIRST_SYN;
+    txStateAfterSYN = TX_TEST;
   }
-  if (!herculesMode) {
-    txDataCb(crc & 0xff);
-    txDataCb((crc >> 8) & 0xff);
-    txDataCb(PAD);
-  }
+  txMsg = msg;
+  txMsgLength = messageLength;
+  txThereIsMoreComing = thereIsMoreComing;
 }
 
 void MessageFSM::sendTextMessage(int messageLength, uint8_t * msg, bool thereIsMoreComing) {
-  int i;
-  int crc=0;
-  if (!herculesMode) {
-    txDataCb(SYN);
-    txDataCb(SYN);
-  } 
-  txDataCb(STX);
-  for (i=0; i<messageLength; i++) {
-    txDataCb(msg[i]);
-    crc = calculateCrcChar (crc, msg[i]);
-  }
-  if (thereIsMoreComing) {
-    txDataCb(ETB);
-    crc = calculateCrcChar (crc, ETB);
+  if (herculesMode) {
+    txState = TX_TEXT;
   } else {
-    txDataCb(ETX);
-    crc = calculateCrcChar (crc, ETX);
+    txState = TX_FIRST_SYN;
+    txStateAfterSYN = TX_TEXT;
   }
-  if (!herculesMode) {
-    txDataCb(crc & 0xff);
-    txDataCb((crc >> 8) & 0xff);
-    txDataCb(PAD);
-  }
+  txMsg = msg;
+  txMsgLength = messageLength;
+  txThereIsMoreComing = thereIsMoreComing; 
 }
 
 void MessageFSM::sendACK0(){
-  if (!herculesMode) {
-    txDataCb(SYN);
-    txDataCb(SYN);
-  } 
-  txDataCb(DLE);
-  txDataCb(0x70);
-  if (!herculesMode) {
-    txDataCb(PAD);
+  if (herculesMode) {
+    txState = TX_ACK0;
+  } else {
+    txState = TX_FIRST_SYN;
+    txStateAfterSYN = TX_ACK0;
   }
 }
 
 void MessageFSM::sendACK1(){
-  if (!herculesMode) {
-    txDataCb(SYN);
-    txDataCb(SYN);
-  } 
-  txDataCb(DLE);
-  txDataCb(0x61);
-  if (!herculesMode) {
-    txDataCb(PAD);
+  if (herculesMode) {
+    txState = TX_ACK1;
+  } else {
+    txState = TX_FIRST_SYN;
+    txStateAfterSYN = TX_ACK1;
   }
 }
 
 void MessageFSM::sendWACK(){
-  if (!herculesMode) {
-    txDataCb(SYN);
-    txDataCb(SYN);
-  } 
-  txDataCb(DLE);
-  txDataCb(0x6b);
-  if (!herculesMode) {
-    txDataCb(PAD);
+  if (herculesMode) {
+    txState = TX_WACK;
+  } else {
+    txState = TX_FIRST_SYN;
+    txStateAfterSYN = TX_WACK;
   }
 }
 
 void MessageFSM::sendRVI(){
-  if (!herculesMode) {
-    txDataCb(SYN);
-    txDataCb(SYN);
-  } 
-  txDataCb(DLE);
-  txDataCb(0x7c);
-  if (!herculesMode) {
-    txDataCb(PAD);
+    if (herculesMode) {
+    txState = TX_RVI;
+  } else {
+    txState = TX_FIRST_SYN;
+    txStateAfterSYN = TX_RVI;
   }
 }
+
 void MessageFSM::sendNAK(){
-  if (!herculesMode) {
-    txDataCb(SYN);
-    txDataCb(SYN);
-  } 
-  txDataCb(NAK);
-  if (!herculesMode) {
-    txDataCb(PAD);
+  if (herculesMode) {
+    txState = TX_EOT;
+  } else {
+    txState = TX_FIRST_SYN;
+    txStateAfterSYN = TX_EOT;
   }
 }
 

@@ -68,6 +68,16 @@ class MessageFSM {
     void (* enterHuntStateCb)();
     void (* receivedMessageCb)(unsigned char, unsigned char *);
     void messageDone();
+    int txState;
+    int txStateAfterSYN;
+    int txCrc;
+    char txDV;
+    char txCU;
+    char txSense;
+    char txStatus;
+    bool txThereIsMoreComing;
+    uint8_t* txMsg;
+    int txMsgLength;
   public:
     MessageFSM(void (*)(unsigned char), void (*)(unsigned char, unsigned char *), void (*)(), bool);
     MessageFSM(void (*)(unsigned char), void (*)(unsigned char, unsigned char *), void (*)());
@@ -84,4 +94,5 @@ class MessageFSM {
     void sendRVI();
     void sendNAK();
     void setTextMode(bool);
+    void txPoll();
 };
