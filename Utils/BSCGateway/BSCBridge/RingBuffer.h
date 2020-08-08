@@ -1,8 +1,8 @@
-#define SIZE 260
+#define SIZE 4096
 
 class RingBuffer {
   volatile int inPtr, outPtr, bufferFull, bufferEmpty;
-  int buffer[SIZE];
+  char buffer[SIZE];
 public:
   int isBufferFull () {
     return bufferFull;
@@ -10,7 +10,7 @@ public:
   int isBufferEmpty () {
     return bufferEmpty;
   }
-  void writeBuffer (int data);
-  int readBuffer ();
+  void writeBuffer (char data);
+  char readBuffer ();
   void  initBuffer ();
 };
