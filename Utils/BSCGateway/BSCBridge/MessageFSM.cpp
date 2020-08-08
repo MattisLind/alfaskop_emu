@@ -16,7 +16,7 @@ MessageFSM::MessageFSM(void (*txData)(unsigned char), void (*recivedMessage)(uns
   txDataCb = txData;
   receivedMessageCb = recivedMessage;
   enterHuntStateCb = enterHuntState;
-  rxState = 0;
+  rxState = 0; txState=0;
   herculesMode = hMode;  
 }
 
@@ -24,7 +24,7 @@ MessageFSM::MessageFSM(void (*txData)(unsigned char), void (*recivedMessage)(uns
   txDataCb = txData;
   receivedMessageCb = recivedMessage;
   enterHuntStateCb = enterHuntState;
-  rxState = 0;
+  rxState = 0; txState=0;
   herculesMode = false;  
 }
 
@@ -73,6 +73,11 @@ MessageFSM::MessageFSM(void (*txData)(unsigned char), void (*recivedMessage)(uns
 #define TX_RVI 36
 #define TX_RVI2 37
 #define TX_NAK 38
+
+bool MessageFSM::isTxIdle() {
+  return (txState == TX_IDLE);
+}
+
 
 void MessageFSM::txPoll() {
   switch (txState) {
@@ -178,7 +183,7 @@ void MessageFSM::txPoll() {
   case TX_TEST3:
     txState = TX_TEST4;
     txDataCb(0x61);
-    txCrc = calculateCrcChar (txCrc, 0xd9);
+    txCrc = calculateCrcChar (txCrc, 0x61);
     break;
   case TX_TEST4:
     if (txMsgLength > 0) {
@@ -195,7 +200,8 @@ void MessageFSM::txPoll() {
       txState = TX_TEST6;
     }
     txDataCb(*txMsg);
-    txCrc = calculateCrcChar (txCrc, *txMsg++);
+    txCrc = calculateCrcChar (txCrc, *txMsg);
+    txMsg++;
     break;
   case TX_TEST6:
     if (herculesMode) {
@@ -212,18 +218,18 @@ void MessageFSM::txPoll() {
     }
     break;
   case TX_TEXT:
+    txCrc = 0;
     if (txMsgLength > 0) {
-      txState = TX_TEST2;
+      txState = TX_TEXT2;
     } else {
-      txState = TX_TEST3;
+      txState = TX_TEXT3;
     }
     txDataCb(STX);
-    txCrc = calculateCrcChar (txCrc, STX);
     break;
   case TX_TEXT2:
     txMsgLength--;
     if (txMsgLength == 0) {
-      txState = TX_TEST3;
+      txState = TX_TEXT3;
     }
     txDataCb(*txMsg);
     txCrc = calculateCrcChar (txCrc, *txMsg++);
@@ -253,6 +259,7 @@ void MessageFSM::txPoll() {
       txState = TX_PAD;
     }
     txDataCb(0x70);
+    break;
   case TX_ACK1:
     txState = TX_ACK1_2;
     txDataCb(DLE);
@@ -299,11 +306,11 @@ void MessageFSM::txPoll() {
     break;  
   case TX_CRC1:
     txState = TX_CRC2;
-    txDataCb(crc & 0xff);
+    txDataCb(txCrc & 0xff);
     break;
   case TX_CRC2:
     txState = TX_PAD;
-    txDataCb((crc >> 8) & 0xff);
+    txDataCb((txCrc >> 8) & 0xff);
     break;
   case TX_PAD:
     txState = TX_IDLE;
@@ -420,10 +427,10 @@ void MessageFSM::sendRVI(){
 
 void MessageFSM::sendNAK(){
   if (herculesMode) {
-    txState = TX_EOT;
+    txState = TX_NAK;
   } else {
     txState = TX_FIRST_SYN;
-    txStateAfterSYN = TX_EOT;
+    txStateAfterSYN = TX_NAK;
   }
 }
 

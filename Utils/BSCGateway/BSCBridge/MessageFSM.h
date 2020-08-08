@@ -95,4 +95,5 @@ class MessageFSM {
     void sendNAK();
     void setTextMode(bool);
     void txPoll();
+    bool isTxIdle();
 };

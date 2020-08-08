@@ -31,11 +31,11 @@ void txData (unsigned char data) {
 void receivedMessage (unsigned char msgType, unsigned char * msg) {
   MSG * m;
   m = (MSG *) msg;
+  printf ("msgType = %d\n", msgType);
   if (msgType == ERROR_MESSAGE && !errorOverride) {
     printf("%s\n", msg);
     assert (0);
   }
-  //printf ("msgType = %d\n", msgType);
   switch (testCase) {
   case 0:
     // EOT message sent
@@ -111,11 +111,15 @@ void enterHuntState () {
 }
 
 int main () {
-
+  int i;
   // Testing sending and receiving EOT
   huntState = 0;
   testCase = 0;
   messageFSM.sendEOT();
+  for (i=0;i<4;i++) {
+    messageFSM.txPoll();
+  }
+  assert (messageFSM.isTxIdle());
   assert (testCase == 1);
   assert (huntState == 1);
   printf("Test passed -  sending and receiving EOT\n");
@@ -123,6 +127,10 @@ int main () {
   huntState = 0;
   testCase = 1;
   messageFSM.sendNAK();
+  for (i=0;i<4;i++) {
+    messageFSM.txPoll();
+  }
+  assert (messageFSM.isTxIdle());
   assert (testCase == 2);
   assert (huntState == 1);
   printf("Test passed -  sending and receiving NAK\n");
@@ -130,6 +138,10 @@ int main () {
   huntState = 0;
   testCase = 2;
   messageFSM.sendACK0();
+  for (i=0;i<5;i++) {
+    messageFSM.txPoll();
+  }
+  assert (messageFSM.isTxIdle());
   assert (testCase == 3);
   assert (huntState == 1);
   printf("Test passed -  sending and receiving ACK0\n");  
@@ -137,6 +149,10 @@ int main () {
   huntState = 0;
   testCase = 3;
   messageFSM.sendACK1();
+  for (i=0;i<5;i++) {
+    messageFSM.txPoll();
+  }
+  assert (messageFSM.isTxIdle());
   assert (testCase == 4);
   assert (huntState == 1);
   printf("Test passed -  sending and receiving ACK1\n");  
@@ -144,6 +160,10 @@ int main () {
   huntState = 0;
   testCase = 4;
   messageFSM.sendWACK();
+  for (i=0;i<5;i++) {
+    messageFSM.txPoll();
+  }
+  assert (messageFSM.isTxIdle());
   assert (testCase == 5);
   assert (huntState == 1);
   printf("Test passed -  sending and receiving WACK\n");  
@@ -151,6 +171,10 @@ int main () {
   huntState = 0;
   testCase = 5;
   messageFSM.sendRVI();
+  for (i=0;i<5;i++) {
+    messageFSM.txPoll();
+  }
+  assert (messageFSM.isTxIdle());
   assert (testCase == 6);
   assert (huntState == 1);
   printf("Test passed -  sending and receiving RVI\n");  
@@ -159,6 +183,10 @@ int main () {
   testCase = 6;
   messageFSM.setTextMode(false);
   messageFSM.sendPollSelect(0x40,0x41);
+  for (i=0;i<8;i++) {
+    messageFSM.txPoll();
+  }
+  assert (messageFSM.isTxIdle());
   assert (testCase == 7);
   assert (huntState == 1);
   messageFSM.setTextMode(true);
@@ -167,6 +195,10 @@ int main () {
   huntState = 0;
   testCase = 7;
   messageFSM.sendStatusMessage(0x40,0x40,0x40,0x50);
+  for (i=0;i<13;i++) {
+    messageFSM.txPoll();
+  }
+  assert (messageFSM.isTxIdle());
   assert (testCase == 8);
   assert (huntState == 1);
   printf("Test passed -  sending and receiving Status Message\n");
@@ -174,6 +206,10 @@ int main () {
   huntState = 0;
   testCase = 8;
   messageFSM.sendTestRequestMessage(strlen (testRequestString), (unsigned char *) testRequestString, false);
+  for (i=0;i<31;i++) {
+    messageFSM.txPoll();
+  }
+  assert (messageFSM.isTxIdle());
   assert (testCase == 9);
   assert (huntState == 1);
   printf("Test passed -  sending and receiving Test Message\n");
@@ -181,6 +217,10 @@ int main () {
   huntState = 0;
   testCase = 9;
   messageFSM.sendTextMessage(strlen (testRequestString), (unsigned char *) testRequestString, false);
+  for (i=0;i<31;i++) {
+    messageFSM.txPoll();
+  }
+  assert (messageFSM.isTxIdle());
   assert (testCase == 10);
   assert (huntState == 1);
   printf("Test passed -  sending and receiving Text Message\n");
@@ -189,6 +229,10 @@ int main () {
   testCase = 10;
   messageFSM.setTextMode(true);
   messageFSM.sendENQ();
+  for (i=0;i<4;i++) {
+    messageFSM.txPoll();
+  }
+  assert (messageFSM.isTxIdle());
   assert (testCase == 11);
   assert (huntState == 1);
   printf("Test passed -  sending and receiving ENQ\n");
