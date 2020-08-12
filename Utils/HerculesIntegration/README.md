@@ -46,6 +46,7 @@ Other people chimed in in the discussion and pointed me to the source code for t
          LINEGRP TERM=327R,DDNAME=R3270,LINENO=01,                     +
                DIAL=NO,UNITNO=1,SCREEN=(24,080),TERMNO=(8)
          LISTTA RLN=1,ADDR=(4040,40C1,40C2,40C3,40C4,40C5,40C6,40C7)
+TCAM     TSOMCP UNITSIZ=255
          END
 /*
 //*TCAMSTG2 JOB CLASS=A,MSGCLASS=A,MSGLEVEL=(1,1)
