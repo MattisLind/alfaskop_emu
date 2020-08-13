@@ -349,7 +349,6 @@ void MessageFSM::sendPollSelect(uint8_t CU, uint8_t DV){
   }
   txCU = CU;
   txDV = DV;
-  txState = TX_POLL;
 }
 
 void MessageFSM::sendStatusMessage(uint8_t CU, uint8_t DV,  uint8_t status, uint8_t sense) {
