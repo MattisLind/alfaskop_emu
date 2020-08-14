@@ -16,7 +16,7 @@
 #define RFS PB1  // Output
 #define DTR PB10 // Input 
 
-#define HostSerial Serial1
+#define HostSerial Serial
 #define DebugSerial Serial
 
 #define BAUD 416
@@ -51,7 +51,7 @@
 #endif
 
 #ifdef DEBUG4
-#define BAUD 1000
+#define BAUD 50000
 #endif
 
 
@@ -98,7 +98,7 @@ void setup() {
   pwmtimer.resume();
   pwmWrite(pwmOutPin, maxduty/2); //50% duty cycle
   HostSerial.begin (2400);
-  DebugSerial.begin (2400);
+  DebugSerial.begin (230400);
   SPI_2.beginSlave(); //Initialize the SPI_2 port.
   SPI_2.setBitOrder(MSBFIRST); // Set the SPI_2 bit order
   SPI_2.setDataMode(SPI_MODE0); //Set the  SPI_2 data mode 0
