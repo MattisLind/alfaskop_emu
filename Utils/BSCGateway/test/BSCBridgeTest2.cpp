@@ -55,6 +55,7 @@ void receiveEOT (int fd) {
   unsigned char ch;
   int ret;
   ret = read (fd,&ch,1);
+  printf ("Rx %02X\n", ch);
   assert (ret == 1);
   assert (ch == 0x37);
 }
@@ -262,6 +263,8 @@ int main () {
   int fd1, fd2;
   fd1 = openSerial("/dev/ttyACM0");
   fd2 = openSerial("/dev/ttyACM1");
+  sendEOT(fd1);
+  receiveEOT(fd2);
   sendSelect(fd1);
   receiveSelect(fd2);
   sendACK0(fd2);
