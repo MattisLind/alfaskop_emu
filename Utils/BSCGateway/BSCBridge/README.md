@@ -55,4 +55,8 @@ sudo socat  TCP:localhost:32701 OPEN:/dev/ttyUSB0,b2400,raw
 ```
 
 ## Installation
+
+![Arduino Env](https://i.imgur.com/gjirQPa.png)
+
 This software uses the Arduino development environment and the Arduino_STM32 framework by Roger Clark which can be found here: [Arduino_STM32](https://github.com/rogerclarkmelbourne/Arduino_STM32). Make sure to [install](https://github.com/rogerclarkmelbourne/Arduino_STM32/wiki/Installation) this framwork in the correct place and select the Generic STM32F103 board as the target. I always use a ST-LINK JTAG dongle for download and have not tried any other download mechanism or bootloader although there is one for Serial port builtin in which might be used.
+
