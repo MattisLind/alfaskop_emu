@@ -54,6 +54,24 @@ A proper socat command for
 sudo socat  TCP:localhost:32701 OPEN:/dev/ttyUSB0,b2400,raw
 ```
 
+I had some problems when dealing with socat which I initially attributed to be due to socat itself. It resulted in that I created a socat replacement, socatReplace in the utils folder in this projects. It turned out that I could run into exactly the same problem using my new socatReplace. It turned out that I got problems with two FTDI dongles simultaneously even using minicom! The problem solved by pulling the USB plug out and reinsert it. It seems that the driver ends up in a strange state if the system is booted with the FTDI dongles inserted while booting.
+
+## Testing with 3274emu and x3270
+A test of the system would be to connect two SyncDongles together with a null modem and have them exchange some data. I created a quick test suite in the test folder that did exactly this and since this was successful I continued to use the same link to connect the 3274emu.
+
+This means that the chain looks like this:
+```
+x3270 (TN3270 client)   <=> 3274emu (TN3270 to BSC) <=> socatReplace (in server mode) <=> SyncDongle <=> null modem <=> SyncDongle <=> socatReplace (client) <=> Hercules
+```
+
+![Testing with 3274emu](https://i.imgur.com/7TWUPZNl.jpg)
+
+At least that it is possible to start the REVIE editor and it looks ok. I now consider the BSCBridge in BETA state. There are probably things lurking there but it can be made working. Remember that the RTO paramter of the 2703 device must be set to a higher value since the baudrate is quite low. I have tried 20000 (20 seconds) and it seems ok.
+
+I also use a 10 seconds poll interval right now and just one terminal configured in TCAM since it is much easier to debug things then.
+
+
+
 ## Installation
 
 ![Arduino Env](https://i.imgur.com/gjirQPa.png)
