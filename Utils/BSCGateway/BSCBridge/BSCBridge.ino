@@ -15,11 +15,12 @@
 #define RTS PB11 // Input
 #define RFS PB1  // Output
 #define DTR PB10 // Input 
+#define ACTIVITY PC13 // Activity LED
 
 #define HostSerial Serial
 #define DebugSerial Serial
 
-#define BAUD 416
+#define BAUD 416  // Actually this is the period in microseconds. 416 us = 2400 bps
 
 #if DEBUG_LEVEL > 3
 #define DEBUG4
@@ -104,6 +105,7 @@ void setup() {
   SPI_2.setDataMode(SPI_MODE0); //Set the  SPI_2 data mode 0
   pinMode(RTS, INPUT);
   pinMode(RFS, OUTPUT);
+  pinMode(ACTIVITY, OUTPUT);
   digitalWrite(RFS, LOW);
   pinMode(DTR, INPUT);
 #ifdef DEBUG1
@@ -409,17 +411,25 @@ void enterHuntHercules() {
 
 
 extern "C" void __irq_spi2 (void) {
+  int ch;
+  bool activity = false;
   if (spi_is_tx_empty(SPI2)){
     if (txBuffer.isBufferEmpty()) {
       spi_tx_reg(SPI2, 0xff);  
     } else {
-      spi_tx_reg(SPI2, translationArray[txBuffer.readBuffer()]);  
+      spi_tx_reg(SPI2, translationArray[txBuffer.readBuffer()]);
+      activity = true;  
     }    
   }
 
   if (spi_is_rx_nonempty(SPI2)) {
-    rxBuffer.writeBuffer(spi_rx_reg(SPI2));
+    ch = spi_rx_reg(SPI2);
+    if (0xff & ch != 0xff) {
+      activity = true;
+    }
+    rxBuffer.writeBuffer(ch);
   }
+  digitalWrite(ACTIVITY, !activity);
 }
 
 
