@@ -64,7 +64,7 @@ This means that the chain looks like this:
 x3270 (TN3270 client)   <=> 3274emu (TN3270 to BSC) <=> socatReplace (in server mode) <=> SyncDongle <=> null modem <=> SyncDongle <=> socatReplace (client) <=> Hercules
 ```
 
-![Testing with 3274emu](https://i.imgur.com/7TWUPZNl.jpg)
+![Testing with 3274emu](https://i.imgur.com/BN3FohDl.jpg)
 
 At least that it is possible to start the REVIE editor and it looks ok. I now consider the BSCBridge in BETA state. There are probably things lurking there but it can be made working. Remember that the RTO paramter of the 2703 device must be set to a higher value since the baudrate is quite low. I have tried 20000 (20 seconds) and it seems ok.
 
