@@ -101,6 +101,7 @@ void setup() {
   HostSerial.begin (2400);
   DebugSerial.begin (230400);
   SPI_2.beginSlave(); //Initialize the SPI_2 port.
+  SPI_2.setDataSize(SPI_CR1_DFF);
   SPI_2.setBitOrder(MSBFIRST); // Set the SPI_2 bit order
   SPI_2.setDataMode(SPI_MODE0); //Set the  SPI_2 data mode 0
   pinMode(RTS, INPUT);
@@ -411,23 +412,31 @@ void enterHuntHercules() {
 
 
 extern "C" void __irq_spi2 (void) {
-  int ch;
   bool activity = false;
+  int tmp;
   if (spi_is_tx_empty(SPI2)){
     if (txBuffer.isBufferEmpty()) {
-      spi_tx_reg(SPI2, 0xff);  
+      tmp = 0xff << 8;
     } else {
-      spi_tx_reg(SPI2, translationArray[txBuffer.readBuffer()]);
+      tmp = (0xff & translationArray[txBuffer.readBuffer()]) << 8;
+      activity = true;  
+    }
+    if (txBuffer.isBufferEmpty()) {
+      tmp |= 0xff;
+    } else {
+      tmp |= 0xff & translationArray[txBuffer.readBuffer()];
       activity = true;  
     }    
+    spi_tx_reg(SPI2, tmp);
   }
 
   if (spi_is_rx_nonempty(SPI2)) {
-    ch = spi_rx_reg(SPI2);
-    if (0xff & ch != 0xff) {
+    tmp = spi_rx_reg(SPI2);
+    if (0xffff & tmp != 0xffff) {
       activity = true;
     }
-    rxBuffer.writeBuffer(ch);
+    rxBuffer.writeBuffer(0xff & (tmp >> 8));
+    rxBuffer.writeBuffer(0xff & tmp);
   }
   digitalWrite(ACTIVITY, !activity);
 }
