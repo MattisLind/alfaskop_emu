@@ -15,7 +15,7 @@ The difference is that in Hercules mode no SYN characters are sent and required 
 
 When the cluster controller facing SyncFSM and MessagesFSM receives the message it will be syncronized and moved to the Hercules facing MessageFSM for transmission.
 
-Transmission is taking place as a polled state machine. Whenever there is space on the output buffers the transmission state machine is polled. Depending if there is a stored message it will then step by step process the outbound message. The reason for this polling approach is that there were evidence that the output buffer were overwhelmed when the transmission burst was occuring and it was not feasible to increase buffers to cope with this.
+Transmission is taking place as a polled state machine. Whenever there is space on the output buffers the transmission state machine is polled. Depending if there is a stored message it will then step by step process the outbound message. Each poll will result in that at most one byte is transfered to the output buffer. The reason for this polling approach is that there were evidence that the output buffer were overwhelmed when the transmission burst was occuring and it was not feasible to increase buffers to cope with this.
 
 ## Perfomance measurements
 
@@ -26,6 +26,9 @@ It is important to understand how much time each of the processing tasks take wh
 3. Process Rx byte from host.
 4. Poll Tx state machine for data going to host.
 
+As BSC is half duplex by design and then that a message is recived, buffered and then transmitted means that at most one task can be active at a time. At other times very little processing is spent in the task. As there are certain buffering  som jitter in terms of processing time is allowed, but it is important to make sure that the speed is not making the buffers grow over time.
+
+It would be interesting to pin-point if there is a task that takes substantially much more of CPU processing and if optimizations can be done to lower this.
 
 ## Implementation
 
