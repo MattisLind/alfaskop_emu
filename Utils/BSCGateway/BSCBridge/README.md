@@ -11,7 +11,21 @@ The SyncFSM has two states. Either HUNT state or SYNC state. When in SYNC state 
 The main module or glue logic is the mediator between the MessageFSM towards the terminal cluster and the MessageFSM connected to the host. These two MessageFSM hare essentially the same but instatiated differently, one in Hercules mode and one in normal mode.
 The difference is that in Hercules mode no SYN characters are sent and required when receiving, neither is any PAD characters required or sent. The CRC bytes are sent and received but the CRC calculation is dsiregareded from.
 
-Whenever a message comes from the hercules facing MessageFSM main glue logic will make sure to negate the CTS signal and then wait for the remote end to negate the CTS signal. When a negated CTS is seen the message will be forwarded to the cluster controller facing MessageFSM for transmissions. Now the remote end will assert RTS and the glue code will assert CTS as soon as it sees the RTS. When the cluster controller facing SyncFSM and MessagesFSM receives the message it will be syncronized and moved to the Hercules facing MessageFSM for transmission.
+~~Whenever a message comes from the hercules facing MessageFSM main glue logic will make sure to negate the CTS signal and then wait for the remote end to negate the CTS signal. When a negated CTS is seen the message will be forwarded to the cluster controller facing MessageFSM for transmissions. Now the remote end will assert RTS and the glue code will assert CTS as soon as it sees the RTS.~~ The previous statement has been deemed unecessary and will not be implemented for now.
+
+When the cluster controller facing SyncFSM and MessagesFSM receives the message it will be syncronized and moved to the Hercules facing MessageFSM for transmission.
+
+Transmission is taking place as a polled state machine. Whenever there is space on the output buffers the transmission state machine is polled. Depending if there is a stored message it will then step by step process the outbound message. The reason for this polling approach is that there were evidence that the output buffer were overwhelmed when the transmission burst was occuring and it was not feasible to increase buffers to cope with this.
+
+## Perfomance measurements
+
+It is important to understand how much time each of the processing tasks take when processing messages. There are four tasks in the main loop. 
+
+1. Process Rx byte from BSC line.
+2. Poll Tx state machine for data going to BSC line.
+3. Process Rx byte from host.
+4. Poll Tx state machine for data going to host.
+
 
 ## Implementation
 
