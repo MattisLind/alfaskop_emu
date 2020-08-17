@@ -71,7 +71,7 @@ A proper socat command for
 sudo socat  TCP:localhost:32701 OPEN:/dev/ttyUSB0,b2400,raw
 ```
 
-I had some problems when dealing with socat which I initially attributed to be due to socat itself. It resulted in that I created a socat replacement, socatReplace in the utils folder in this projects. It turned out that I could run into exactly the same problem using my new socatReplace. It turned out that I got problems with two FTDI dongles simultaneously even using minicom! The problem solved by pulling the USB plug out and reinsert it. It seems that the driver ends up in a strange state if the system is booted with the FTDI dongles inserted while booting.
+I had some problems when dealing with socat which I initially attributed to be due to socat itself. It resulted in that I created a socat replacement, socatReplace in the utils folder in this project. It turned out that I could run into exactly the same problem using my new socatReplace and that I got problems with two FTDI dongles simultaneously even using minicom! The problem is solved by pulling the USB plug out and reinsert it. It seems that the driver ends up in a strange state if the system is booted with the FTDI dongles inserted while booting.
 
 ## Testing with 3274emu and x3270
 A test of the system would be to connect two SyncDongles together with a null modem and have them exchange some data. I created a quick test suite in the test folder that did exactly this and since this was successful I continued to use the same link to connect the 3274emu.
