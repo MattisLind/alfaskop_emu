@@ -145,6 +145,7 @@ void receivedMessage (unsigned char msgType, unsigned char * msg) {
   switch (msgType) {
   case POLL_MESSAGE:
     printLog("POLL CU=%02X DV=%02X\n",((MSG *) msg)->enqData.CU, ((MSG *) (msg))->enqData.DV);
+    messageFSM.setTextMode(true);
     ack=1;
     if (((MSG *) msg)->enqData.CU == 0x40) {
     switch (((MSG *) msg)->enqData.DV) {
@@ -168,6 +169,7 @@ void receivedMessage (unsigned char msgType, unsigned char * msg) {
     break;
   case EOT_MESSAGE:
     printLog("Got EOT\n");
+    messageFSM.setTextMode(false);
     break;
   case ENQ_MESSAGE:
     printLog("Got ENQ\n");
