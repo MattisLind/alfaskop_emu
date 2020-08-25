@@ -30,7 +30,7 @@
 #define IFS 0x1c
 #define IGS 0x1d
 #define IRS 0x1e
-#define IUS 0x1f
+#define ITB 0x1f
 #define DS  0x20
 #define SOS 0x21
 #define FS  0x22
@@ -52,7 +52,7 @@
 #define SUB 0x3f
 #define PAD 0xff
 
-#define isLinkControlChar(ch) ((ch==STX) || (ch==ETX) || (ch==DLE) || (ch==ETB) || (ch==ENQ) || (ch==SYN) || (ch==IUS)) 
+#define isLinkControlChar(ch) ((ch==STX) || (ch==ETX) || (ch==DLE) || (ch==ETB) || (ch==ENQ) || (ch==SYN) || (ch==ITB) || (ch==EOT) || (ch==NAK)) 
 
 char ASCIItoEBCDIC(const unsigned char);
 char EBCDICtoASCII(const unsigned char);
