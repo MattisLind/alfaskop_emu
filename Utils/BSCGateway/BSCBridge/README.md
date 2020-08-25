@@ -2,6 +2,8 @@
 
 Some more detailed resarch into this has given that it should be possible to interface towards Hercules and allow a TSO login using the older access method called TCAM and using the 2703 emulation inside Hercules. This emulation has support for BSC and tests has been done using a test client to prove it might be a path to be pursued. See [herculesIntegration](https://github.com/MattisLind/alfaskop_emu/tree/master/Utils/HerculesIntegration) for more info.
 
+Please note that transparent mode is currently NOT supported.
+
 ## Proposed architecture 
 
 ![Architecture](https://github.com/MattisLind/alfaskop_emu/raw/master/pics/Architecture.jpg)
