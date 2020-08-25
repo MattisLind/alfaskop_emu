@@ -543,6 +543,7 @@ void MessageFSM::rxData(uint8_t data) {
   crc = calculateCrcChar (crc, data);
   msgBuffer[msgBufferCnt++] = data;
   if (rxState == 0) { 
+handleLinkChars:	  
     switch (data) {
     case EOT: 
     case NAK:
@@ -637,6 +638,15 @@ void MessageFSM::rxData(uint8_t data) {
       else {
 	      thereIsMoreComing = false;
       }
+    } else if (isLinkControlCharacter(data)) {
+	// This is some kind of error. In non transparent data we have received link control characters!
+	// return to state 0. Issue an error message.
+      rxState = 0;
+      receivedMessageCb(ERROR_MESSAGE, (unsigned char *)  "Link characters in data");
+      enterHuntStateCb();
+      msgBufferCnt=0;
+      goto handleLinkChars; // OK. goto is really not what I wanted. But it fits its purpose here. We are back in state 0 because of some error. 
+                            // We need to deal with it to get on track!
     } else { // Here comes the data. Up to 4096 bytes of EBCDIC data
       if (byteCounter == 0) {
 	      rxState = 0;
