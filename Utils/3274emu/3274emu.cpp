@@ -7,7 +7,7 @@
  */
 
 /*
-  Compile using c++ 3274emu.cpp ../BSCGateway/BSCBridge/MessageFSM.cpp ../BSCGateway/BSCBridge/crc-16.c   -DHERCULES -DDEBUG  -o 3274emu
+  Compile using c++ 3274emu.cpp ../BSCGateway/BSCBridge/MessageFSM.cpp ../BSCGateway/BSCBridge/crc-16.cpp   -DHERCULES -DDEBUG  -o 3274emu
 
  Run: ./3274emu 127.0.01 37051 127.0.0.1 32701 3274emu2.log
 
@@ -524,10 +524,13 @@ void handle(int client, const char *remote_host, const char *remote_port)
 
   /* Main transfer loop */
   while (!disconnected) {
+    struct timeval t;
+    t.tv_sec = 0;
+    t.tv_usec = 1000;
     FD_ZERO(&set);
     FD_SET(client, &set);
     FD_SET(server, &set);
-    if (select(max_sock + 1, &set, NULL, NULL, NULL) == -1) {
+    if (select(max_sock + 1, &set, NULL, NULL, &t) == -1) {
       perror("select");
       break;
     }
@@ -538,6 +541,7 @@ void handle(int client, const char *remote_host, const char *remote_port)
     if (FD_ISSET(server, &set)) {
       disconnected = processBSCDataFromHercules(server, client);
     }
+    messageFSM.txPoll();
   }
   close(server);
   close(client);
