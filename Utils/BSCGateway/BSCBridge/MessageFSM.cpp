@@ -638,7 +638,7 @@ handleLinkChars:
       else {
 	      thereIsMoreComing = false;
       }
-    } else if (isLinkControlCharacter(data)) {
+    } else if (isLinkControlChar(data)) {
 	// This is some kind of error. In non transparent data we have received link control characters!
 	// return to state 0. Issue an error message.
       rxState = 0;
