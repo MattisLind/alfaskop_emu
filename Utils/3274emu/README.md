@@ -81,10 +81,12 @@ An PR was created towards the Hercules repo: [PR](https://github.com/rbowler/spi
 
 ```./3274emu 127.0.0.1 37252 127.0.0.1 32701```
 
-3274emu takes five arguments, four mandatory and one optional. The first two specify the IP address and port of the local server that the 3274emu creats internally to where the TN3274 client attaches. The following two arguments specify the IP address and port for server to which 3274emu connects. That is the Hercules process. The hercules config should include a 2703 device configured using this port.
+3274emu takes five arguments, four mandatory and one optional. The first two specify the IP address and port of the local server that the 3274emu creats internally to where the TN3274 client attaches. The following two arguments specify the IP address and port for server to which 3274emu connects. That is the Hercules process. The last optional argument is a logfile to write logging to.
+
+The hercules config should include a 2703 device configured using this port. 
 
 ```0604    2703    lport=32701 lnctl=BSC dial=IN```
 
-This specifies a 2703 in BSC mode at port 32701. If low baudrates are used it can happen that there will be resening taking place in MVS because of lack of response from the remote end. This is beause the 2703 has no knowledge about when the actual bytes has been sent to the remote destination. It just know that data has been sent on the socket which take no time at all. With a read timeout of 20 seconds this problem can be circumvented. Read timeout is specified using the rto option. FOr example rto=20000.
+This specifies a 2703 in BSC mode at port 32701. If low baudrates are used it can happen that there will be resening taking place in MVS because of lack of response from the remote end. This is beause the 2703 has no knowledge about when the actual bytes has been sent to the remote destination. It just know that data has been sent on the socket which take no time at all. With a read timeout of 20 seconds this problem can be circumvented. Read timeout is specified using the rto option. For example rto=20000.
 
 
