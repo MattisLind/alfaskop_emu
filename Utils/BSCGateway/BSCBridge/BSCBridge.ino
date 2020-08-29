@@ -12,9 +12,12 @@
 #include "SyncFSM.h"
 #include "MessageFSM.h"
 #define DEBUG_LEVEL 0 
-#define RTS PB11 // Input
-#define RFS PB1  // Output
-#define DTR PB10 // Input 
+#define RTS PB8 // Input
+#define RFS PB7  // Output CTS
+#define DTR PB4  // Input
+#define RI PB3   // Output
+#define DSR PB6  // Output
+#define DCD PB9  // Output 
 #define ACTIVITY PC13 // Activity LED
 
 #define HostSerial Serial
@@ -109,6 +112,12 @@ void setup() {
   pinMode(ACTIVITY, OUTPUT);
   digitalWrite(RFS, LOW);
   pinMode(DTR, INPUT);
+  pinMode(DCD, OUTPUT);
+  digitalWrite(DCD, LOW);
+  pinMode(DSR, OUTPUT);
+  digitalWrite(DSR, LOW);
+  pinMode(RI, OUTPUT);
+  digitalWrite(RI, LOW);
 #ifdef DEBUG1
   logOne("BSC Bridge Starting up");
 #endif
