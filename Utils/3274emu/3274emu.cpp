@@ -200,10 +200,16 @@ void receivedMessage (unsigned char msgType, unsigned char * msg) {
   case TEXT_MESSAGE:
     printLog("Got TEXT\n");
     printLog("Got crcOK = %d\n", m->textData.crcOk);
-    writeTextToClient(m->textData.msg, m->textData.length);
-    if ((ack&1)==1) messageFSM.sendACK1();
-    else messageFSM.sendACK0();
+    if ((ack&1)==1) {
+      printLog("Sending ACK1\n");
+      messageFSM.sendACK1();
+    }
+    else {
+      printLog("Sending ACK0\n");
+      messageFSM.sendACK0();
+    }
     ack++;
+    writeTextToClient(m->textData.msg, m->textData.length);
     break;
   case TEST_MESSAGE:
     printLog("Got TEST\n");
@@ -297,6 +303,9 @@ unsigned int  processBSCDataFromHercules(int server, int client) {
     for (i=0; i<bytes_read; i++) {
       printLog("read %02x : %c from BSC line\n", buf[i] & 0xff, buf[i] & 0xff);
       messageFSM.rxData(buf[i]);
+      while (messageFSM.isTxIdle() != true) {
+	messageFSM.txPoll();
+      }
     }
   }
   return disconnected;
@@ -436,7 +445,7 @@ unsigned int sendTelnetDo(int socket, unsigned char option) {
 
 unsigned int sendTelnetWill(int socket, unsigned char option) {
   unsigned int disconnected = 0;
-  char buf[] = {0xFF, 0xFB, 0x00};
+  unsigned char buf[] = {0xFF, 0xFB, 0x00};
   size_t bytes_written;
   buf[2] = option;
   // Write Telnet negotation to client
@@ -449,7 +458,7 @@ unsigned int sendTelnetWill(int socket, unsigned char option) {
 
 unsigned int sendTelnetDont(int socket, unsigned char option) {
   unsigned int disconnected = 0;
-  char buf[] = {0xFF, 0xFE, 0x00};
+  unsigned char buf[] = {0xFF, 0xFE, 0x00};
   size_t bytes_written;
   buf[2] = option;
   // Write Telnet negotation to client
@@ -462,7 +471,7 @@ unsigned int sendTelnetDont(int socket, unsigned char option) {
 
 unsigned int sendTelnetWont(int socket, unsigned char option) {
   unsigned int disconnected = 0;
-  char buf[] = {0xFF, 0xFC, 0x00};
+  unsigned char buf[] = {0xFF, 0xFC, 0x00};
   size_t bytes_written;
   buf[2] = option;
   // Write Telnet negotation to client
