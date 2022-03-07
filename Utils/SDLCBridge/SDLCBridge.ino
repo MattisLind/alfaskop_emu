@@ -7,71 +7,118 @@
 #include <SPI.h>
 #include "ebcdic.h"
 #include "RingBuffer.h"
-#define DEBUG_LEVEL 0 
-#define RTS PB11 // Input
-#define RFS PB1  // Output
-#define DTR PB10 // Input 
-
-#define BAUD 104
-
-#if DEBUG_LEVEL > 3
+#define DebugSerial Serial1
+#define CommSerial Serial
+#define DEBUG_LVL 0
+//#define DEBUG5
+#define RTS PB8 // Input
+#define RFS PB7  // Output
+#define DTR PB4 // Input 
+#define BAUD_INDEX 9
+#if DEBUG_LVL > 3
 #define DEBUG4
 #endif 
 
-#if DEBUG_LEVEL > 2
+#if DEBUG_LVL > 2
 #define DEBUG3
 #endif
 
-#if DEBUG_LEVEL > 1
+#if DEBUG_LVL > 1
 #define DEBUG2
 #endif 
 
-#if DEBUG_LEVEL > 0
+#if DEBUG_LVL > 0
 #define DEBUG1
 #endif
 
 
 #ifdef DEBUG1
-#undef BAUD 
-#define BAUD 1000
+#define BAUD_INDEX 3
 #endif
 
 #ifdef DEBUG2
-#undef BAUD 
-#define BAUD 10000
+#undef BAUD_INDEX 
+#define BAUD_INDEX 2
 #endif
 
 #ifdef DEBUG3
-#undef BAUD 
-#define BAUD 20000
+#undef BAUD_INDEX 
+#define BAUD_INDEX 1
 #endif
 
 #ifdef DEBUG4
-#undef BAUD 
-#define BAUD 120000
+#undef BAUD_INDEX
+#define BAUD_INDEX 0
 #endif
 
-#define logOne(s) printMillis(); Serial.print(s); Serial.println(); 
-#define logTwo(s,c)  printMillis();Serial.print(s); printTwoDigitHex(c);  Serial.println();
-#define logThree(s1, d1, s2, d2, s3) printMillis();Serial.print(s1);Serial.print(d1, HEX);Serial.print(s2);Serial.print(d2, HEX);Serial.println(s3);
+#define logOne(s) printMillis(); DebugSerial.print(s); DebugSerial.println(); 
+#define logTwo(s,c)  printMillis();DebugSerial.print(s); printTwoDigitHex(c);  DebugSerial.println();
+#define logThree(s1, d1, s2, d2, s3) printMillis();DebugSerial.print(s1);DebugSerial.print(d1, HEX);DebugSerial.print(s2);DebugSerial.print(d2, HEX);DebugSerial.println(s3);
 
+struct baudRate {
+  int prescaler;
+  int divisor;  
+};
+#if F_CPU == 72000000
+struct baudRate baudRates[] = {
+  {7200, 10000 }, // 1 bps
+  {7200, 1000  }, // 10 bps
+  {7200, 200   }, // 50 bps
+  {480,  1000  }, // 150 bps
+  {480,  500   }, // 300 bps
+  {480,  250   }, // 600 bps
+  {480,  125   }, // 1200 bps
+  {48,   625   }, // 2400 bps
+  {15,  1000   }, // 4800 bps
+  {15,   500   }, // 9600 bps
+  {15,   250   }, // 19200 bps
+  {15,   125   }, // 38400 bps
+  {125,   10   }, // 57600 bps
+  {1,    1125  }, // 64000 bps
+  {125,    5   }, // 115200 bps  
+  {72,    4    }, // 250000 bps
+  {72,    2    }, // 500000 bps
+  {36,    2    } // 1000000 bps
+};
+#endif 
 
-
+#if CLOCK_SPEED_MHZ == 96
+struct baudRate baudRates[] = {
+  {9600, 10000 }, // 1 bps
+  {9600, 1000  }, // 10 bps
+  {9600, 200   }, // 50 bps
+  {160,  4000  }, // 150 bps
+  {160,  2000   }, // 300 bps
+  {160,  1000   }, // 600 bps
+  {160,  500   }, // 1200 bps
+  {160,  250   }, // 2400 bps
+  {160,  125   }, // 4800 bps
+  {10,   1000   }, // 9600 bps
+  {10,   500   }, // 19200 bps
+  {10,   250   }, // 38400 bps
+  {1,   1667   }, // 57600 bps
+  {1,    1500  }, // 64000 bps
+  {1,    833   }, // 115200 bps 
+  {96,   4     }, // 250000 bps
+  {96,   2     }, // 500000 bps
+  {48,   2     } // 1000000 bps 
+};
+#endif 
 #ifdef DEBUG1
 void printMillis() {
   unsigned long time = millis();
-  if (time < 10L) Serial.print('0');
-  if (time < 100L) Serial.print('0');
-  if (time < 1000L) Serial.print('0');
-  if (time < 10000L) Serial.print('0');
-  if (time < 100000L) Serial.print('0');
-  if (time < 1000000L) Serial.print('0');
-  if (time < 10000000L) Serial.print('0');
-  if (time < 100000000L) Serial.print('0');
-  if (time < 1000000000L) Serial.print('0');
-  if (time < 10000000000L) Serial.print('0');
-  Serial.print(time, DEC);
-  Serial.print(' ');
+  if (time < 10L) DebugSerial.print('0');
+  if (time < 100L) DebugSerial.print('0');
+  if (time < 1000L) DebugSerial.print('0');
+  if (time < 10000L) DebugSerial.print('0');
+  if (time < 100000L) DebugSerial.print('0');
+  if (time < 1000000L) DebugSerial.print('0');
+  if (time < 10000000L) DebugSerial.print('0');
+  if (time < 100000000L) DebugSerial.print('0');
+  if (time < 1000000000L) DebugSerial.print('0');
+  if (time < 10000000000L) DebugSerial.print('0');
+  DebugSerial.print(time, DEC);
+  DebugSerial.print(' ');
 }
 #endif
 
@@ -107,28 +154,32 @@ unsigned short rxCrc = 0xffff;
 unsigned char in = 0;
 int nonEmptyFrame = 0;
 
-void setup() {
-  int period;
-  int maxduty;
-  // put your setup code here, to run once:
+
+void setBaudRate (int index) {
   pwmtimer.pause();
-  period = BAUD; // PWM period in useconds, freq 300 Hz
-  maxduty = pwmtimer.setPeriod(period);
-  pinMode(pwmOutPin, PWM);
+  pwmtimer.setPrescaleFactor(baudRates[index].prescaler);
+  pwmtimer.setOverflow(baudRates[index].divisor); 
   pwmtimer.refresh();
   pwmtimer.resume();
-  pwmWrite(pwmOutPin, maxduty/2); //50% duty cycle
-  Serial1.begin (2400);
-  Serial.begin (9600);
+  pwmWrite(pwmOutPin, baudRates[index].divisor>>1); //50% duty cycle
+}
+
+void setup() {
+  pinMode(pwmOutPin, PWM);
+  CommSerial.begin (2400);
+#if DEBUG_LVL > 0  
+  DebugSerial.begin (115200);
+#endif
+#ifdef DEBUG1
+  logOne("SDLC Bridge starting up");
+#endif
+  setBaudRate (BAUD_INDEX);
   SPI_2.beginSlave(); //Initialize the SPI_2 port.
   SPI_2.setBitOrder(LSBFIRST); // Set the SPI_2 bit order
   SPI_2.setDataMode(SPI_MODE0); //Set the  SPI_2 data mode 0
   pinMode(RTS, INPUT);
   pinMode(RFS, OUTPUT);
   pinMode(DTR, INPUT);
-#ifdef DEBUG1
-  logOne("SDLC Bridge starting up");
-#endif
   rxInBuffer.initBuffer();
   rxOutBuffer.initBuffer();
   txBuffer.initBuffer();
@@ -152,9 +203,9 @@ void setup() {
 #ifdef DEBUG1
 void printTwoDigitHex (int data) {
   if (data < 16) {
-    Serial.print('0');
+    DebugSerial.print('0');
   } 
-  Serial.print(data, HEX);
+  DebugSerial.print(data, HEX);
 }
 #endif 
 #ifdef DEBUG2
@@ -162,41 +213,41 @@ void printBufferInEBCDIC (const unsigned char  * buf, int length) {
   int i, j;
   for (i=0;i<length;i+=16) {
     printMillis();
-    Serial.print(' ');
+    DebugSerial.print(' ');
     for (j=i; j < (i+16); j++) {
       if (j>=length) {
-        Serial.print("   ");
+        DebugSerial.print("   ");
       } else {
         printTwoDigitHex (buf[j]);
       }
     }
-    Serial.print("  ");
+    DebugSerial.print("  ");
     for (j=i; j < (i+16); j++) {
       if (j>=length) {
-        Serial.print(" ");
+        DebugSerial.print(" ");
       } else {
         if (isprint(buf[j])) {
-          Serial.print(buf[j]);
-          Serial.print(' ');  
+          DebugSerial.print(buf[j]);
+          DebugSerial.print(' ');  
         } else {
-          Serial.print(". ");
+          DebugSerial.print(". ");
         }
       }
     }
-    Serial.print("  ");
+    DebugSerial.print("  ");
     for (j=i; j < (i+16); j++) {
       if (j>=length) {
-        Serial.print(' ');
+        DebugSerial.print(' ');
       } else {
         if (isprint(EBCDICtoASCII(buf[j]))) {
-          Serial.print(EBCDICtoASCII(buf[j]));
-          Serial.print(' ');
+          DebugSerial.print(EBCDICtoASCII(buf[j]));
+          DebugSerial.print(' ');
         } else {
-          Serial.print(". ");
+          DebugSerial.print(". ");
         }
       }
     }
-    Serial.println();
+    DebugSerial.println();
   }
 }
 #endif
@@ -439,7 +490,7 @@ void processHDLCforSending(unsigned char ch) {
 // by processHDLCForSending method.
 // Following this it calls endHDLCProcessing method which handles and any residual bits.
 int serialFrameState = 0;
-
+int commandByte;
 void processFramedSerialData(unsigned char ch) {
   if (serialFrameState == 0) { // Normal state no ESC has been received
     if (ch == 0xff) {         // Received ESC
@@ -450,6 +501,7 @@ void processFramedSerialData(unsigned char ch) {
     }
   } else if (serialFrameState == 1) {
     serialFrameState=0;
+    commandByte = ch;
     switch (ch) {
       case 0xff: // Just add the 0xff to the data stream
         txCrc = calculateCrcChar(txCrc, ch);  // Calculate the CRC for each character
@@ -467,7 +519,7 @@ void processFramedSerialData(unsigned char ch) {
         rxMode = 0;
         txMode = 0;
         rxHDLCState = 0;
-	nonEmptyFrame = 0; 	    
+	      nonEmptyFrame = 0; 	    
         rxInBuffer.initBuffer();
         rxOutBuffer.initBuffer();
         txBuffer.initBuffer();
@@ -478,8 +530,42 @@ void processFramedSerialData(unsigned char ch) {
         endHDLCProcessing();                // Handle non modulo 8 bits and send flags.
         txMode = 1;
         break;
+      case 0xf0: // Two byte commands 
+      case 0xf1:
+      case 0xf2:
+      case 0xf3:
+        serialFrameState = 2;
+        break;
       default:  // Invalid ESC sequence
         break;
+    }
+  } else if (serialFrameState == 2) {
+    serialFrameState = 0;
+    switch (commandByte) {
+      case 0xf0: // set baud rate
+      if ((ch >= 0) && (ch <= 14)) {
+        setBaudRate(ch);
+      } 
+      break;
+      case 0xf1: // set handshake pin
+      if (ch == 0) {
+        digitalWrite (RFS, 1); 
+      } 
+      break;
+      case 0xf2: // clear handshake pin
+      if (ch == 0) {
+        digitalWrite (RFS, 0); 
+      } 
+      break;
+      case 0xf3:  // report back pin status
+      CommSerial.write(0xff);
+      CommSerial.write(0xf4);
+      if (ch == 0) {
+        CommSerial.write(digitalRead (DTR)); 
+      } else {
+        CommSerial.write(digitalRead (RTS));
+      }
+      break;
     }
   }
 }
@@ -522,6 +608,7 @@ static inline void processRxZeroHDLCBit() {
       logOne("Flag - Going from out of sync to in sync");
 #endif
       rxHDLCState = 1;
+      rxBitCounter = 0;
     }	    	    
   }
   rxOneCounter=0;	
@@ -665,8 +752,8 @@ void loop() {
 unsigned char ch;
   
   if (!txMode) {
-    if (Serial1.available()>0) {
-       ch = Serial1.read();
+    if (CommSerial.available()>0) {
+       ch = CommSerial.read();
   #ifdef DEBUG3     
        logTwo("Reciving from Serial port : ", ch);
   #endif   
@@ -693,8 +780,8 @@ unsigned char ch;
      logTwo("Read from rxOutBuffer for sending to serial port: ", ch);
 #endif 
       rxCrc = calculateCrcChar(rxCrc, ch);
-      if (ch==0xff) Serial1.write(0xff);
-      Serial1.write(ch);	  
+      if (ch==0xff) CommSerial.write(0xff);
+      CommSerial.write(ch);	  
     } else {
 #ifdef DEBUG3
       logOne("Buffer empty sending the CRCs and the EOR");
@@ -704,12 +791,12 @@ unsigned char ch;
       logTwo("CRC first byte: ",(rxCrc>>8) & 0xff);
       logTwo("CRC second byte: ",rxCrc & 0xff);  
 #endif
-      Serial1.write((rxCrc>>8) & 0xff);
-      Serial1.write(rxCrc & 0xff);
+      CommSerial.write((rxCrc>>8) & 0xff);
+      CommSerial.write(rxCrc & 0xff);
       rxCrc=0xffff;
       rxBitCounter=0;
-      Serial1.write(0xff);
-      Serial1.write(0xef);
+      CommSerial.write(0xff);
+      CommSerial.write(0xef);
     }
   }
 }	

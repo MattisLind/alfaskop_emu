@@ -1,6 +1,6 @@
 #ifndef _RING_BUFFER_
 #define _RING_BUFFER_
-#define SIZE 260
+#define SIZE 1024
 
 class RingBuffer {
   volatile int inPtr, outPtr, bufferFull, bufferEmpty;
