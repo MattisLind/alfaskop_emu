@@ -14,6 +14,9 @@
 #define RTS PB8 // Input
 #define RFS PB7  // Output
 #define DTR PB4 // Input 
+#define DSR PB6  // Output
+#define RI  PB3  // Output
+#define DCD PB9  // Output
 #define BAUD_INDEX 9
 #if DEBUG_LVL > 3
 #define DEBUG4
@@ -180,6 +183,9 @@ void setup() {
   pinMode(RTS, INPUT);
   pinMode(RFS, OUTPUT);
   pinMode(DTR, INPUT);
+  pinMode(DSR, OUTPUT);
+  pinMode(DCD, OUTPUT);
+  pinMode(RI, OUTPUT);
   rxInBuffer.initBuffer();
   rxOutBuffer.initBuffer();
   txBuffer.initBuffer();
@@ -548,13 +554,35 @@ void processFramedSerialData(unsigned char ch) {
       } 
       break;
       case 0xf1: // set handshake pin
-      if (ch == 0) {
-        digitalWrite (RFS, 1); 
+      switch (ch) {
+        case 0:
+          digitalWrite (RFS, 1); 
+          break;
+        case 1:
+          digitalWrite (DSR, 1);
+          break;
+        case 2:
+          digitalWrite (DCD, 1);
+          break;
+        case 3:
+          digitalWrite (RI, 1);
+          break;
       } 
       break;
       case 0xf2: // clear handshake pin
-      if (ch == 0) {
-        digitalWrite (RFS, 0); 
+      switch (ch) {
+        case 0:
+          digitalWrite (RFS, 0); 
+          break;
+        case 1:
+          digitalWrite (DSR, 0);
+          break;
+        case 2:
+          digitalWrite (DCD, 0);
+          break;
+        case 3:
+          digitalWrite (RI, 0);
+          break;
       } 
       break;
       case 0xf3:  // report back pin status
@@ -779,7 +807,7 @@ unsigned char ch;
 #ifdef DEBUG3
      logTwo("Read from rxOutBuffer for sending to serial port: ", ch);
 #endif 
-      rxCrc = calculateCrcChar(rxCrc, ch);
+      //rxCrc = calculateCrcChar(rxCrc, ch);
       if (ch==0xff) CommSerial.write(0xff);
       CommSerial.write(ch);	  
     } else {
@@ -791,9 +819,9 @@ unsigned char ch;
       logTwo("CRC first byte: ",(rxCrc>>8) & 0xff);
       logTwo("CRC second byte: ",rxCrc & 0xff);  
 #endif
-      CommSerial.write((rxCrc>>8) & 0xff);
-      CommSerial.write(rxCrc & 0xff);
-      rxCrc=0xffff;
+//      CommSerial.write((rxCrc>>8) & 0xff);
+//      CommSerial.write(rxCrc & 0xff);
+//      rxCrc=0xffff;
       rxBitCounter=0;
       CommSerial.write(0xff);
       CommSerial.write(0xef);
