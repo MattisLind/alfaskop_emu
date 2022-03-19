@@ -51,7 +51,7 @@
 
 #ifdef DEBUG4
 #undef BAUD_INDEX
-#define BAUD_INDEX 0
+#define BAUD_INDEX 2
 #endif
 
 #define logOne(s) printMillis(); DebugSerial.print(s); DebugSerial.println(); 
@@ -147,7 +147,7 @@ int txHDLCState=HDLC_STATE_IDLE;
 volatile int txMode = 0;  // There are two modes. Either it receives data from the Serial port, via the buffer or
                  // it transmits data that has been stored previosly in the ringBuffer on SPI interface.
 
-
+int abortDetected = 1;
 int rxBitCounter = 0;
 int rxOneCounter = 0;
 int rxHDLCState = 0;
@@ -640,6 +640,7 @@ static inline void processRxZeroHDLCBit() {
 #endif
   if (rxHDLCState) { // We have received a flag - waiting for end flag
     if (rxOneCounter==6) { 
+      abortDetected = 0;
 #ifdef DEBUG4
       logOne("Flag - while in-sync");
 #endif
@@ -673,6 +674,7 @@ static inline void processRxZeroHDLCBit() {
 #endif
       rxHDLCState = 1;
       rxBitCounter = 0;
+      abortDetected = 0;
     }	    	    
   }
   rxOneCounter=0;	
@@ -685,14 +687,18 @@ static inline void processRxOneHDLCBit() {
 #endif
   if (rxHDLCState) { // We have received a flag - waiting for end flag    	    
     if (rxOneCounter==6) { // Abort
-#ifdef DEBUG4
+#ifdef DEBUG2
       logOne("processRxOneHDLCBit Received an Abort");
 #endif      
       rxHDLCState = 0;     // This is normal if the line goes to marking state directly after a flag.
       if (nonEmptyFrame) { // But we do have data received in the buffer, then we need to clear out the buffer.
         nonEmptyFrame=0;
+        rxCrc=0xffff;      // reset the crc after an abort!
         CommSerial.write(0xff);
-        CommSerial.write(0xfe);       
+        CommSerial.write(0xfe); 
+        rxBitCounter = 0;  
+        rxOneCounter = 0; 
+        abortDetected = 1;
       }	    
     } else {
       in  >>= 1; in |= 0b10000000; rxBitCounter++;
@@ -812,7 +818,11 @@ extern "C" void __irq_spi2 (void) {
       logTwo("Receiving SPI: ", ch);
 #endif    
       rxInBuffer.writeBuffer(ch);  		
-    } 
+    } else {
+      if (!abortDetected) {
+        rxInBuffer.writeBuffer(ch);   
+      }
+    }
   }
 }
 
