@@ -134,7 +134,6 @@ SPIClass SPI_2(2);
 HardwareTimer pwmtimer(1);
 const int pwmOutPin = PA8; // pin10
 
-class RingBuffer rxOutBuffer;
 class RingBuffer txBuffer;
 class RingBuffer rxInBuffer;
 unsigned short txCrc=0xffff;
@@ -149,7 +148,6 @@ volatile int txMode = 0;  // There are two modes. Either it receives data from t
                  // it transmits data that has been stored previosly in the ringBuffer on SPI interface.
 
 
-int rxMode=0;
 int rxBitCounter = 0;
 int rxOneCounter = 0;
 int rxHDLCState = 0;
@@ -187,7 +185,6 @@ void setup() {
   pinMode(DCD, OUTPUT);
   pinMode(RI, OUTPUT);
   rxInBuffer.initBuffer();
-  rxOutBuffer.initBuffer();
   txBuffer.initBuffer();
   oneCounter = 0;
   bitCounter = 0;
@@ -197,7 +194,6 @@ void setup() {
   rxOneCounter = 0;
   in = 0;
   rxBitCounter=0;
-  rxMode = 0;
   txMode = 0;
   rxHDLCState = 0;
   nonEmptyFrame = 0;	
@@ -331,6 +327,37 @@ static inline void shiftInOne() {
   logTwo("EXIT shiftInOne: out=", out);  
 #endif  
 }
+
+void sendAbort() {
+#ifdef DEBUG4
+  logTwo("ENTRY sendAbort bitCounter=", bitCounter); 
+#endif
+  if (bitCounter == 0) {
+    spi_irq_disable(SPI2, SPI_RXNE_INTERRUPT);
+    txBuffer.writeBuffer(0x7F);  // Send the flag directly if the bitcounter is indicateing no residual bits.    
+    spi_irq_enable(SPI2, SPI_RXNE_INTERRUPT);
+  } else {
+    shiftInZero();
+    shiftInOne();
+    shiftInOne();
+    shiftInOne();
+    shiftInOne();
+    shiftInOne();
+    shiftInOne();
+    shiftInOne();
+    for (; bitCounter<8;bitCounter++) { out >>= 1; out |= 0b10000000; }
+    spi_irq_disable(SPI2, SPI_RXNE_INTERRUPT);
+    txBuffer.writeBuffer(out);   
+    spi_irq_enable(SPI2, SPI_RXNE_INTERRUPT);
+  }
+  bitCounter=0;
+  oneCounter=0;
+  txHDLCState=HDLC_STATE_IDLE;
+  txCrc=0xffff;
+}
+
+
+
 
 // This method will end the frame. Since the fram might contain a number of bits that is not divisable by eight we need to handle 
 // this. We also need to shift on thge closing frame. If there are uneven, non eight divisable framelength the reamaining bits
@@ -522,18 +549,20 @@ void processFramedSerialData(unsigned char ch) {
         rxOneCounter = 0;
         in = 0;
         rxBitCounter=0;
-        rxMode = 0;
         txMode = 0;
         rxHDLCState = 0;
 	      nonEmptyFrame = 0; 	    
         rxInBuffer.initBuffer();
-        rxOutBuffer.initBuffer();
         txBuffer.initBuffer();
         break;
       case 0xef: // EOR 
         //processHDLCforSending(~(0xff & txCrc));       // LSB of CRC word 
         //processHDLCforSending(~(0xff & (txCrc >> 8)));  // MSB of CRC word
         endHDLCProcessing();                // Handle non modulo 8 bits and send flags.
+        txMode = 1;
+        break;
+      case 0xfe: // Abort
+        sendAbort();
         txMode = 1;
         break;
       case 0xf0: // Two byte commands 
@@ -615,7 +644,12 @@ static inline void processRxZeroHDLCBit() {
       logOne("Flag - while in-sync");
 #endif
       if (nonEmptyFrame) { // Flag - still in sync.         
-        rxMode = 1; 
+        CommSerial.write((rxCrc>>8) & 0xff);
+        CommSerial.write(rxCrc & 0xff);
+        rxCrc=0xffff;
+        rxBitCounter=0;
+        CommSerial.write(0xff);
+        CommSerial.write(0xef);
         nonEmptyFrame = 0;
       }
       rxBitCounter = 0; 
@@ -626,7 +660,9 @@ static inline void processRxZeroHDLCBit() {
 #ifdef DEBUG4
         logTwo("processRxZeroHDLCBit rxBitCounter=8 in=", in);       
 #endif
-        rxOutBuffer.writeBuffer(in);
+        rxCrc = calculateCrcChar(rxCrc, in);
+        if (in==0xff) CommSerial.write(0xff);
+        CommSerial.write(in);   
 	      nonEmptyFrame = 1;      
       }	      
     } // else we would do nothing since then it is an inserted 0.	    
@@ -649,10 +685,14 @@ static inline void processRxOneHDLCBit() {
 #endif
   if (rxHDLCState) { // We have received a flag - waiting for end flag    	    
     if (rxOneCounter==6) { // Abort
+#ifdef DEBUG4
+      logOne("processRxOneHDLCBit Received an Abort");
+#endif      
       rxHDLCState = 0;     // This is normal if the line goes to marking state directly after a flag.
       if (nonEmptyFrame) { // But we do have data received in the buffer, then we need to clear out the buffer.
         nonEmptyFrame=0;
-	      rxOutBuffer.initBuffer();  // re-init the buffer would do it for us. 
+        CommSerial.write(0xff);
+        CommSerial.write(0xfe);       
       }	    
     } else {
       in  >>= 1; in |= 0b10000000; rxBitCounter++;
@@ -662,7 +702,9 @@ static inline void processRxOneHDLCBit() {
 #ifdef DEBUG4
         logTwo("processRxOneHDLCBit rxBitCounter=8 in=", in);
 #endif
-        rxOutBuffer.writeBuffer(in); 
+        rxCrc = calculateCrcChar(rxCrc, in);
+        if (in==0xff) CommSerial.write(0xff);
+        CommSerial.write(in);   
       } 
     }	      
   } 
@@ -792,7 +834,7 @@ unsigned char ch;
     }
   }  
 
-  if (!rxMode && !rxInBuffer.isBufferEmpty()) {
+  if (!rxInBuffer.isBufferEmpty()) {
     spi_irq_disable(SPI2, SPI_RXNE_INTERRUPT);	
     ch = rxInBuffer.readBuffer();
     spi_irq_enable(SPI2, SPI_RXNE_INTERRUPT);      
@@ -800,31 +842,5 @@ unsigned char ch;
     logTwo("Synced data from buffer to be HDLC processed : ", ch);
 #endif
     processRxHDLC(ch);		  
-  }
-  if (rxMode) {
-    if (!rxOutBuffer.isBufferEmpty()) {
-      ch = rxOutBuffer.readBuffer();
-#ifdef DEBUG3
-     logTwo("Read from rxOutBuffer for sending to serial port: ", ch);
-#endif 
-      //rxCrc = calculateCrcChar(rxCrc, ch);
-      if (ch==0xff) CommSerial.write(0xff);
-      CommSerial.write(ch);	  
-    } else {
-#ifdef DEBUG3
-      logOne("Buffer empty sending the CRCs and the EOR");
-#endif
-      rxMode = 0;
-#ifdef DEBUG4
-      logTwo("CRC first byte: ",(rxCrc>>8) & 0xff);
-      logTwo("CRC second byte: ",rxCrc & 0xff);  
-#endif
-//      CommSerial.write((rxCrc>>8) & 0xff);
-//      CommSerial.write(rxCrc & 0xff);
-//      rxCrc=0xffff;
-      rxBitCounter=0;
-      CommSerial.write(0xff);
-      CommSerial.write(0xef);
-    }
   }
 }	
