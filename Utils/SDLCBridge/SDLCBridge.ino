@@ -531,8 +531,8 @@ void processFramedSerialData(unsigned char ch) {
         txBuffer.initBuffer();
         break;
       case 0xef: // EOR 
-        processHDLCforSending(~(0xff & txCrc));       // LSB of CRC word 
-        processHDLCforSending(~(0xff & (txCrc >> 8)));  // MSB of CRC word
+        //processHDLCforSending(~(0xff & txCrc));       // LSB of CRC word 
+        //processHDLCforSending(~(0xff & (txCrc >> 8)));  // MSB of CRC word
         endHDLCProcessing();                // Handle non modulo 8 bits and send flags.
         txMode = 1;
         break;
