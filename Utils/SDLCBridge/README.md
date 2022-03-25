@@ -715,6 +715,83 @@ The first attempt to send somethingto the Informer 213 was a success. Sending 40
 
 Next step is to do some test integration into the comm3705.c code to connect to the serial port which then talks to my adapter. 
 
+### API
+
+The SDLCbridge is using a leading 0xff to indicate a command. The following code is descrbed below.
+
+#### Send end flag
+
+Code: 0xef
+
+#### Send Abort
+
+Code: 0xfe
+
+#### Send actual 0xff
+
+Code: 0xff
+
+#### Set baud rate
+
+Code: 0xff
+
+A third byte is an argument. It takes a value 0x00 to 0x11 hexadecimal
+
+| Argument | Baud rate | 
+|----------|-----------|
+|   0x00   |   1       |
+|   0x01   |  10       |
+|   0x02   |  50       |
+|   0x03   | 150       |
+|   0x04   | 300       | 
+|   0x05   | 600       |
+|   0x06   | 1200      |
+|   0x07   | 2400      |
+|   0x08   | 4800      |
+|   0x09   | 9600      |
+|   0x0A   | 19200     |
+|   0x0B   | 38400     |
+|   0x0C   | 57600     |
+|   0x0D   | 64000     |
+|   0x0E   | 115200    |
+|   0x0F   | 250000    |
+|   0x10   | 500000    |
+|   0x11   | 1000000   |
+
+#### Set interface signal 
+
+Code 0xf1
+
+| Argument |  Pin      |
+|----------|-----------|
+|   0x00   |  RFS/CTS  |
+|   0x01   |  DSR      |
+|   0x02   |  DCD      |
+|   0x03   |  RI       |
+
+#### Clear interface signal
+
+Code 0xf2
+
+| Argument |  Pin      |
+|----------|-----------|
+|   0x00   |  RFS/CTS  |
+|   0x01   |  DSR      |
+|   0x02   |  DCD      |
+|   0x03   |  RI       |
+
+#### Report interface signal status
+
+Code: 0xf3
+
+| Argument |  Pin      |
+|----------|-----------|
+|   0x00   |  DTR      |
+|   0x01   |  RTS      |
+
+A three byte sequence will be sent back with a leading 0xff command indicator byte.
+The second byte is 0xF4 and the third byte is the actual value of the signal requested. 0x00 if signal is clear or 0x01 if signal is set.
+
 ## Links
 
 ### SNA
