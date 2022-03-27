@@ -1,10 +1,10 @@
 #ifndef _RING_BUFFER_
 #define _RING_BUFFER_
-#define SIZE 1024
+#define SIZE 5000
 
 class RingBuffer {
   volatile int inPtr, outPtr, bufferFull, bufferEmpty;
-  int buffer[SIZE];
+  unsigned char buffer[SIZE];
 public:
   int isBufferFull () {
     return bufferFull;
@@ -12,8 +12,9 @@ public:
   int isBufferEmpty () {
     return bufferEmpty;
   }
-  void writeBuffer (int data);
-  int readBuffer ();
+  void writeBuffer (unsigned char data);
+  unsigned char readBuffer ();
   void  initBuffer ();
 };
+
 #endif

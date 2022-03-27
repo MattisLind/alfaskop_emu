@@ -1,7 +1,7 @@
 #include "RingBuffer.h"
 #include <stdio.h>
 
-void RingBuffer::writeBuffer (int data) {
+void RingBuffer::writeBuffer (unsigned char data) {
   //printf ("write data %X |", data);
   buffer[inPtr] = data;
   bufferEmpty = 0;
@@ -16,7 +16,7 @@ void RingBuffer::writeBuffer (int data) {
   }
 }
 
-int RingBuffer::readBuffer () {
+unsigned char RingBuffer::readBuffer () {
   int out = buffer[outPtr];
   bufferFull = 0;
   outPtr++;
