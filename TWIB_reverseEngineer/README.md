@@ -61,3 +61,7 @@ The clock inputs may be using the internal clock but as this is set in software,
 |    15/17  |  13:1489      |   7,4    |   TXCb / RXCb |
 |    20     |  4:1489       |    5     |    CDb        |
 
+### 8274
+
+[8274 data sheet](https://github.com/MattisLind/alfaskop_emu/raw/master/TWIB_reverseEngineer/8274-datasheet.pdf)
+
