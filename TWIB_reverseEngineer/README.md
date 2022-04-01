@@ -47,3 +47,17 @@ The TWIB board has a unpopulated header with 26 pins which presuambly should be 
 |               |     17 to pin 24 |
 
 The clock inputs may be using the internal clock but as this is set in software, the best is to jumper them in the connector to get a proper send and receive clock.
+
+### DB25 attached to the TWIB board
+
+|  DB25 pin | 1488/1489 pin | 8274 pin | 8274 Function |
+|-----------|---------------|----------|---------------|
+|     2     |  1: 1489      |    9     |    RXb        |
+|     3     |  3: 1488      |    8     |    TXb        |
+|     4     |  10: 1489     |    6     |    CTSb       |
+|     5     |  8: 1488      |    10    |    RTSb       |
+|     7     |    GND        |          |               |
+|     8     |  6:1488       |   26     |    DTRb       |
+|    15/17  |  13:1489      |   7,4    |   TXCb / RXCb |
+|    20     |  4:1489       |    5     |    CDb        |
+
