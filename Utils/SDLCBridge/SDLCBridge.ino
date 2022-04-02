@@ -332,6 +332,9 @@ void sendAbort() {
 #ifdef DEBUG4
   logTwo("ENTRY sendAbort bitCounter=", bitCounter); 
 #endif
+  if (oneCounter == 5) {
+    shiftInZero();
+  }
   if (bitCounter == 0) {
     spi_irq_disable(SPI2, SPI_RXNE_INTERRUPT);
     txBuffer.writeBuffer(0x7F);  // Send the flag directly if the bitcounter is indicateing no residual bits.    
@@ -367,6 +370,9 @@ void endHDLCProcessing() {
 #ifdef DEBUG4
   logTwo("ENTRY endHDLCProcessing bitCounter=", bitCounter); 
 #endif
+  if (oneCounter == 5) {
+    shiftInZero();
+  }
   if (bitCounter == 0) {
     spi_irq_disable(SPI2, SPI_RXNE_INTERRUPT);
     txBuffer.writeBuffer(0x7E);  // Send the flag directly if the bitcounter is indicateing no residual bits.    
