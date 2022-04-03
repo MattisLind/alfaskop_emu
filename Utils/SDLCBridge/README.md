@@ -45,6 +45,8 @@ But the final test has to be done with real hardware. Since earlier I have been 
 
 A few more problems were rooted out. Especially handling of idle flags which were a sequence 0111111001111110... rather than expected 011111101111110... Then handling of bit patterns that were not aligined on a byte boundry didn't work very well. Problems here were expected since there had been not been covered by previous tests.
 
+At a late stage it was discovered that certain frames was not accepted by the terminal so the IBM3705 emulator kept resending them unttil the line was restarted. By testing with the TWIB board it was recognized that hose frames indeed had a CRC error. By comparing a number of frames whcih caused this it was recognized that what they had in common was that the last CRC byte had five highest bits all set. Was there a problem when there was a flag dreictly after five bits? My assumption was that the leading 0 of the flag would have been enough, but apparently not. By adding the 0 bit after five bit (even though the flag had a zero in it) solved the problem. There will now be two zero bits after each other when the flag is preceeded by a 11111 bit pattern. Nevertheless this seems to be it should work since now it works just fine!
+
 ### CRC
 To get the CRC right always become a problem. Is it LSB first? MSB first? Initial value? In this case in theory the algorithm should be quite well known. IBM SDLC CRC, initial value 0xffff.
 
