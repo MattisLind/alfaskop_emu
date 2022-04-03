@@ -1,10 +1,202 @@
 # SDLC bridge
 
 This is an attempt to interface a Informer 213, a portable 3178 compatible terminal with integrated 3274 comatible cluster controller, to the Hercules mainframe emulator.
-This terminal needs a SDLC compatible interface. This project also discusses how to create the relevant configuration in the MVS / VTAM environment
-to achieve this and what changes is needed to the comm3705 module in Hercules.
+This terminal needs a SDLC compatible interface. ~~This project also discusses how to create the relevant configuration in the MVS / VTAM environment
+to achieve this and what changes is needed to the comm3705 module in Hercules.~~ The new solution is based on the IBM 3705 emulator created by Henk & Edwin which I have [forked](https://github.com/MattisLind/IBM3705) and adaptec to work with the SDLCBridge.
+
+This make it unnecessary to modify the Hercules system and thus the information below relating to this is not relevent for this project any longer. It is kept here as a reference only.
 
 ![Informer 213](https://i.imgur.com/M9zcy7E.png)
+
+### SDLC implementation in STM32 Blue pill - Tx
+
+The general idea is to receive frames over serial line from Hercules. 
+
+There is an End Of Record (EOR) in the data received which indicate when to insert CRC bytes and generate closing flag. Just as little safty measure there is a simple checksum in the serial protcols. ~~The byte just before the EOR is the checksum byte and should be the sum of bytes received until then. When everything is OK the sum should be zero when the EOR is received. If not zeros a REJECT is sent back. A REJECT is 0xff 0xfd. If the frame is OK then 0xff 0xfe is sent back when the frame has been sent. A timeout is needed on the sending side as well. It has to be related to the actual sending speed.~~ It turns out that including the escape in the checksum process will not work since you might end up with 0xff as the checksum and then you need to escape it which will then affect the checksum... An data 0xff has to be escaped with double 0xff to work.
+
+Data is then formatted into HDLC and moved into a sending buffer. The SPI routine checks is there are possible to send a byte from the buffer. Whenever it SPI interface is empty a new byte is read from the buffer and written to the SPI interface. When the sending buffer is empty the SPI will continue to send 0xff to indicate IDLE condition. 
+
+As data is received and de-escaped it is handled by the hdlc formatting routine. It takes has several states. In state IDLE when receiving a character it will start the frame by sending a flag. Then it will transfer to state FLAG SENT. In FLAG SENT all bytes are processed bit by bit, from ~~MSB to LSB~~ LSB to MSB. If the bit is a zero the output data byte will be shifted one step ~~left~~ right, thus shufting in a 0. If the bit is a one there is a counter that counts the number of ones that has been sent already. If this counter is five then a zero bit is inserted prior to shifting in the one bit. The counter is reset to zero at this time.
+
+There is also a bit counter that counts from 0 to 8. It counts each bit shifted in into the one byte output buffer. When 8 bits has been shifted in, including extra zeroes that has been inserted, it will transfer the byte to the output buffer queue for sending. The bit counter will then be reset to zero again.  
+
+When all data has been sent there might be a number of residual bits that has not yet been sent in the output buffer byte depening on how many extra zeroes that has been inserted. If this is the case the flag byte will be shifted in rather than just sent directly. To fill up to 8 full bits idle one bits will be shifted in after the flag byte prior to moving it to the output sending buffer.
+
+### SDLC implementation in STM32 Blue pill - Rx
+
+Since receiving is a time critical task bytes has to be received from the SPI interface immediately and put into a buffer. All SDLC processing code will read byte by byte from the buffer rather than from the SPI device to minimize the risk for overrun. To further improve this DMA can be used to transfer the data without involving the CPU at all. Will be invesigated in the future.
+
+The SDLC processor has two states, IDLE and ACTIVE. IDLE when it is waiting for receiving the flag and ACTIVE when receiving data. As with transmit each byte is scanned from LSB to MSB. If a bit is a 1 then oneCounter is incremented. If oneCounter is 6 and the current bit is 0 then we have a flag. Then we switch states, either from IDLE to ACTIVE or from ACTIVE to IDLE. If in ACTIVE state and oneCounter is 6 and we receive a 1 then we have an abort. The current frame shall be discarded and state goes to IDLE.
+In ACTIVE state and oneCounter is 5 and current bit is 0 it means that this is an inserted 0 bit. This shall be disregarded from. Thus do nothing. In all other cases when in ACTIVE state it shall copy the current bit into the input byte buffer, shifting it in to the right from MSB to LSB. The bitCounter is incremented at each time. If the bitCounter is 8 then the current input byte is transfered to the buffer and the bitCounter is reset to 0.
+
+When in ACTIVE state and a flag is received, this means that the current frame is terminated and that it shall be processed by next layer. Thus a variable is signalling that the current frame is ready for processing.
+
+The data that has been processed by the SDLC input processor is then read from the buffer by the task that frames data for sending over the serial line. This is simply reading the stream of bytes and inserting escaping 0xff characters whenever necessary. The EOR marker will be sent as the last couple of characters.
+
+### Debugging
+
+This involved writing a couple of test programs to be found unser the Utils/BSCGateway/test; SDLCBridgeTest and SDLCBridgeSerialTest. The former wraps the arduino sketch so it can be run loopbacked in a Linux environment. The latter is a Linux program that sends messages over the serial port and excpects them to be loopbacked.
+
+A lot of small issues was rooted out this way. Using various amount of logging inside the code. Since all logging is done over the USB serial port in the Arduino environment there were heavy load on it. The bufferes overflow and there were loss of logging. The solution was to increase USB bufferes substantially. It can be done by changing the values in the file "Documents \ Arduino \ Hardware \ Arduino_STM32 \ STM32F1 \ cores \ maple \ libmaple \ usb \ stm32f1 \ usb_cdcacm.c"
+
+But the final test has to be done with real hardware. Since earlier I have been using the Ericsson TWIB board hooked up to a STM32F103 Blue Pill. The same test setup was used this time connecting it back to back with the SDLCBridge.
+
+![Debugging with TWIB board](https://i.imgur.com/e9XisGPl.jpg)
+
+A few more problems were rooted out. Especially handling of idle flags which were a sequence 0111111001111110... rather than expected 011111101111110... Then handling of bit patterns that were not aligined on a byte boundry didn't work very well. Problems here were expected since there had been not been covered by previous tests.
+
+### CRC
+To get the CRC right always become a problem. Is it LSB first? MSB first? Initial value? In this case in theory the algorithm should be quite well known. IBM SDLC CRC, initial value 0xffff.
+
+Use of CRC reveng for a number of messages sent from a actual Intel 8274 chip:
+```
+$ ./reveng -w 16 -s 409333ef 21433345 6664e01b cc190de1
+width=16  poly=0x1021  init=0xffff  refin=true  refout=true  xorout=0xffff  check=0x906e  residue=0xf0b8  name="CRC-16/IBM-SDLC"
+```
+```
+$ ./reveng -c -m CRC-16/IBM-SDLC 4093
+33ef
+$ ./reveng -c -m CRC-16/IBM-SDLC 2143
+3345
+$ ./reveng -c -m CRC-16/IBM-SDLC 6664
+e01b
+$ ./reveng -c -m CRC-16/IBM-SDLC cc19
+0de1
+```
+Yes. We get the right check digits when we use this algorithm.
+
+```
+$ ./reveng -c -m CRC-16/IBM-SDLC 409333ef
+470f
+$ ./reveng -c -m CRC-16/IBM-SDLC 21433345
+470f
+$ ./reveng -c -m CRC-16/IBM-SDLC 6664e01b
+470f
+$ ./reveng -c -m CRC-16/IBM-SDLC cc190de1
+470f
+```
+But the sum of the full buffer is not 0? Or 0xffff? Which I thought would be reasonable. No. For IBM SDLC CRC the value remaining in the crc variable should be f0b8. Actually the same value stated by CRC reveng. But 470f is not f0b8? If we invert the bits we get b8f0. And then transpose the bytes. Voila f0b8! But why CRC reveng claims that value to be 470f? I have no idea.  
+
+Using the standard CRC algorithm yields the same result. f0b8. So I think the CRC issue is settled.
+
+### Informer 213
+
+Pinout of the DB25 connector on the back on the terminal.
+
+| DSUB Female DB25 | Function | Tx / Rx |
+|------------------|----------|---------|
+|     1            | GND      |         |
+|     2            |  TD      |  Tx     |
+|     3            |  RD      |  Rx     |
+|     4            |  RTS     |  Tx     |
+|     5            |  CTS     |  Rx     |
+|     6            |  DSR     |  Rx     |
+|     7            |  GND     |         |
+|     8            |  DCD     |  Rx     |
+|    15            |  TSET    |  Rx     |
+|    17            |  RSET    |  Rx     |
+|    20            |  DTR     |  Tx     |
+
+All others are Not Connected.
+
+### Improvements
+
+Listed below is a set  of items to improve on in the software.
+
+* Add escaped command to set the baudrate. 0.1 BPS, 1 BPS, 30 BPS, 300 BPS, 600, BPS, 1200 BPS, 2400 BPS, 4800 BPS, 9600, BPS, 19200 BPS, 38400 BPS, 115200 BPS.
+* Add individual commands to set the state of the DSR, CTS and DCD signals sent from the DCE.
+* Add a possibility for the device to send a status signal when the state of DTE signals DTR and RTS is changed.
+* Add a command that requests a response for the actual status for the signals mentioned above.
+* The transmitter should be able to send continuous flags when not sending rather than going to marking state. Add two modes. Either go idle or send flags.
+* In send flags mode it should be possible to send a command that forces the interface to go to idle with line i marking state.
+
+Continous flag sending is implmented by a check that is done in the mainloop. If the level of bytes is under a certain level we call a sendFlag routine that shifts in a 0 and 6 ones. This is done until the level in the sending buffer is OK.
+
+### We have a connection
+The first attempt to send somethingto the Informer 213 was a success. Sending 40h 93h which a SNRM with pol bit sent yielded a 40h 73h in return which is a UA, or  Unnumbered Acknowledge. All with correct CRC bytes. Then also a 40h 11h, which a RR, or Receiver Ready with a poll bit set, gave a 40h 11h in return which means RR response. All good!
+
+Next step is to do some test integration into the comm3705.c code to connect to the serial port which then talks to my adapter. 
+
+### API
+
+The SDLCbridge is using a leading 0xff to indicate a command. The following code is descrbed below.
+
+#### Send end flag
+
+Code: 0xef
+
+#### Send Abort
+
+Code: 0xfe
+
+#### Send actual 0xff
+
+Code: 0xff
+
+#### Set baud rate
+
+Code: 0xff
+
+A third byte is an argument. It takes a value 0x00 to 0x11 hexadecimal
+
+| Argument | Baud rate | 
+|----------|-----------|
+|   0x00   |   1       |
+|   0x01   |  10       |
+|   0x02   |  50       |
+|   0x03   | 150       |
+|   0x04   | 300       | 
+|   0x05   | 600       |
+|   0x06   | 1200      |
+|   0x07   | 2400      |
+|   0x08   | 4800      |
+|   0x09   | 9600      |
+|   0x0A   | 19200     |
+|   0x0B   | 38400     |
+|   0x0C   | 57600     |
+|   0x0D   | 64000     |
+|   0x0E   | 115200    |
+|   0x0F   | 250000    |
+|   0x10   | 500000    |
+|   0x11   | 1000000   |
+
+#### Set interface signal 
+
+Code 0xf1
+
+| Argument |  Pin      |
+|----------|-----------|
+|   0x00   |  RFS/CTS  |
+|   0x01   |  DSR      |
+|   0x02   |  DCD      |
+|   0x03   |  RI       |
+
+#### Clear interface signal
+
+Code 0xf2
+
+| Argument |  Pin      |
+|----------|-----------|
+|   0x00   |  RFS/CTS  |
+|   0x01   |  DSR      |
+|   0x02   |  DCD      |
+|   0x03   |  RI       |
+
+#### Report interface signal status
+
+Code: 0xf3
+
+| Argument |  Pin      |
+|----------|-----------|
+|   0x00   |  DTR      |
+|   0x01   |  RTS      |
+
+A three byte sequence will be sent back with a leading 0xff command indicator byte.
+The second byte is 0xF4 and the third byte is the actual value of the signal requested. 0x00 if signal is clear or 0x01 if signal is set.
+
+# Old stuff
+
+This is old stuff that is not relevant any longer since the current idea is to use the IBM 3705 Emulator created by Henk & Edwin.
 
 ## VTAM configuration
 I use the TK4- MVS distribution as the basis for all experimentation. But the existing configuration of VTAM in TK4- is more complex than necessary, possibly to include a number of features avaiable in the comm3705 code of Hercules. First it defines remote 3705 nodes. Something that is not really necessary and secondly it also add a Switched SNA Major Node configuration. To have an as simple VTAM configuration I have been trying to create a config with one single channel attached local 3705 communictation controller and one single terminal attached (through a 3274 or similar).
@@ -606,191 +798,6 @@ I had an exchange of with an [expert in SAN / SDLC / VTAM](http://www.lightlink.
 So the basic idea is to do some rudimentary testing using the STM32 sending a SNRM message, waiting for the UA frame acknowledgment and thensend an ACTPU to activate the PU inside the terminal (i.e. the 3274).
 
 
-### SDLC implementation in STM32 Blue pill - Tx
-
-The general idea is to receive frames over serial line from Hercules. 
-
-There is an End Of Record (EOR) in the data received which indicate when to insert CRC bytes and generate closing flag. Just as little safty measure there is a simple checksum in the serial protcols. ~~The byte just before the EOR is the checksum byte and should be the sum of bytes received until then. When everything is OK the sum should be zero when the EOR is received. If not zeros a REJECT is sent back. A REJECT is 0xff 0xfd. If the frame is OK then 0xff 0xfe is sent back when the frame has been sent. A timeout is needed on the sending side as well. It has to be related to the actual sending speed.~~ It turns out that including the escape in the checksum process will not work since you might end up with 0xff as the checksum and then you need to escape it which will then affect the checksum... An data 0xff has to be escaped with double 0xff to work.
-
-Data is then formatted into HDLC and moved into a sending buffer. The SPI routine checks is there are possible to send a byte from the buffer. Whenever it SPI interface is empty a new byte is read from the buffer and written to the SPI interface. When the sending buffer is empty the SPI will continue to send 0xff to indicate IDLE condition. 
-
-As data is received and de-escaped it is handled by the hdlc formatting routine. It takes has several states. In state IDLE when receiving a character it will start the frame by sending a flag. Then it will transfer to state FLAG SENT. In FLAG SENT all bytes are processed bit by bit, from ~~MSB to LSB~~ LSB to MSB. If the bit is a zero the output data byte will be shifted one step ~~left~~ right, thus shufting in a 0. If the bit is a one there is a counter that counts the number of ones that has been sent already. If this counter is five then a zero bit is inserted prior to shifting in the one bit. The counter is reset to zero at this time.
-
-There is also a bit counter that counts from 0 to 8. It counts each bit shifted in into the one byte output buffer. When 8 bits has been shifted in, including extra zeroes that has been inserted, it will transfer the byte to the output buffer queue for sending. The bit counter will then be reset to zero again.  
-
-When all data has been sent there might be a number of residual bits that has not yet been sent in the output buffer byte depening on how many extra zeroes that has been inserted. If this is the case the flag byte will be shifted in rather than just sent directly. To fill up to 8 full bits idle one bits will be shifted in after the flag byte prior to moving it to the output sending buffer.
-
-### SDLC implementation in STM32 Blue pill - Rx
-
-Since receiving is a time critical task bytes has to be received from the SPI interface immediately and put into a buffer. All SDLC processing code will read byte by byte from the buffer rather than from the SPI device to minimize the risk for overrun. To further improve this DMA can be used to transfer the data without involving the CPU at all. Will be invesigated in the future.
-
-The SDLC processor has two states, IDLE and ACTIVE. IDLE when it is waiting for receiving the flag and ACTIVE when receiving data. As with transmit each byte is scanned from LSB to MSB. If a bit is a 1 then oneCounter is incremented. If oneCounter is 6 and the current bit is 0 then we have a flag. Then we switch states, either from IDLE to ACTIVE or from ACTIVE to IDLE. If in ACTIVE state and oneCounter is 6 and we receive a 1 then we have an abort. The current frame shall be discarded and state goes to IDLE.
-In ACTIVE state and oneCounter is 5 and current bit is 0 it means that this is an inserted 0 bit. This shall be disregarded from. Thus do nothing. In all other cases when in ACTIVE state it shall copy the current bit into the input byte buffer, shifting it in to the right from MSB to LSB. The bitCounter is incremented at each time. If the bitCounter is 8 then the current input byte is transfered to the buffer and the bitCounter is reset to 0.
-
-When in ACTIVE state and a flag is received, this means that the current frame is terminated and that it shall be processed by next layer. Thus a variable is signalling that the current frame is ready for processing.
-
-The data that has been processed by the SDLC input processor is then read from the buffer by the task that frames data for sending over the serial line. This is simply reading the stream of bytes and inserting escaping 0xff characters whenever necessary. The EOR marker will be sent as the last couple of characters.
-
-### Debugging
-
-This involved writing a couple of test programs to be found unser the Utils/BSCGateway/test; SDLCBridgeTest and SDLCBridgeSerialTest. The former wraps the arduino sketch so it can be run loopbacked in a Linux environment. The latter is a Linux program that sends messages over the serial port and excpects them to be loopbacked.
-
-A lot of small issues was rooted out this way. Using various amount of logging inside the code. Since all logging is done over the USB serial port in the Arduino environment there were heavy load on it. The bufferes overflow and there were loss of logging. The solution was to increase USB bufferes substantially. It can be done by changing the values in the file "Documents \ Arduino \ Hardware \ Arduino_STM32 \ STM32F1 \ cores \ maple \ libmaple \ usb \ stm32f1 \ usb_cdcacm.c"
-
-But the final test has to be done with real hardware. Since earlier I have been using the Ericsson TWIB board hooked up to a STM32F103 Blue Pill. The same test setup was used this time connecting it back to back with the SDLCBridge.
-
-![Debugging with TWIB board](https://i.imgur.com/e9XisGPl.jpg)
-
-A few more problems were rooted out. Especially handling of idle flags which were a sequence 0111111001111110... rather than expected 011111101111110... Then handling of bit patterns that were not aligined on a byte boundry didn't work very well. Problems here were expected since there had been not been covered by previous tests.
-
-### CRC
-To get the CRC right always become a problem. Is it LSB first? MSB first? Initial value? In this case in theory the algorithm should be quite well known. IBM SDLC CRC, initial value 0xffff.
-
-Use of CRC reveng for a number of messages sent from a actual Intel 8274 chip:
-```
-$ ./reveng -w 16 -s 409333ef 21433345 6664e01b cc190de1
-width=16  poly=0x1021  init=0xffff  refin=true  refout=true  xorout=0xffff  check=0x906e  residue=0xf0b8  name="CRC-16/IBM-SDLC"
-```
-```
-$ ./reveng -c -m CRC-16/IBM-SDLC 4093
-33ef
-$ ./reveng -c -m CRC-16/IBM-SDLC 2143
-3345
-$ ./reveng -c -m CRC-16/IBM-SDLC 6664
-e01b
-$ ./reveng -c -m CRC-16/IBM-SDLC cc19
-0de1
-```
-Yes. We get the right check digits when we use this algorithm.
-
-```
-$ ./reveng -c -m CRC-16/IBM-SDLC 409333ef
-470f
-$ ./reveng -c -m CRC-16/IBM-SDLC 21433345
-470f
-$ ./reveng -c -m CRC-16/IBM-SDLC 6664e01b
-470f
-$ ./reveng -c -m CRC-16/IBM-SDLC cc190de1
-470f
-```
-But the sum of the full buffer is not 0? Or 0xffff? Which I thought would be reasonable. No. For IBM SDLC CRC the value remaining in the crc variable should be f0b8. Actually the same value stated by CRC reveng. But 470f is not f0b8? If we invert the bits we get b8f0. And then transpose the bytes. Voila f0b8! But why CRC reveng claims that value to be 470f? I have no idea.  
-
-Using the standard CRC algorithm yields the same result. f0b8. So I think the CRC issue is settled.
-
-### Informer 213
-
-Pinout of the DB25 connector on the back on the terminal.
-
-| DSUB Female DB25 | Function | Tx / Rx |
-|------------------|----------|---------|
-|     1            | GND      |         |
-|     2            |  TD      |  Tx     |
-|     3            |  RD      |  Rx     |
-|     4            |  RTS     |  Tx     |
-|     5            |  CTS     |  Rx     |
-|     6            |  DSR     |  Rx     |
-|     7            |  GND     |         |
-|     8            |  DCD     |  Rx     |
-|    15            |  TSET    |  Rx     |
-|    17            |  RSET    |  Rx     |
-|    20            |  DTR     |  Tx     |
-
-All others are Not Connected.
-
-### Improvements
-
-Listed below is a set  of items to improve on in the software.
-
-* Add escaped command to set the baudrate. 0.1 BPS, 1 BPS, 30 BPS, 300 BPS, 600, BPS, 1200 BPS, 2400 BPS, 4800 BPS, 9600, BPS, 19200 BPS, 38400 BPS, 115200 BPS.
-* Add individual commands to set the state of the DSR, CTS and DCD signals sent from the DCE.
-* Add a possibility for the device to send a status signal when the state of DTE signals DTR and RTS is changed.
-* Add a command that requests a response for the actual status for the signals mentioned above.
-* The transmitter should be able to send continuous flags when not sending rather than going to marking state. Add two modes. Either go idle or send flags.
-* In send flags mode it should be possible to send a command that forces the interface to go to idle with line i marking state.
-
-Continous flag sending is implmented by a check that is done in the mainloop. If the level of bytes is under a certain level we call a sendFlag routine that shifts in a 0 and 6 ones. This is done until the level in the sending buffer is OK.
-
-### We have a connection
-The first attempt to send somethingto the Informer 213 was a success. Sending 40h 93h which a SNRM with pol bit sent yielded a 40h 73h in return which is a UA, or  Unnumbered Acknowledge. All with correct CRC bytes. Then also a 40h 11h, which a RR, or Receiver Ready with a poll bit set, gave a 40h 11h in return which means RR response. All good!
-
-Next step is to do some test integration into the comm3705.c code to connect to the serial port which then talks to my adapter. 
-
-### API
-
-The SDLCbridge is using a leading 0xff to indicate a command. The following code is descrbed below.
-
-#### Send end flag
-
-Code: 0xef
-
-#### Send Abort
-
-Code: 0xfe
-
-#### Send actual 0xff
-
-Code: 0xff
-
-#### Set baud rate
-
-Code: 0xff
-
-A third byte is an argument. It takes a value 0x00 to 0x11 hexadecimal
-
-| Argument | Baud rate | 
-|----------|-----------|
-|   0x00   |   1       |
-|   0x01   |  10       |
-|   0x02   |  50       |
-|   0x03   | 150       |
-|   0x04   | 300       | 
-|   0x05   | 600       |
-|   0x06   | 1200      |
-|   0x07   | 2400      |
-|   0x08   | 4800      |
-|   0x09   | 9600      |
-|   0x0A   | 19200     |
-|   0x0B   | 38400     |
-|   0x0C   | 57600     |
-|   0x0D   | 64000     |
-|   0x0E   | 115200    |
-|   0x0F   | 250000    |
-|   0x10   | 500000    |
-|   0x11   | 1000000   |
-
-#### Set interface signal 
-
-Code 0xf1
-
-| Argument |  Pin      |
-|----------|-----------|
-|   0x00   |  RFS/CTS  |
-|   0x01   |  DSR      |
-|   0x02   |  DCD      |
-|   0x03   |  RI       |
-
-#### Clear interface signal
-
-Code 0xf2
-
-| Argument |  Pin      |
-|----------|-----------|
-|   0x00   |  RFS/CTS  |
-|   0x01   |  DSR      |
-|   0x02   |  DCD      |
-|   0x03   |  RI       |
-
-#### Report interface signal status
-
-Code: 0xf3
-
-| Argument |  Pin      |
-|----------|-----------|
-|   0x00   |  DTR      |
-|   0x01   |  RTS      |
-
-A three byte sequence will be sent back with a leading 0xff command indicator byte.
-The second byte is 0xF4 and the third byte is the actual value of the signal requested. 0x00 if signal is clear or 0x01 if signal is set.
 
 ## Links
 
