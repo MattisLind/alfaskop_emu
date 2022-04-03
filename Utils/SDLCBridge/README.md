@@ -199,7 +199,7 @@ The second byte is 0xF4 and the third byte is the actual value of the signal req
 ### SNA
 
 * [SNA Introduction to Sessions Between Logical Units](http://bitsavers.trailing-edge.com/pdf/ibm/sna/GC20-1869-2_SNA_Introduction_to_Sessions_Between_Logical_Units_Dec79.pdf)
-* [Systems Network Architecture Reference Summary](http://www.bitsavers.org/pdf/ibm/sna/GA27-3136-2_Systems_Network_Architecture_Reference_Summary_Oct78.pdf)
+* [Systems Network Architecture Reference Summary](http://www.bitsavers.org/pdf/ibm/sna/GA27-3136-2_Systems_Network_Architecture_Reference_Summary_197810.pdf)
 * [SNA Technical Overview](http://www.bitsavers.org/pdf/ibm/sna/GC30-3073-1_Systems_Network_Architecture_Technical_Overview_May85.pdf)
 ### VTAM
 * [Introduction to VTAM](http://www.bitsavers.org/pdf/ibm/sna/vtam/GC27-6987-5_Introduction_to_VTAM_Apr76.pdf)
