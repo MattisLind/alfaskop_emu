@@ -211,6 +211,7 @@ The second byte is 0xF4 and the third byte is the actual value of the signal req
 ### SDLC
 * [SDLC General Information](http://bitsavers.informatik.uni-stuttgart.de/pdf/ibm/datacomm/GA27-3093-2_SDLC_General_Information_Mar79.pdf)
 * [SDLC Concepts](http://bitsavers.informatik.uni-stuttgart.de/pdf/ibm/datacomm/GA27-3093-3_SDLC_Concepts_Jun86.pdf)
+* [SNA / SDLC cheat sheet](http://bitsavers.org/pdf/ibm/sna/Questronics_SNA_SDLC_Pocket_Card_1981.pdf)
 
 ### NCP
 * [IBM 3705 Communicatons Controller Network Control Program Generation and Utilities, Guide and Reference Manual](http://bitsavers.org/pdf/ibm/3704_3705/GC30-3000_3705_NCPGEN_Apr72.pdf)
