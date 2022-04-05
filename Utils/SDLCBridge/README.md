@@ -4,6 +4,10 @@ This is an attempt to interface a Informer 213, a portable 3178 compatible termi
 This terminal needs a SDLC compatible interface. ~~This project also discusses how to create the relevant configuration in the MVS / VTAM environment
 to achieve this and what changes is needed to the comm3705 module in Hercules.~~ The new solution is based on the IBM 3705 emulator created by Henk & Edwin which I have [forked](https://github.com/MattisLind/IBM3705) and adapted to work with the SDLCBridge.
 
+Below is a video clip showing when connecting to a Linux laptop running the Hercules emulator.
+
+[![Watch the video](https://img.youtube.com/vi/TscJ_R0a5i4/maxresdefault.jpg)](https://youtu.be/TscJ_R0a5i4)
+
 This make it unnecessary to modify the Hercules system and thus the information in the section "Old stuff" relating to this is not relevent for this project any longer. It is kept here as a reference only.
 
 ![Informer 213](https://i.imgur.com/M9zcy7E.png)
